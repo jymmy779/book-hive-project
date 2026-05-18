@@ -145,25 +145,12 @@ module.exports.featured = async (req, res) => {
 // [GET] /api/v1/books/newest
 module.exports.newest = async (req, res) => {
   try {
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    let books = await Book.find({
+    const books = await Book.find({
       deleted: false,
       status: "active",
-      createdAt: { $gte: thirtyDaysAgo },
     })
       .sort({ createdAt: -1 })
       .limit(10);
-
-    if (books.length === 0) {
-      books = await Book.find({
-        deleted: false,
-        status: "active",
-      })
-        .sort({ createdAt: -1 })
-        .limit(10);
-    }
 
     return res.status(200).json({
       message: "Thành công!",

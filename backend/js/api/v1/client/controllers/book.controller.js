@@ -131,23 +131,12 @@ module.exports.featured = (req, res) => __awaiter(void 0, void 0, void 0, functi
 });
 module.exports.newest = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        let books = yield Book.find({
+        const books = yield Book.find({
             deleted: false,
             status: "active",
-            createdAt: { $gte: thirtyDaysAgo },
         })
             .sort({ createdAt: -1 })
             .limit(10);
-        if (books.length === 0) {
-            books = yield Book.find({
-                deleted: false,
-                status: "active",
-            })
-                .sort({ createdAt: -1 })
-                .limit(10);
-        }
         return res.status(200).json({
             message: "Thành công!",
             total: books.length,

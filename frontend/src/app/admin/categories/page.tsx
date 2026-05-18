@@ -119,22 +119,33 @@ export default function Categories() {
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    try {
-      await axios.patch(
-        `${API_URL}/api/v1/${ADMIN_PREFIX}/categories/delete/${deleteId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          withCredentials: true,
+    const idToDelete = deleteId;
+
+    // Close modal immediately for instant UI feedback
+    setDeleteId(null);
+
+    const deletePromise = axios.patch(
+      `${API_URL}/api/v1/${ADMIN_PREFIX}/categories/delete/${idToDelete}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
         },
-      );
-      setDeleteId(null);
+        withCredentials: true,
+      },
+    );
+
+    toast.promise(deletePromise, {
+      pending: "Đang xóa thể loại...",
+      success: "Xóa thể loại thành công!",
+      error: "Xóa thể loại thất bại",
+    });
+
+    try {
+      await deletePromise;
       fetchData();
-      toast.success("Xóa thể loại thành công!");
     } catch (error) {
-      toast.error("Xóa thể loại thất bại");
+      console.error(error);
     }
   };
 

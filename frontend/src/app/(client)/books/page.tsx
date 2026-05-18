@@ -80,30 +80,27 @@ export default function Books() {
   };
 
   // xử lí load data cùng với lọc và tìm kiếm
-  const fetchData = useCallback(
-    debounce(() => {
-      setLoading(true);
-      setBooks([]);
-      axios
-        .get(`${API_URL}/api/v1/books`, {
-          params: {
-            ...(keyword && { keyWord: keyword }),
-            ...(sort && { sortKey: sort.key, sortValue: sort.value }),
-            page,
-            limit,
-          },
-        })
-        .then((res) => {
-          setBooks(res.data.books || []);
-          setTotal(res.data.total || 0);
-        })
-        .catch(() => setBooks([]))
-        .finally(() => {
-          setLoading(false);
-        });
-    }, 400),
-    [sort, keyword, page],
-  );
+  const fetchData = useCallback(() => {
+    setLoading(true);
+    setBooks([]);
+    axios
+      .get(`${API_URL}/api/v1/books`, {
+        params: {
+          ...(keyword && { keyWord: keyword }),
+          ...(sort && { sortKey: sort.key, sortValue: sort.value }),
+          page,
+          limit,
+        },
+      })
+      .then((res) => {
+        setBooks(res.data.books || []);
+        setTotal(res.data.total || 0);
+      })
+      .catch(() => setBooks([]))
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [sort, keyword, page]);
 
   useEffect(() => {
     fetchData();

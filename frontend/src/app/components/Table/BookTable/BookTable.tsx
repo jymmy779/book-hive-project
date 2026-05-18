@@ -106,7 +106,7 @@ export default function BookTable({
                   <Image
                     width={400}
                     height={400}
-                    src={book.image}
+                    src={book.image || "/book-hive.jpg"}
                     alt={book.title}
                     loading="lazy"
                     className="w-16 h-16 object-cover rounded bg-gray-100"

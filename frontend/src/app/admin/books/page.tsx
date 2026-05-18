@@ -125,22 +125,33 @@ export default function Books() {
   // hàm xóa 1 item
   const handleDelete = async () => {
     if (!deleteId) return;
-    try {
-      await axios.patch(
-        `${API_URL}/api/v1/${ADMIN_PREFIX}/books/delete/${deleteId}`,
-        {},
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          withCredentials: true,
+    const idToDelete = deleteId;
+    
+    // Close modal immediately for instant UI feedback
+    setDeleteId(null);
+
+    const deletePromise = axios.patch(
+      `${API_URL}/api/v1/${ADMIN_PREFIX}/books/delete/${idToDelete}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
         },
-      );
-      setDeleteId(null);
+        withCredentials: true,
+      },
+    );
+
+    toast.promise(deletePromise, {
+      pending: "Đang xóa sách...",
+      success: "Xóa sách thành công!",
+      error: "Xóa sách thất bại",
+    });
+
+    try {
+      await deletePromise;
       fetchData();
-      toast.success("Xóa sách thành công!");
     } catch (error) {
-      toast.error("Xóa sách thất bại");
+      console.error(error);
     }
   };
 

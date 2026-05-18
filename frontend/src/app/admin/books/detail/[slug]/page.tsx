@@ -58,13 +58,17 @@ export default function BookDetail() {
 
           <div className="w-full mb-[48px] max-w-4xl grid grid-cols-1 md:grid-cols-2 gap-12 bg-transparent">
             <div className="bg-white rounded-2xl p-10 text-center shadow-md flex flex-col items-center justify-center">
-              <Image
-                src={book.image}
-                alt={book.title}
-                className="w-full h-full object-cover rounded-lg"
-                width={400}
-                height={400}
-              />
+              {book.image && book.image !== "" ? (
+                <Image
+                  src={book.image}
+                  alt={book.title}
+                  className="w-full h-full object-cover rounded-lg"
+                  width={400}
+                  height={400}
+                />
+              ) : (
+                <div className="text-8xl md:text-[128px] mb-6">📚</div>
+              )}
             </div>
             <div>
               <h1 className="text-2xl font-bold mb-3 text-primary">

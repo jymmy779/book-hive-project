@@ -42,7 +42,7 @@ export default function DetailClient({ book }: DetailClientProps) {
         <div className="max-w-4xl mx-auto mt-12 md:mt-0">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-12 mb-8 md:mb-12">
             <div className="bg-white rounded-2xl p-6 md:p-10 text-center shadow flex flex-col items-center justify-center">
-              {book.image ? (
+              {book.image && book.image !== "" ? (
                 <Image
                   src={book.image}
                   alt={book.title}

@@ -16,10 +16,9 @@ export function usePageChange(
     } else {
       params.delete("page");
     }
-    if (side === "admin") {
-      router.push(`/admin/${source}?${params.toString()}`);
-    } else {
-      router.push(`/${source}?${params.toString()}`);
-    }
+    const newUrl = side === "admin"
+      ? `/admin/${source}?${params.toString()}`
+      : `/${source}?${params.toString()}`;
+    window.history.pushState(null, "", newUrl);
   };
 }

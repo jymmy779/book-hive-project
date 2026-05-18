@@ -43,18 +43,20 @@ module.exports.index = async (req, res) => {
     const total = await Book.countDocuments(find);
 
     if (books && books.length > 0) {
-      const booksWithCategory = [];
-
-      for (const book of books) {
-        const bookObj = book.toObject();
-        if (book.category_id) {
-          const category = await Category.findOne({
-            _id: book.category_id,
-          }).select("title");
-          bookObj.category_name = category.title;
-        }
-        booksWithCategory.push(bookObj);
-      }
+      const booksWithCategory = await Promise.all(
+        books.map(async (book) => {
+          const bookObj = book.toObject();
+          if (book.category_id) {
+            const category = await Category.findOne({
+              _id: book.category_id,
+            }).select("title");
+            if (category) {
+              bookObj.category_name = category.title;
+            }
+          }
+          return bookObj;
+        })
+      );
 
       return res.status(200).json({
         message: "Thành công!",
@@ -143,9 +145,11 @@ module.exports.changeMulti = async (req, res) => {
         const booksLeft = await Book.find({ deleted: false }).sort({
           position: 1,
         });
-        for (let i = 0; i < booksLeft.length; i++) {
-          await Book.updateOne({ _id: booksLeft[i]._id }, { position: i + 1 });
-        }
+        await Promise.all(
+          booksLeft.map((book, i) =>
+            Book.updateOne({ _id: book._id }, { position: i + 1 })
+          )
+        );
 
         return res.status(200).json({
           message: `Đã xóa ${ids.length} sách!`,
@@ -194,22 +198,26 @@ module.exports.changeMulti = async (req, res) => {
 
         // Nếu gửi nhiều item
         //Cập nhật vị trí cho các sách đã chọn
-        for (let i = 0; i < ids.length; i++) {
-          const [id, newPosStr] = ids[i].split("-");
-          const newPos = parseInt(newPosStr);
-          await Book.updateOne(
-            { _id: id },
-            { position: newPos, updatedBy: req.user.id },
-          );
-        }
+        await Promise.all(
+          ids.map((item) => {
+            const [id, newPosStr] = item.split("-");
+            const newPos = parseInt(newPosStr);
+            return Book.updateOne(
+              { _id: id },
+              { position: newPos, updatedBy: req.user.id },
+            );
+          })
+        );
 
         // Sắp xếp lại vị trí cho tất cả sách để tránh trùng/thiếu
         const allBooks = await Book.find({ deleted: false }).sort({
           position: 1,
         });
-        for (let i = 0; i < allBooks.length; i++) {
-          await Book.updateOne({ _id: allBooks[i]._id }, { position: i + 1 });
-        }
+        await Promise.all(
+          allBooks.map((book, i) =>
+            Book.updateOne({ _id: book._id }, { position: i + 1 })
+          )
+        );
 
         const books = await Book.find({ deleted: false }).sort({ position: 1 });
         return res.status(200).json({
@@ -249,9 +257,11 @@ module.exports.delete = async (req, res) => {
     const booksLeft = await Book.find({ deleted: false }).sort({
       position: 1,
     });
-    for (let i = 0; i < booksLeft.length; i++) {
-      await Book.updateOne({ _id: booksLeft[i]._id }, { position: i + 1 });
-    }
+    await Promise.all(
+      booksLeft.map((book, i) =>
+        Book.updateOne({ _id: book._id }, { position: i + 1 })
+      )
+    );
 
     return res.status(200).json({
       message: "Xóa thành công!",
@@ -266,6 +276,9 @@ module.exports.delete = async (req, res) => {
 // [POST] /api/v1/admin/books/create
 module.exports.create = async (req, res) => {
   try {
+    console.log("--- CREATE BOOK LOGS ---");
+    console.log("req.file:", req.file);
+    console.log("req.body:", req.body);
     let { position, title, ...newBookData } = req.body;
 
     const slug = slugify(title, { lower: true, strict: true, locale: "vi" });
@@ -275,7 +288,7 @@ module.exports.create = async (req, res) => {
     // Lấy link ảnh từ file upload
     let image = "";
     if (req.file) {
-      image = req.file.path;
+      image = req.file.path || req.file.url || req.file.secure_url || "";
     }
 
     const maxBook = await Book.findOne({
@@ -367,7 +380,7 @@ module.exports.edit = async (req, res) => {
       updateData.image = book.image;
     }
     if (req.file) {
-      updateData.image = req.file.path;
+      updateData.image = req.file.path || req.file.url || req.file.secure_url || "";
     }
 
     if (req.body.title) {
@@ -421,4 +434,4 @@ module.exports.detail = async (req, res) => {
   }
 };
 
-export {};
+export { };

@@ -125,12 +125,14 @@ module.exports.changeMulti = async (req, res) => {
         const accountsLeft = await Account.find({ deleted: false }).sort({
           position: 1,
         });
-        for (let i = 0; i < accountsLeft.length; i++) {
-          await Account.updateOne(
-            { _id: accountsLeft[i]._id },
-            { position: i + 1 },
-          );
-        }
+        await Promise.all(
+          accountsLeft.map((account, i) =>
+            Account.updateOne(
+              { _id: account._id },
+              { position: i + 1 }
+            )
+          )
+        );
 
         return res.status(200).json({
           message: `Đã xóa ${ids.length} tài khoản!`,
@@ -157,7 +159,7 @@ module.exports.create = async (req, res) => {
     // Lấy link ảnh từ file upload
     let avatar = "";
     if (req.file) {
-      avatar = req.file.path;
+      avatar = req.file.path || req.file.url || req.file.secure_url || "";
     }
 
     // Mã hóa mật khẩu trước khi lưu
@@ -225,7 +227,7 @@ module.exports.edit = async (req, res) => {
       updateData.image = account.image;
     }
     if (req.file) {
-      updateData.image = req.file.path;
+      updateData.image = req.file.path || req.file.url || req.file.secure_url || "";
     }
 
     if (req.body.title) {

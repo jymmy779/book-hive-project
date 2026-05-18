@@ -6,6 +6,10 @@ const storage = new CloudinaryStorage({
     params: {
         folder: "book-store",
         allowed_formats: ["jpg", "png", "jpeg", "webp"],
+        transformation: [
+            { quality: "auto" },
+            { fetch_format: "auto" }
+        ]
     },
 });
 const upload = multer({ storage: storage });

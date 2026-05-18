@@ -118,21 +118,33 @@ export default function Accounts() {
 
   const handleDelete = async () => {
     if (!deleteId) return;
-    try {
-      await axios.patch(
-        `${API_URL}/api/v1/${ADMIN_PREFIX}/accounts/delete/${deleteId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-          withCredentials: true,
+    const idToDelete = deleteId;
+
+    // Close modal immediately for instant UI feedback
+    setDeleteId(null);
+
+    const deletePromise = axios.patch(
+      `${API_URL}/api/v1/${ADMIN_PREFIX}/accounts/delete/${idToDelete}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
         },
-      );
-      setDeleteId(null);
+        withCredentials: true,
+      },
+    );
+
+    toast.promise(deletePromise, {
+      pending: "Đang xóa tài khoản...",
+      success: "Xóa tài khoản thành công!",
+      error: "Xóa tài khoản thất bại",
+    });
+
+    try {
+      await deletePromise;
       fetchData();
-      toast.success("Xóa vai trò thành công!");
     } catch (error) {
-      toast.error("Xóa vai trò thất bại");
+      console.error(error);
     }
   };
 

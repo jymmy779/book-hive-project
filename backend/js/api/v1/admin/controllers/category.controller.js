@@ -116,9 +116,7 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 const categoriesLeft = yield Category.find({ deleted: false }).sort({
                     position: 1,
                 });
-                for (let i = 0; i < categoriesLeft.length; i++) {
-                    yield Category.updateOne({ _id: categoriesLeft[i]._id }, { position: i + 1 });
-                }
+                yield Promise.all(categoriesLeft.map((category, i) => Category.updateOne({ _id: category._id }, { position: i + 1 })));
                 return res.status(200).json({
                     message: `Đã xóa ${ids.length} thể loại!`,
                 });
@@ -151,17 +149,15 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
                         categories: categories,
                     });
                 }
-                for (let i = 0; i < ids.length; i++) {
-                    const [id, newPosStr] = ids[i].split("-");
+                yield Promise.all(ids.map((item) => {
+                    const [id, newPosStr] = item.split("-");
                     const newPos = parseInt(newPosStr);
-                    yield Category.updateOne({ _id: id }, { position: newPos, updatedBy: req.user.id });
-                }
+                    return Category.updateOne({ _id: id }, { position: newPos, updatedBy: req.user.id });
+                }));
                 const allCategories = yield Category.find({ deleted: false }).sort({
                     position: 1,
                 });
-                for (let i = 0; i < allCategories.length; i++) {
-                    yield Category.updateOne({ _id: allCategories[i]._id }, { position: i + 1 });
-                }
+                yield Promise.all(allCategories.map((category, i) => Category.updateOne({ _id: category._id }, { position: i + 1 })));
                 const categories = yield Category.find({ deleted: false }).sort({
                     position: 1,
                 });
@@ -189,9 +185,7 @@ module.exports.delete = (req, res) => __awaiter(void 0, void 0, void 0, function
         const categoriesLeft = yield Category.find({ deleted: false }).sort({
             position: 1,
         });
-        for (let i = 0; i < categoriesLeft.length; i++) {
-            yield Category.updateOne({ _id: categoriesLeft[i]._id }, { position: i + 1, updatedBy: req.user.id });
-        }
+        yield Promise.all(categoriesLeft.map((category, i) => Category.updateOne({ _id: category._id }, { position: i + 1, updatedBy: req.user.id })));
         return res.status(200).json({
             message: "Xóa thành công!",
         });

@@ -45,7 +45,7 @@ export const BookCard = ({
           )}
           <div className="mb-2 h-[140px] sm:h-[160px] md:h-[190px] object-cover shrink-0">
             <Image
-              src={book.image}
+              src={book.image || "/book-hive.jpg"}
               className="w-full h-full object-cover rounded-[10px]"
               alt={book.title}
               loading="lazy"

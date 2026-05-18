@@ -59,8 +59,6 @@ export default function CategoryForm({
               "searchreplace",
               "autolink",
               "fullscreen",
-              "paste",
-              "textcolor",
             ],
             toolbar: `
               undo redo | bold italic underline strikethrough |

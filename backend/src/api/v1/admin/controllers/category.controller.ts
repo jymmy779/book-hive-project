@@ -125,12 +125,14 @@ module.exports.changeMulti = async (req, res) => {
         const categoriesLeft = await Category.find({ deleted: false }).sort({
           position: 1,
         });
-        for (let i = 0; i < categoriesLeft.length; i++) {
-          await Category.updateOne(
-            { _id: categoriesLeft[i]._id },
-            { position: i + 1 },
-          );
-        }
+        await Promise.all(
+          categoriesLeft.map((category, i) =>
+            Category.updateOne(
+              { _id: category._id },
+              { position: i + 1 }
+            )
+          )
+        );
 
         return res.status(200).json({
           message: `Đã xóa ${ids.length} thể loại!`,
@@ -181,25 +183,29 @@ module.exports.changeMulti = async (req, res) => {
 
         // Nếu gửi nhiều item
         //Cập nhật vị trí cho các thể loại đã chọn
-        for (let i = 0; i < ids.length; i++) {
-          const [id, newPosStr] = ids[i].split("-");
-          const newPos = parseInt(newPosStr);
-          await Category.updateOne(
-            { _id: id },
-            { position: newPos, updatedBy: req.user.id },
-          );
-        }
+        await Promise.all(
+          ids.map((item) => {
+            const [id, newPosStr] = item.split("-");
+            const newPos = parseInt(newPosStr);
+            return Category.updateOne(
+              { _id: id },
+              { position: newPos, updatedBy: req.user.id },
+            );
+          })
+        );
 
         // Sắp xếp lại vị trí cho tất cả thể loại để tránh trùng/thiếu
         const allCategories = await Category.find({ deleted: false }).sort({
           position: 1,
         });
-        for (let i = 0; i < allCategories.length; i++) {
-          await Category.updateOne(
-            { _id: allCategories[i]._id },
-            { position: i + 1 },
-          );
-        }
+        await Promise.all(
+          allCategories.map((category, i) =>
+            Category.updateOne(
+              { _id: category._id },
+              { position: i + 1 }
+            )
+          )
+        );
 
         const categories = await Category.find({ deleted: false }).sort({
           position: 1,
@@ -236,12 +242,14 @@ module.exports.delete = async (req, res) => {
     const categoriesLeft = await Category.find({ deleted: false }).sort({
       position: 1,
     });
-    for (let i = 0; i < categoriesLeft.length; i++) {
-      await Category.updateOne(
-        { _id: categoriesLeft[i]._id },
-        { position: i + 1, updatedBy: req.user.id },
-      );
-    }
+    await Promise.all(
+      categoriesLeft.map((category, i) =>
+        Category.updateOne(
+          { _id: category._id },
+          { position: i + 1, updatedBy: req.user.id }
+        )
+      )
+    );
 
     return res.status(200).json({
       message: "Xóa thành công!",

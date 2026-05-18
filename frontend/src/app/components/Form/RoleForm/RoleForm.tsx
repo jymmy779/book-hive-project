@@ -57,8 +57,6 @@ export default function RoleForm({
               "searchreplace",
               "autolink",
               "fullscreen",
-              "paste",
-              "textcolor",
             ],
             toolbar: `
               undo redo | bold italic underline strikethrough |

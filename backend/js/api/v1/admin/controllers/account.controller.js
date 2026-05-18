@@ -114,9 +114,7 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 const accountsLeft = yield Account.find({ deleted: false }).sort({
                     position: 1,
                 });
-                for (let i = 0; i < accountsLeft.length; i++) {
-                    yield Account.updateOne({ _id: accountsLeft[i]._id }, { position: i + 1 });
-                }
+                yield Promise.all(accountsLeft.map((account, i) => Account.updateOne({ _id: account._id }, { position: i + 1 })));
                 return res.status(200).json({
                     message: `Đã xóa ${ids.length} tài khoản!`,
                 });
@@ -138,7 +136,7 @@ module.exports.create = (req, res) => __awaiter(void 0, void 0, void 0, function
         const slug = slugify(fullName, { lower: true, strict: true, locale: "vi" });
         let avatar = "";
         if (req.file) {
-            avatar = req.file.path;
+            avatar = req.file.path || req.file.url || req.file.secure_url || "";
         }
         const hashedPassword = yield bcrypt.hash(password, 10);
         const newAcc = new Account(Object.assign(Object.assign({}, newAccData), { avatar,
@@ -191,7 +189,7 @@ module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             updateData.image = account.image;
         }
         if (req.file) {
-            updateData.image = req.file.path;
+            updateData.image = req.file.path || req.file.url || req.file.secure_url || "";
         }
         if (req.body.title) {
             updateData.slug = slugify(req.body.title, {

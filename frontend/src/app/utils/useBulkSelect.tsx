@@ -66,8 +66,6 @@ export function useBulkSelect(
         withCredentials: true,
       })
       .then(async () => {
-        const allItems = await fetchAllItems();
-        setEditedItems(allItems);
         await fetchData();
       });
 
@@ -85,11 +83,19 @@ export function useBulkSelect(
   const executeBulkDelete = async () => {
     if (pendingDeleteIds.length === 0) return;
 
+    const count = pendingDeleteIds.length;
+    const idsToDelete = [...pendingDeleteIds];
+
+    // Close modal and reset select state immediately for instant UI feedback
+    setPendingDeleteIds([]);
+    setSelectedIds([]);
+    setBulkValue("");
+
     const bulkPromise = axios
       .patch(
         `${API_URL}/api/v1/admin/${resource}/change-multi`,
         {
-          ids: pendingDeleteIds,
+          ids: idsToDelete,
           type: "delete_all",
         },
         {
@@ -100,21 +106,20 @@ export function useBulkSelect(
         },
       )
       .then(async () => {
-        const allItems = await fetchAllItems();
-        setEditedItems(allItems);
         await fetchData();
       });
 
     toast.promise(bulkPromise, {
       pending: "Đang xóa...",
-      success: `Xóa thành công ${pendingDeleteIds.length} ${label}!`,
+      success: `Xóa thành công ${count} ${label}!`,
       error: "Xóa thất bại!",
     });
 
-    await bulkPromise;
-    setPendingDeleteIds([]);
-    setSelectedIds([]);
-    setBulkValue("");
+    try {
+      await bulkPromise;
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return {

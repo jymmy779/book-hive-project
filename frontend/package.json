@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write .",
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "dependencies": {
     "@heroui/pagination": "^2.2.26",

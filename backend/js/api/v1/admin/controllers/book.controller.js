@@ -57,17 +57,18 @@ module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function*
             .populate("deletedBy", "fullName");
         const total = yield Book.countDocuments(find);
         if (books && books.length > 0) {
-            const booksWithCategory = [];
-            for (const book of books) {
+            const booksWithCategory = yield Promise.all(books.map((book) => __awaiter(void 0, void 0, void 0, function* () {
                 const bookObj = book.toObject();
                 if (book.category_id) {
                     const category = yield Category.findOne({
                         _id: book.category_id,
                     }).select("title");
-                    bookObj.category_name = category.title;
+                    if (category) {
+                        bookObj.category_name = category.title;
+                    }
                 }
-                booksWithCategory.push(bookObj);
-            }
+                return bookObj;
+            })));
             return res.status(200).json({
                 message: "Thành công!",
                 books: booksWithCategory,
@@ -133,9 +134,7 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 const booksLeft = yield Book.find({ deleted: false }).sort({
                     position: 1,
                 });
-                for (let i = 0; i < booksLeft.length; i++) {
-                    yield Book.updateOne({ _id: booksLeft[i]._id }, { position: i + 1 });
-                }
+                yield Promise.all(booksLeft.map((book, i) => Book.updateOne({ _id: book._id }, { position: i + 1 })));
                 return res.status(200).json({
                     message: `Đã xóa ${ids.length} sách!`,
                 });
@@ -166,17 +165,15 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
                         books: books,
                     });
                 }
-                for (let i = 0; i < ids.length; i++) {
-                    const [id, newPosStr] = ids[i].split("-");
+                yield Promise.all(ids.map((item) => {
+                    const [id, newPosStr] = item.split("-");
                     const newPos = parseInt(newPosStr);
-                    yield Book.updateOne({ _id: id }, { position: newPos, updatedBy: req.user.id });
-                }
+                    return Book.updateOne({ _id: id }, { position: newPos, updatedBy: req.user.id });
+                }));
                 const allBooks = yield Book.find({ deleted: false }).sort({
                     position: 1,
                 });
-                for (let i = 0; i < allBooks.length; i++) {
-                    yield Book.updateOne({ _id: allBooks[i]._id }, { position: i + 1 });
-                }
+                yield Promise.all(allBooks.map((book, i) => Book.updateOne({ _id: book._id }, { position: i + 1 })));
                 const books = yield Book.find({ deleted: false }).sort({ position: 1 });
                 return res.status(200).json({
                     message: `Cập nhật vị trí thành công cho ${ids.length} sách!`,
@@ -207,9 +204,7 @@ module.exports.delete = (req, res) => __awaiter(void 0, void 0, void 0, function
         const booksLeft = yield Book.find({ deleted: false }).sort({
             position: 1,
         });
-        for (let i = 0; i < booksLeft.length; i++) {
-            yield Book.updateOne({ _id: booksLeft[i]._id }, { position: i + 1 });
-        }
+        yield Promise.all(booksLeft.map((book, i) => Book.updateOne({ _id: book._id }, { position: i + 1 })));
         return res.status(200).json({
             message: "Xóa thành công!",
         });
@@ -222,12 +217,15 @@ module.exports.delete = (req, res) => __awaiter(void 0, void 0, void 0, function
 });
 module.exports.create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
+        console.log("--- CREATE BOOK LOGS ---");
+        console.log("req.file:", req.file);
+        console.log("req.body:", req.body);
         let _a = req.body, { position, title } = _a, newBookData = __rest(_a, ["position", "title"]);
         const slug = slugify(title, { lower: true, strict: true, locale: "vi" });
         const priceBuy = req.body.priceBuy ? Number(req.body.priceBuy) : 0;
         let image = "";
         if (req.file) {
-            image = req.file.path;
+            image = req.file.path || req.file.url || req.file.secure_url || "";
         }
         const maxBook = yield Book.findOne({
             deleted: false,
@@ -296,7 +294,7 @@ module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             updateData.image = book.image;
         }
         if (req.file) {
-            updateData.image = req.file.path;
+            updateData.image = req.file.path || req.file.url || req.file.secure_url || "";
         }
         if (req.body.title) {
             updateData.slug = slugify(req.body.title, {
