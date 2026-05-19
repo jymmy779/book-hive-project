@@ -32,7 +32,7 @@ export function useFetchDataAdmin({
   setLoading,
   setIsFirstLoad,
   source,
-}: UseFetchDataAdminParams) {
+}: UseFetchDataAdminParams): (() => void) & { cancel: () => void } {
   
   // Lưu tất cả các callbacks động vào ref để không bao giờ làm thay đổi identity của fetcher
   const callbacksRef = useRef({ onSuccess, setTotal, setLoading, setIsFirstLoad });

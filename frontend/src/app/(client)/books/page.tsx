@@ -104,7 +104,6 @@ export default function Books() {
 
   useEffect(() => {
     fetchData();
-    return fetchData.cancel;
   }, [fetchData]);
 
   useSyncParams(setPage, setSortValue, setSort);
