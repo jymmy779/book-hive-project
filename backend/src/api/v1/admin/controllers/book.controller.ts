@@ -132,13 +132,19 @@ module.exports.changeMulti = async (req, res) => {
           message: `Cập nhật trạng thái thành công ${ids.length} sách!`,
         });
       case "delete_all":
-        await Book.updateMany(
-          { _id: { $in: ids } },
-          {
-            deleted: true,
-            deletedAt: new Date(),
-            deletedBy: req.user.id,
-          },
+        const booksToDeleted = await Book.find({ _id: { $in: ids } });
+        await Promise.all(
+          booksToDeleted.map((b) =>
+            Book.updateOne(
+              { _id: b._id },
+              {
+                deleted: true,
+                deletedAt: new Date(),
+                deletedBy: req.user.id,
+                slug: `${b.slug}-deleted-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+              },
+            ),
+          ),
         );
 
         // Sau khi xóa, cập nhật lại position cho các sách còn lại
@@ -235,11 +241,14 @@ module.exports.changeMulti = async (req, res) => {
     });
   }
 };
-
 // [PATCH] /api/v1/admin/books/delete/:id
 module.exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
+
+    // Lấy thông tin sách để cập nhật slug tránh trùng lặp
+    const book = await Book.findById(id);
+    const deletedSlug = book ? `${book.slug}-deleted-${Date.now()}` : `deleted-${Date.now()}`;
 
     // xóa sách
     await Book.updateOne(
@@ -250,10 +259,9 @@ module.exports.delete = async (req, res) => {
         deleted: true,
         deletedBy: req.user.id,
         deletedAt: new Date(),
+        slug: deletedSlug,
       },
-    );
-
-    // Cập nhật lại position cho các sách còn lại
+    );    // Cập nhật lại position cho các sách còn lại
     const booksLeft = await Book.find({ deleted: false }).sort({
       position: 1,
     });
@@ -321,9 +329,15 @@ module.exports.create = async (req, res) => {
       message: "Tạo mới sản phẩm thành công!",
       newBook: newBook,
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("CREATE BOOK ERROR:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "Tên sách đã tồn tại, vui lòng chọn tên khác!",
+      });
+    }
     return res.status(400).json({
-      message: "Tạo mới sản phẩm thất bại",
+      message: "Tạo mới sản phẩm thất bại!",
     });
   }
 };
@@ -375,7 +389,12 @@ module.exports.edit = async (req, res) => {
       }
     }
 
-    const updateData: any = { ...req.body, position: newPos || oldPos };
+    const priceBuy = req.body.priceBuy ? Number(req.body.priceBuy) : 0;
+    const updateData: any = { 
+      ...req.body, 
+      position: newPos || oldPos,
+      priceBuy: priceBuy
+    };
     if (!req.file && (req.body.image === undefined || req.body.image === "")) {
       updateData.image = book.image;
     }
@@ -399,9 +418,15 @@ module.exports.edit = async (req, res) => {
     return res.status(200).json({
       message: "Cập nhật thông tin thành công!",
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("EDIT BOOK ERROR:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "Tên sách đã tồn tại, vui lòng chọn tên khác!",
+      });
+    }
     return res.status(400).json({
-      message: "Cập nhật thông tin thất bại",
+      message: "Cập nhật thông tin thất bại!",
     });
   }
 };

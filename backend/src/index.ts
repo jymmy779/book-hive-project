@@ -30,6 +30,14 @@ app.use(bodyParser.json());
 clientRoutesApiVer1(app);
 adminRoutesApiVer1(app);
 
+// Global Error Handler
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error("--- GLOBAL ERROR ---", err);
+  res.status(err.status || 400).json({
+    message: err.message || "Đã xảy ra lỗi!",
+  });
+});
+
 app.listen(port, () => {
   console.log(`Example app listening on port ${port}`);
 });

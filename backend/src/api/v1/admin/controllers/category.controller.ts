@@ -116,9 +116,19 @@ module.exports.changeMulti = async (req, res) => {
           message: `Cập nhật trạng thái thành công ${ids.length} thể loại!`,
         });
       case "delete_all":
-        await Category.updateMany(
-          { _id: { $in: ids } },
-          { deleted: true, deletedAt: new Date(), deletedBy: req.user.id },
+        const categoriesToDeleted = await Category.find({ _id: { $in: ids } });
+        await Promise.all(
+          categoriesToDeleted.map((c) =>
+            Category.updateOne(
+              { _id: c._id },
+              {
+                deleted: true,
+                deletedAt: new Date(),
+                deletedBy: req.user.id,
+                slug: `${c.slug}-deleted-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+              },
+            ),
+          ),
         );
 
         // Sau khi xóa, cập nhật lại position cho các thể loại còn lại
@@ -227,6 +237,10 @@ module.exports.delete = async (req, res) => {
   try {
     const id = req.params.id;
 
+    // Lấy thông tin thể loại để cập nhật slug tránh trùng lặp
+    const category = await Category.findById(id);
+    const deletedSlug = category ? `${category.slug}-deleted-${Date.now()}` : `deleted-${Date.now()}`;
+
     // xóa thể loại
     await Category.updateOne(
       {
@@ -235,6 +249,7 @@ module.exports.delete = async (req, res) => {
       {
         deleted: true,
         deletedBy: req.user.id,
+        slug: deletedSlug,
       },
     );
 
@@ -296,10 +311,16 @@ module.exports.create = async (req, res) => {
       message: "Tạo mới thể loại thành công!",
       newCategory: newCategory,
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("CREATE CATEGORY ERROR:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "Tên thể loại đã tồn tại, vui lòng chọn tên khác!",
+      });
+    }
     return res.status(400).json({
       error: error,
-      message: "Tạo mới thể loại thất bại",
+      message: "Tạo mới thể loại thất bại!",
     });
   }
 };
@@ -368,9 +389,15 @@ module.exports.edit = async (req, res) => {
     return res.status(200).json({
       message: "Cập nhật thông tin thành công!",
     });
-  } catch (error) {
+  } catch (error: any) {
+    console.error("EDIT CATEGORY ERROR:", error);
+    if (error.code === 11000) {
+      return res.status(400).json({
+        message: "Tên thể loại đã tồn tại, vui lòng chọn tên khác!",
+      });
+    }
     return res.status(400).json({
-      message: "Cập nhật thông tin thất bại",
+      message: "Cập nhật thông tin thất bại!",
     });
   }
 };

@@ -18,6 +18,12 @@ app.use(cookieParser());
 app.use(bodyParser.json());
 clientRoutesApiVer1(app);
 adminRoutesApiVer1(app);
+app.use((err, req, res, next) => {
+    console.error("--- GLOBAL ERROR ---", err);
+    res.status(err.status || 400).json({
+        message: err.message || "Đã xảy ra lỗi!",
+    });
+});
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`);
 });

@@ -112,7 +112,13 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
                     message: `Cập nhật trạng thái thành công ${ids.length} thể loại!`,
                 });
             case "delete_all":
-                yield Category.updateMany({ _id: { $in: ids } }, { deleted: true, deletedAt: new Date(), deletedBy: req.user.id });
+                const categoriesToDeleted = yield Category.find({ _id: { $in: ids } });
+                yield Promise.all(categoriesToDeleted.map((c) => Category.updateOne({ _id: c._id }, {
+                    deleted: true,
+                    deletedAt: new Date(),
+                    deletedBy: req.user.id,
+                    slug: `${c.slug}-deleted-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                })));
                 const categoriesLeft = yield Category.find({ deleted: false }).sort({
                     position: 1,
                 });
@@ -176,11 +182,14 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
 module.exports.delete = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const id = req.params.id;
+        const category = yield Category.findById(id);
+        const deletedSlug = category ? `${category.slug}-deleted-${Date.now()}` : `deleted-${Date.now()}`;
         yield Category.updateOne({
             _id: id,
         }, {
             deleted: true,
             deletedBy: req.user.id,
+            slug: deletedSlug,
         });
         const categoriesLeft = yield Category.find({ deleted: false }).sort({
             position: 1,
@@ -220,9 +229,15 @@ module.exports.create = (req, res) => __awaiter(void 0, void 0, void 0, function
         });
     }
     catch (error) {
+        console.error("CREATE CATEGORY ERROR:", error);
+        if (error.code === 11000) {
+            return res.status(400).json({
+                message: "Tên thể loại đã tồn tại, vui lòng chọn tên khác!",
+            });
+        }
         return res.status(400).json({
             error: error,
-            message: "Tạo mới thể loại thất bại",
+            message: "Tạo mới thể loại thất bại!",
         });
     }
 });
@@ -276,8 +291,14 @@ module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         });
     }
     catch (error) {
+        console.error("EDIT CATEGORY ERROR:", error);
+        if (error.code === 11000) {
+            return res.status(400).json({
+                message: "Tên thể loại đã tồn tại, vui lòng chọn tên khác!",
+            });
+        }
         return res.status(400).json({
-            message: "Cập nhật thông tin thất bại",
+            message: "Cập nhật thông tin thất bại!",
         });
     }
 });
