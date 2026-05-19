@@ -42,7 +42,10 @@ export default function PaymentPage() {
         }
         const parsedTotal = Number(storedTotal);
         setTotalAmount(parsedTotal);
-        setIsLoading(false);
+
+        // Kích hoạt tự động tạo link và chuyển hướng ngay lập tức!
+        // Giữ trạng thái isLoading = true để tránh nhấp nháy trang
+        await handleCreatePaymentLink(parsedCodes, parsedTotal, true);
       } catch (error) {
         toast.error("Có lỗi xảy ra!");
         setTimeout(() => router.push("/cart"), 2000);
@@ -52,39 +55,48 @@ export default function PaymentPage() {
     initPayment();
   }, [router]);
 
-  const handleCreatePaymentLink = async () => {
-    if (codes.length === 0) {
+  const handleCreatePaymentLink = async (
+    targetCodes = codes,
+    targetAmount = totalAmount,
+    isAuto = false,
+  ) => {
+    if (targetCodes.length === 0) {
       toast.error("Không có đơn hàng để thanh toán!");
       return;
     }
 
-    setIsCreatingLink(true);
+    if (!isAuto) {
+      setIsCreatingLink(true);
+    }
 
     try {
       const response = await axios.post(
         `${API_URL}/api/v1/payment/create-combined`,
         {
-          codes: codes,
-          amount: totalAmount,
-          items: codes.map((code) => ({
+          codes: targetCodes,
+          amount: targetAmount,
+          items: targetCodes.map((code) => ({
             name: code,
             quantity: 1,
-            price: totalAmount,
+            price: targetAmount,
           })),
         },
       );
 
       if (response.data.error === 0 && response.data.data.checkoutUrl) {
         setPaymentLink(response.data.data.checkoutUrl);
-        toast.success("Tạo link thanh toán thành công!");
+        // Chuyển hướng người dùng trực tiếp sang PayOS ngay lập tức!
+        window.location.href = response.data.data.checkoutUrl;
       } else {
-        toast.error(response.data.message);
+        toast.error(response.data.message || "Tạo link thanh toán thất bại!");
+        setIsLoading(false);
+        setIsCreatingLink(false);
       }
     } catch (error: any) {
       const errorMsg =
         error.response?.data?.message || "Lỗi tạo link thanh toán!";
       toast.error(errorMsg);
-    } finally {
+      setIsLoading(false);
       setIsCreatingLink(false);
     }
   };
@@ -126,7 +138,23 @@ export default function PaymentPage() {
   };
 
   if (isLoading) {
-    return <Loading fullScreen={true} size="lg" text="Đang tải..." />;
+    return (
+      <Loading
+        fullScreen={true}
+        size="lg"
+        text="Đang kết nối cổng thanh toán PayOS và chuyển hướng..."
+      />
+    );
+  }
+
+  if (isCreatingLink) {
+    return (
+      <Loading
+        fullScreen={true}
+        size="lg"
+        text="Đang kết nối cổng thanh toán PayOS và chuyển hướng..."
+      />
+    );
   }
 
   return (
@@ -183,7 +211,7 @@ export default function PaymentPage() {
 
           {!paymentLink ? (
             <button
-              onClick={handleCreatePaymentLink}
+              onClick={() => handleCreatePaymentLink()}
               disabled={isCreatingLink}
               className="w-full py-3 md:py-4 bg-primary text-white font-bold text-base md:text-lg rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
