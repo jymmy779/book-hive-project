@@ -57,18 +57,19 @@ module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function*
             .populate("deletedBy", "fullName");
         const total = yield Book.countDocuments(find);
         if (books && books.length > 0) {
-            const booksWithCategory = yield Promise.all(books.map((book) => __awaiter(void 0, void 0, void 0, function* () {
+            const categoryIds = [...new Set(books.map((b) => b.category_id).filter(Boolean))];
+            const categories = yield Category.find({
+                _id: { $in: categoryIds },
+            }).select("title");
+            const categoryMap = new Map(categories.map((cat) => [cat._id.toString(), cat.title]));
+            const booksWithCategory = books.map((book) => {
                 const bookObj = book.toObject();
                 if (book.category_id) {
-                    const category = yield Category.findOne({
-                        _id: book.category_id,
-                    }).select("title");
-                    if (category) {
-                        bookObj.category_name = category.title;
-                    }
+                    bookObj.category_name =
+                        categoryMap.get(book.category_id.toString()) || "";
                 }
                 return bookObj;
-            })));
+            });
             return res.status(200).json({
                 message: "Thành công!",
                 books: booksWithCategory,

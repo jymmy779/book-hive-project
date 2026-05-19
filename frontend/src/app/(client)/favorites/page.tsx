@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import { Book } from "@/app/interfaces/book.interface";
 import Pagination from "@/app/components/Pagination/Pagination";
@@ -19,15 +20,20 @@ interface Favorite {
 const limit = 6;
 
 export default function FavoritesPage() {
+  const searchParams = useSearchParams();
+  const initialPage = Number(searchParams.get("page")) || 1;
+
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(initialPage);
   const [total, setTotal] = useState(0);
   const [sort, setSort] = useState<{ key: string; value: 1 | -1 } | null>(null);
   const [sortValue, setSortValue] = useState("");
+  const requestSeqRef = useRef<number>(0);
 
   const fetchFavorites = async () => {
     setLoading(true);
+    const currentSeq = ++requestSeqRef.current;
     try {
       const token = localStorage.getItem("accessToken_user");
       const res = await axios.get(
@@ -38,13 +44,18 @@ export default function FavoritesPage() {
           },
         },
       );
-      setFavorites(res.data.favorites || []);
-      setTotal(res.data.total || 0);
+      if (currentSeq === requestSeqRef.current) {
+        setFavorites(res.data.favorites || []);
+        setTotal(res.data.total || 0);
+        setLoading(false);
+      }
     } catch (err) {
-      setFavorites([]);
-      setTotal(0);
+      if (currentSeq === requestSeqRef.current) {
+        setFavorites([]);
+        setTotal(0);
+        setLoading(false);
+      }
     }
-    setLoading(false);
   };
 
   useEffect(() => {

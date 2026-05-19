@@ -32,6 +32,7 @@ export default function SearchPage() {
   const prevKeyword = useRef(keyword);
   const [sortValue, setSortValue] = useState("");
   const [sort, setSort] = useState<{ key: string; value: 1 | -1 } | null>(null);
+  const requestSeqRef = useRef<number>(0);
 
   const sortOptions = useMemo(
     () => [
@@ -69,6 +70,8 @@ export default function SearchPage() {
         setIsPaging(true);
       }
 
+      const currentSeq = ++requestSeqRef.current;
+
       try {
         const res = await axios.get(`${API_URL}/api/v1/books`, {
           params: {
@@ -79,15 +82,21 @@ export default function SearchPage() {
           },
         });
 
-        setBooks(res.data.books || []);
-        setTotal(res.data.total || 0);
+        if (currentSeq === requestSeqRef.current) {
+          setBooks(res.data.books || []);
+          setTotal(res.data.total || 0);
+        }
       } catch (error) {
-        setBooks([]);
-        setTotal(0);
+        if (currentSeq === requestSeqRef.current) {
+          setBooks([]);
+          setTotal(0);
+        }
         console.error(error);
       } finally {
-        setIsLoading(false);
-        setIsPaging(false);
+        if (currentSeq === requestSeqRef.current) {
+          setIsLoading(false);
+          setIsPaging(false);
+        }
       }
     };
 

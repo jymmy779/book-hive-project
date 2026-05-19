@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, useMemo, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import axios from "axios";
 import { Book } from "@/app/interfaces/book.interface";
 import { BookCard } from "@/app/components/Card/BookCard";
@@ -21,10 +22,16 @@ import "swiper/css/pagination";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Books() {
+  const searchParams = useSearchParams();
+  const initialPage = Number(searchParams.get("page")) || 1;
+  const initialCategory = searchParams.get("category") || "";
+
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState("");
-  const [page, setPage] = useState(1);
+  const [page, setPage] = useState(initialPage);
+  const [categories, setCategories] = useState<{ title: string; slug: string }[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [total, setTotal] = useState(0);
   const [sort, setSort] = useState<{ key: string; value: 1 | -1 } | null>(null);
   const limit = 12;
@@ -43,6 +50,7 @@ export default function Books() {
   );
 
   const resultsRef = useRef<any>(null);
+  const requestSeqRef = useRef<number>(0);
   const { favoriteIds, setFavoriteIds, isLoggedIn } = useFetchFavorites();
 
   const favoriteIdsSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
@@ -79,28 +87,69 @@ export default function Books() {
     } catch (err) {}
   };
 
+  // Load danh sách thể loại từ backend
+  useEffect(() => {
+    axios
+      .get(`${API_URL}/api/v1/books/categories`)
+      .then((res) => setCategories(res.data.categories || []))
+      .catch(() => setCategories([]));
+  }, []);
+
+  // Đồng bộ category khi URL thay đổi (ví dụ khi nhấn Back/Forward)
+  useEffect(() => {
+    const urlCategory = searchParams.get("category") || "";
+    if (urlCategory !== selectedCategory) {
+      setSelectedCategory(urlCategory);
+    }
+  }, [searchParams]);
+
+  // Xử lý khi chọn thể loại
+  const handleCategorySelect = (categorySlug: string) => {
+    setSelectedCategory(categorySlug);
+    setPage(1); // Reset về trang 1
+    const params = new URLSearchParams(window.location.search);
+    if (categorySlug) {
+      params.set("category", categorySlug);
+    } else {
+      params.delete("category");
+    }
+    params.set("page", "1");
+    window.history.pushState(null, "", `?${params.toString()}`);
+  };
+
   // xử lí load data cùng với lọc và tìm kiếm
   const fetchData = useCallback(() => {
     setLoading(true);
     setBooks([]);
+    const currentSeq = ++requestSeqRef.current;
+
     axios
       .get(`${API_URL}/api/v1/books`, {
         params: {
           ...(keyword && { keyWord: keyword }),
+          ...(selectedCategory && { categorySlug: selectedCategory }),
           ...(sort && { sortKey: sort.key, sortValue: sort.value }),
           page,
           limit,
         },
       })
       .then((res) => {
-        setBooks(res.data.books || []);
-        setTotal(res.data.total || 0);
+        if (currentSeq === requestSeqRef.current) {
+          setBooks(res.data.books || []);
+          setTotal(res.data.total || 0);
+        }
       })
-      .catch(() => setBooks([]))
+      .catch(() => {
+        if (currentSeq === requestSeqRef.current) {
+          setBooks([]);
+        }
+      })
       .finally(() => {
-        setLoading(false);
+        if (currentSeq === requestSeqRef.current) {
+          setLoading(false);
+        }
       });
-  }, [sort, keyword, page]);
+  }, [sort, keyword, page, selectedCategory]);
 
   useEffect(() => {
     fetchData();
@@ -157,9 +206,15 @@ export default function Books() {
           </Swiper>
 
           <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <h2 className="text-xl md:text-2xl font-bold text-primary">
-              Tất cả sách
-            </h2>
+            <div>
+              <h2 className="text-xl md:text-2xl font-bold text-primary">
+                {selectedCategory
+                  ? `Sách thể loại: ${
+                      categories.find((c) => c.slug === selectedCategory)?.title || ""
+                    }`
+                  : "Tất cả sách"}
+              </h2>
+            </div>
 
             <div className="w-full md:w-auto">
               <SortSelect

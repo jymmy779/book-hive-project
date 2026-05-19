@@ -43,20 +43,23 @@ module.exports.index = async (req, res) => {
     const total = await Book.countDocuments(find);
 
     if (books && books.length > 0) {
-      const booksWithCategory = await Promise.all(
-        books.map(async (book) => {
-          const bookObj = book.toObject();
-          if (book.category_id) {
-            const category = await Category.findOne({
-              _id: book.category_id,
-            }).select("title");
-            if (category) {
-              bookObj.category_name = category.title;
-            }
-          }
-          return bookObj;
-        })
+      // Tối ưu hóa N+1 query: Lấy tất cả category_id duy nhất và fetch bằng 1 query duy nhất
+      const categoryIds = [...new Set(books.map((b: any) => b.category_id).filter(Boolean))];
+      const categories = await Category.find({
+        _id: { $in: categoryIds },
+      }).select("title");
+      const categoryMap = new Map(
+        categories.map((cat: any) => [cat._id.toString(), cat.title])
       );
+
+      const booksWithCategory = books.map((book: any) => {
+        const bookObj = book.toObject();
+        if (book.category_id) {
+          bookObj.category_name =
+            categoryMap.get(book.category_id.toString()) || "";
+        }
+        return bookObj;
+      });
 
       return res.status(200).json({
         message: "Thành công!",
