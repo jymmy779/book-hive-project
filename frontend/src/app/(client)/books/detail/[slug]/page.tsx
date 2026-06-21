@@ -20,7 +20,7 @@ async function getBook(slug: string) {
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
   const book = await getBook(slug);
@@ -49,7 +49,7 @@ export async function generateMetadata({
 export default async function DetailPage({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
   const book = await getBook(slug);

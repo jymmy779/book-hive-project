@@ -8,7 +8,7 @@ const accessToken = localStorage.getItem("accessToken_admin");
 
 export function useBulkSelect(
   items: any[],
-  fetchData: () => void,
+  fetchData: (options?: { force?: boolean }) => void,
   fetchAllItems: () => Promise<any[]>,
   resource: string,
   setEditedItems: (items: any[]) => void,

@@ -22,7 +22,9 @@ export default function RootLayout({
     <UserProvider>
       <CartProvider>
         <ClientAuthGuard>
-          <Header />
+          <Suspense fallback={null}>
+            <Header />
+          </Suspense>
           <main className="pt-[85px] md:pt-[120px] lg:pt-[144px]">
             <Suspense
               fallback={
