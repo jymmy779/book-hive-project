@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { FiBook, FiArrowRight } from "react-icons/fi";
 import { Book } from "@/app/interfaces/book.interface";
 import Image from "next/image";
 import { AiOutlineDelete } from "react-icons/ai";
@@ -25,7 +26,7 @@ export const FavoriteCard = ({ book, onRemove }: FavoriteCardProps) => (
               className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
-            <div className="text-4xl md:text-5xl">📚</div>
+            <div className="text-4xl md:text-5xl"><FiBook /></div>
           )}
         </div>
 
@@ -48,8 +49,8 @@ export const FavoriteCard = ({ book, onRemove }: FavoriteCardProps) => (
                 ? book.priceBuy.toLocaleString("vi-VN") + "đ"
                 : "Liên hệ"}
             </span>
-            <span className="text-blue-500 text-lg md:text-xl transition-transform duration-300 group-hover:translate-x-1">
-              →
+            <span className="text-primary text-lg md:text-xl transition-transform duration-300 group-hover:translate-x-1">
+              <FiArrowRight />
             </span>
           </div>
         </div>

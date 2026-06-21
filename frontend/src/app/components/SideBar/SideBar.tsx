@@ -4,42 +4,57 @@ import { usePathname } from "next/navigation";
 import { ToastContainer } from "react-toastify";
 import Logout from "../Auth/Logout/Logout";
 import { useAdmin } from "@/contexts/AdminContext";
+import {
+  FiGrid,
+  FiBook,
+  FiTag,
+  FiShield,
+  FiLock,
+  FiUsers,
+  FiUserCheck,
+  FiLogOut,
+} from "react-icons/fi";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const menu = [
-  { label: "📊 Dashboard", key: "dashboard", href: "/admin/dashboard" },
+  { label: "Dashboard", icon: FiGrid, key: "dashboard", href: "/admin/dashboard" },
   {
-    label: "📚 Quản lý sách",
+    label: "Quản lý sách",
+    icon: FiBook,
     key: "books",
     href: "/admin/books",
     permission: "view_books",
   },
   {
-    label: "🏷️ Quản lý thể loại",
+    label: "Quản lý thể loại",
+    icon: FiTag,
     key: "categories",
     href: "/admin/categories",
     permission: "view_categories",
   },
   {
-    label: "🔑 Nhóm quyền",
+    label: "Nhóm quyền",
+    icon: FiShield,
     key: "roles",
     href: "/admin/roles",
     permission: "view_roles",
   },
   {
-    label: "🛡️ Phân quyền",
+    label: "Phân quyền",
+    icon: FiLock,
     key: "permissions",
     href: "/admin/roles/permissions",
     permission: "view_permissions",
   },
   {
-    label: "🧑‍💼 Quản lý tài khoản",
+    label: "Quản lý tài khoản",
+    icon: FiUsers,
     key: "accounts",
     href: "/admin/accounts",
     permission: "view_accounts",
   },
-  { label: "👤 Thông tin cá nhân", key: "profile", href: "/admin/profile" },
+  { label: "Thông tin cá nhân", icon: FiUserCheck, key: "profile", href: "/admin/profile" },
 ];
 
 const ADMIN_PREFIX = process.env.NEXT_PUBLIC_ADMIN_PREFIX;
@@ -58,10 +73,11 @@ export const SideBar = () => {
     <>
       <aside className="fixed top-0 left-0 h-screen w-[280px] bg-white p-6 shadow-[2px_0_8px_rgba(0,0,0,0.05)] z-30 flex flex-col">
         <div className="mb-8">
-          <h2 className="text-[24px] font-bold mb-2 text-primary">
+          <h2 className="text-2xl font-bold text-primary flex items-center gap-2">
+            <FiBook className="text-accent" size={24} />
             BookHive Admin
           </h2>
-          <p className="text-sm text-gray-600">👤 {admin?.email}</p>
+          <p className="text-sm text-text-muted mt-1 ml-1">{admin?.email}</p>
         </div>
         <nav className="flex-1">
           {menu
@@ -69,26 +85,28 @@ export const SideBar = () => {
               (item) =>
                 !item.permission || permissions.includes(item.permission),
             )
-            .map((item) => (
-              <Link
-                href={item.href}
-                key={item.key}
-                className="block w-full mb-2"
-              >
-                <button
-                  type="button"
-                  className={`w-full py-3 px-4 rounded-[8px] cursor-pointer text-left text-[16px] font-medium transition-colors duration-300
-          ${
-            active === item.key
-              ? "bg-secondary1 text-white"
-              : "bg-transparent text-primary hover:bg-[#D4E7FC] hover:text-primary"
-          }
-        `}
+            .map((item) => {
+              const Icon = item.icon;
+              const isActive = active === item.key;
+              return (
+                <Link
+                  href={item.href}
+                  key={item.key}
+                  className="block w-full mb-1"
                 >
-                  {item.label}
-                </button>
-              </Link>
-            ))}
+                  <div
+                    className={`flex items-center gap-3 w-full py-2.5 px-4 rounded-lg cursor-pointer text-sm font-medium transition-all duration-200 ${
+                      isActive
+                        ? "bg-accent text-white shadow-sm"
+                        : "text-text-secondary hover:bg-accent-light hover:text-accent"
+                    }`}
+                  >
+                    <Icon size={18} className={isActive ? "text-white" : "text-text-muted"} />
+                    {item.label}
+                  </div>
+                </Link>
+              );
+            })}
         </nav>
 
         <div className="flex justify-center w-full">

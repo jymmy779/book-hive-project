@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { FaStar } from "react-icons/fa";
+import { FiArrowLeft, FiArrowRight } from "react-icons/fi";
 
 interface ReviewListProps {
   bookId: string;
@@ -127,9 +128,9 @@ export default function ReviewList({
               <button
                 onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="px-2 md:px-3 py-1 md:py-2 text-xs md:text-base border border-gray-300 rounded-lg text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+                className="px-2 md:px-3 py-1 md:py-2 text-xs md:text-base border border-gray-300 rounded-lg text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition flex items-center"
               >
-                ←
+                <FiArrowLeft />
               </button>
 
               {pages.map((page, index) =>
@@ -160,9 +161,9 @@ export default function ReviewList({
                   onPageChange(Math.min(totalPages, currentPage + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="px-2 md:px-3 py-1 md:py-2 text-xs md:text-base border border-gray-300 rounded-lg text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition"
+                className="px-2 md:px-3 py-1 md:py-2 text-xs md:text-base border border-gray-300 rounded-lg text-slate-700 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-100 transition flex items-center"
               >
-                →
+                <FiArrowRight />
               </button>
             </div>
           )}

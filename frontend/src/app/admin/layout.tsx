@@ -18,7 +18,7 @@ export default function RootLayout({
     <>
       <AdminProvider>
         <AuthGuard>
-          <div className="pl-70 min-h-screen bg-[#F0F9FF]">
+          <div className="pl-70 min-h-screen bg-surface-secondary">
             <SideBar />
             <main className="p-8">{children}</main>
           </div>

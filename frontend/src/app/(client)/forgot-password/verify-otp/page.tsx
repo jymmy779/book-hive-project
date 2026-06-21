@@ -173,13 +173,13 @@ export default function VerifyOtpPage() {
   }
 
   return (
-    <div className="w-full flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="w-full flex items-center justify-center bg-surface-secondary py-8 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-[440px] space-y-6">
         <div className="flex justify-start">
           <BackButton className="flex cursor-pointer items-center gap-2 hover:opacity-80 transition-opacity text-slate-600" />
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-6 sm:p-8 md:p-10 w-full">
+        <div className="bg-surface rounded-lg shadow-lg p-6 sm:p-8 md:p-10 w-full">
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-14 h-14 md:w-16 md:h-16 bg-blue-100 rounded-full mb-4">
               <svg
@@ -235,7 +235,7 @@ export default function VerifyOtpPage() {
               disabled={isLoading || otpValue.length !== 6}
               className="w-full cursor-pointer py-3.5 bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-[0.98] text-sm md:text-base shadow-md"
             >
-              {isLoading ? "Đang xác nhận..." : "✓ Xác Nhận OTP"}
+              {isLoading ? "Đang xác nhận..." : "Xác Nhận OTP"}
             </button>
           </form>
 
@@ -251,14 +251,16 @@ export default function VerifyOtpPage() {
               className="w-full py-2.5 cursor-pointer border-2 border-primary text-primary font-semibold rounded-lg hover:bg-blue-50 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm md:text-base active:scale-[0.98]"
             >
               {resendTimeLeft > 0 && timeLeftRef.current > 0
-                ? `🔄 Gửi lại OTP (${resendMinutes}:${resendSeconds.toString().padStart(2, "0")})`
-                : "🔄 Gửi lại OTP"}
+                ? `Gửi lại OTP (${resendMinutes}:${resendSeconds.toString().padStart(2, "0")})`
+                : "Gửi lại OTP"}
             </button>
           </div>
 
           <div className="mt-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
             <div className="flex gap-2.5">
-              <span className="text-base flex-shrink-0">⚠️</span>
+              <span className="text-base flex-shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              </span>
               <p className="text-xs md:text-sm text-amber-800 leading-snug">
                 <strong>Lưu ý:</strong> OTP sẽ hết hạn sau 3 phút. Nếu bạn không
                 nhận được, vui lòng yêu cầu gửi lại.

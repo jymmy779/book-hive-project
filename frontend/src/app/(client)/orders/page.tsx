@@ -11,6 +11,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import OrderCardSkeleton from "@/app/components/Skeleton/OrderCardSkeleton";
 import { Order } from "@/app/interfaces/order.interface";
+import { FiPackage, FiSearch, FiArrowLeft } from "react-icons/fi";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -258,7 +259,7 @@ export default function OrdersPage() {
                 : "bg-white text-primary border border-gray-300 hover:bg-gray-50"
             }`}
           >
-            📦 Đơn hàng của tôi
+            <FiPackage className="inline" /> Đơn hàng của tôi
           </button>
           <button
             onClick={() => {
@@ -275,7 +276,7 @@ export default function OrdersPage() {
                 : "bg-white text-primary border border-gray-300 hover:bg-gray-50"
             }`}
           >
-            🔍 Tra cứu đơn khác
+            <FiSearch className="inline" /> Tra cứu đơn khác
           </button>
         </div>
 
@@ -289,7 +290,7 @@ export default function OrdersPage() {
               <OrderCardSkeleton fullScreen={false} count={4} />
             ) : orders.length === 0 ? (
               <div className="bg-white rounded-2xl p-8 md:p-16 shadow-sm text-center">
-                <div className="text-4xl md:text-6xl mb-4">📦</div>
+                <div className="text-4xl md:text-6xl mb-4"><FiPackage /></div>
                 <h2 className="text-xl md:text-3xl font-bold text-slate-800 mb-2">
                   Chưa có đơn hàng
                 </h2>
@@ -297,10 +298,10 @@ export default function OrdersPage() {
                   Bạn chưa mua sản phẩm nào. Hãy bắt đầu mua sắm ngay!
                 </p>
                 <Link
-                  href="/home"
+                  href="/"
                   className="inline-block px-6 py-3 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 text-sm md:text-base"
                 >
-                  ← Tiếp tục mua sắm
+                  <FiArrowLeft className="inline mr-1" /> Tiếp tục mua sắm
                 </Link>
               </div>
             ) : (

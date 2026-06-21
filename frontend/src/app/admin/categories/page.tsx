@@ -21,6 +21,7 @@ import { useFetchDataAdmin } from "@/app/utils/useFetchDataAdmin";
 import CategoryTable from "@/app/components/Table/CategoryTable/CategoryTable";
 import PrivateRoute from "@/app/components/Auth/PrivateRoute/PrivateRoute";
 import ConditionalRender from "@/app/components/Auth/ConditionalRender/ConditionalRender";
+import { FiFolder } from "react-icons/fi";
 
 const ADMIN_PREFIX = process.env.NEXT_PUBLIC_ADMIN_PREFIX;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -143,7 +144,7 @@ export default function Categories() {
 
     try {
       await deletePromise;
-      fetchData();
+      fetchData({ force: true });
     } catch (error) {
       console.error(error);
     }
@@ -159,8 +160,8 @@ export default function Categories() {
     <>
       <PrivateRoute permission="view_categories">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-[32px] font-bold m-0 text-primary">
-            📂 Quản lý thể loại
+          <h1 className="text-[32px] font-bold m-0 text-primary flex items-center gap-2">
+            <FiFolder className="text-primary" /> Quản lý thể loại
           </h1>
           <ConditionalRender permission="create_category">
             <NewAddButton label="Thêm thể loại mới" source="categories" />

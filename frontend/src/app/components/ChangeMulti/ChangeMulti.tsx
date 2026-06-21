@@ -28,7 +28,7 @@ export default function ChangeMulti({
         ))}
       </select>
       <button
-        className="transition-colors duration-200 px-4 py-2 bg-secondary1 text-white rounded-lg text-[15px] font-semibold disabled:opacity-50 hover:bg-blue-600 cursor-pointer"
+  className="transition-colors duration-200 px-4 py-2 bg-primary text-white rounded-lg text-[15px] font-semibold disabled:opacity-50 hover:bg-primary-dark cursor-pointer"
         onClick={onBulkChange}
         disabled={disabled}
       >

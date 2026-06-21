@@ -36,7 +36,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="bg-[#F0F9FF]">
+      <body className="bg-surface-secondary">
         <main>{children}</main>
       </body>
     </html>

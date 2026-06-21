@@ -8,37 +8,38 @@ import Image from "next/image";
 import { toast } from "react-toastify";
 import { Order } from "@/app/interfaces/order.interface";
 import OrderDetailSkeleton from "@/app/components/Skeleton/OrderDetailSkeleton";
+import { FiClock, FiCheckCircle, FiXCircle, FiTruck, FiInfo, FiRefreshCw, FiArrowLeft } from "react-icons/fi";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const statusMap: Record<
   string,
-  { label: string; color: string; icon: string }
+  { label: string; color: string; icon: React.ComponentType<{ className?: string }> }
 > = {
   pending: {
     label: "Chờ xác nhận",
     color: "bg-yellow-50 text-yellow-700 border border-yellow-200",
-    icon: "⏳",
+    icon: FiClock,
   },
   processing: {
     label: "Đang xử lý",
     color: "bg-blue-50 text-blue-700 border border-blue-200",
-    icon: "🔄",
+    icon: FiRefreshCw,
   },
   shipped: {
     label: "Đã gửi",
     color: "bg-purple-50 text-purple-700 border border-purple-200",
-    icon: "🚚",
+    icon: FiTruck,
   },
   delivered: {
     label: "Đã giao",
     color: "bg-green-50 text-green-700 border border-green-200",
-    icon: "✅",
+    icon: FiCheckCircle,
   },
   cancelled: {
     label: "Đã hủy",
     color: "bg-red-50 text-red-700 border border-red-200",
-    icon: "❌",
+    icon: FiXCircle,
   },
 };
 
@@ -46,13 +47,14 @@ function StatusBadge({ status }: { status: string }) {
   const s = statusMap[status] || {
     label: status,
     color: "bg-gray-100 text-gray-700 border border-gray-200",
-    icon: "ℹ️",
+    icon: FiInfo,
   };
+  const IconComponent = s.icon;
   return (
     <span
       className={`inline-flex items-center gap-1 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-semibold ${s.color}`}
     >
-      <span>{s.icon}</span>
+      <IconComponent className="text-sm" />
       <span>{s.label}</span>
     </span>
   );
@@ -96,7 +98,7 @@ export default function OrderDetailPage() {
             href="/orders"
             className="inline-block mt-4 px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition"
           >
-            ← Quay lại danh sách
+            <FiArrowLeft className="inline mr-1" /> Quay lại danh sách
           </Link>
         </div>
       </div>
@@ -222,7 +224,7 @@ export default function OrderDetailPage() {
               href="/orders"
               className="w-full sm:w-auto text-center px-4 py-3 sm:py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition text-sm sm:text-base"
             >
-              ← Quay lại danh sách
+              <FiArrowLeft className="inline mr-1" /> Quay lại danh sách
             </Link>
           </div>
         </div>

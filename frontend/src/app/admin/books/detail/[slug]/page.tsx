@@ -8,6 +8,7 @@ import DOMPurify from "dompurify";
 import PrivateRoute from "@/app/components/Auth/PrivateRoute/PrivateRoute";
 import ConditionalRender from "@/app/components/Auth/ConditionalRender/ConditionalRender";
 import Image from "next/image";
+import { FiBookOpen } from "react-icons/fi";
 
 const ADMIN_PREFIX = process.env.NEXT_PUBLIC_ADMIN_PREFIX;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -67,7 +68,9 @@ export default function BookDetail() {
                   height={400}
                 />
               ) : (
-                <div className="text-8xl md:text-[128px] mb-6">📚</div>
+                <div className="text-8xl md:text-[128px] mb-6 text-primary">
+                  <FiBookOpen />
+                </div>
               )}
             </div>
             <div>

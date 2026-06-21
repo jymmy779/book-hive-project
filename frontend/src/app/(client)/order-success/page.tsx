@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast, ToastContainer } from "react-toastify";
 import { useCart } from "@/contexts/CartContext";
+import { FiCheckCircle, FiClipboard, FiHome, FiBookOpen, FiAlertCircle, FiCheck } from "react-icons/fi";
 
 export default function OrderSuccessPage() {
   const searchParams = useSearchParams();
@@ -34,7 +35,7 @@ export default function OrderSuccessPage() {
         localStorage.removeItem("guest_cart");
       } else {
         toast.error("Không tìm thấy thông tin đơn hàng!");
-        router.replace("/home");
+        router.replace("/");
       }
     };
     run();
@@ -49,19 +50,19 @@ export default function OrderSuccessPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-50 flex items-center justify-center py-8 px-4 md:py-12">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-secondary1/5 flex items-center justify-center py-8 px-4 md:py-12">
       <div className="container max-w-2xl mx-auto">
         <div className="bg-white rounded-lg shadow-2xl p-6 md:p-8 text-center">
-          <div className="text-5xl md:text-7xl mb-4 md:mb-6 animate-bounce">
-            ✅
+          <div className="text-5xl md:text-7xl mb-4 md:mb-6 animate-bounce text-green-500">
+            <FiCheckCircle />
           </div>
 
           <h1 className="text-2xl md:text-4xl font-bold text-green-600 mb-2 md:mb-4">
             Đặt Hàng Thành Công!
           </h1>
 
-          <p className="text-base md:text-xl text-slate-600 mb-6 md:mb-8">
-            Cảm ơn bạn đã mua sắm tại BookHive 📚
+          <p className="text-base md:text-xl text-slate-600 mb-6 md:mb-8 flex items-center justify-center gap-2">
+            Cảm ơn bạn đã mua sắm tại BookHive <FiBookOpen className="inline" />
           </p>
 
           {orderCode && (
@@ -81,31 +82,31 @@ export default function OrderSuccessPage() {
                   className="text-green-700 cursor-pointer hover:text-green-900 text-xl md:text-2xl transition-colors flex-shrink-0"
                   title="Sao chép"
                 >
-                  📋
+                  <FiClipboard />
                 </button>
               </div>
             </div>
           )}
 
-          <div className="bg-blue-50 border-l-4 border-blue-500 p-4 md:p-6 rounded-lg mb-6 md:mb-8 text-left">
-            <h3 className="font-bold text-blue-900 mb-3 md:mb-4 text-base md:text-lg">
-              📋 Thông tin đơn hàng:
+          <div className="bg-secondary1/5 border-l-4 border-secondary1 p-4 md:p-6 rounded-lg mb-6 md:mb-8 text-left">
+            <h3 className="font-bold text-secondary1 mb-3 md:mb-4 text-base md:text-lg flex items-center gap-2">
+              <FiClipboard className="shrink-0" /> Thông tin đơn hàng:
             </h3>
-            <ul className="text-sm text-blue-800 space-y-2 md:space-y-3">
+            <ul className="text-sm text-secondary1/80 space-y-2 md:space-y-3">
               <li className="flex items-start gap-2 md:gap-3">
-                <span className="text-base md:text-lg shrink-0">✓</span>
+                <span className="text-base md:text-lg shrink-0 text-green-600"><FiCheck /></span>
                 <span>Đơn hàng đã được tạo và thanh toán thành công</span>
               </li>
               <li className="flex items-start gap-2 md:gap-3">
-                <span className="text-base md:text-lg shrink-0">✓</span>
+                <span className="text-base md:text-lg shrink-0 text-green-600"><FiCheck /></span>
                 <span>Chúng tôi sẽ xác nhận đơn hàng trong 24 giờ</span>
               </li>
               <li className="flex items-start gap-2 md:gap-3">
-                <span className="text-base md:text-lg shrink-0">✓</span>
+                <span className="text-base md:text-lg shrink-0 text-green-600"><FiCheck /></span>
                 <span>Hàng sẽ được gửi trong 3-5 ngày làm việc</span>
               </li>
               <li className="flex items-start gap-2 md:gap-3">
-                <span className="text-base md:text-lg shrink-0">✓</span>
+                <span className="text-base md:text-lg shrink-0 text-green-600"><FiCheck /></span>
                 <span>Bạn sẽ nhận email xác nhận và mã vận chuyển</span>
               </li>
             </ul>
@@ -113,23 +114,23 @@ export default function OrderSuccessPage() {
 
           <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 md:p-6 rounded-lg mb-6 md:mb-8">
             <p className="text-sm text-yellow-800 text-left md:text-center">
-              <span className="font-bold">💡 Tip:</span> Lưu mã đơn hàng để theo
+              <span className="font-bold"><FiAlertCircle className="inline mr-1" /> Tip:</span> Lưu mã đơn hàng để theo
               dõi đơn hàng của bạn
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <Link
-              href="/home"
+              href="/"
               className="py-2.5 md:py-3 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition-colors text-center text-sm md:text-base"
             >
-              🏠 Quay về trang chủ
+              <FiHome className="inline" /> Quay về trang chủ
             </Link>
             <Link
               href="/books"
-              className="py-2.5 md:py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 transition-colors text-center text-sm md:text-base"
+              className="py-2.5 md:py-3 bg-primary text-white font-bold rounded-lg hover:bg-primary-dark transition-colors text-center text-sm md:text-base"
             >
-              📚 Tiếp tục mua sắm
+              <FiBookOpen className="inline" /> Tiếp tục mua sắm
             </Link>
           </div>
 

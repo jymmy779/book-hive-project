@@ -4,6 +4,13 @@ import axios from "axios";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+// Global in-memory cache for admin data
+const cache: Record<string, { items: any[]; total: number }> = {};
+
+const getCacheKey = (source: string, params: any) => {
+  return `${source}_${JSON.stringify(params)}`;
+};
+
 type UseFetchDataAdminParams = {
   status?: string;
   keyword?: string;
@@ -32,7 +39,7 @@ export function useFetchDataAdmin({
   setLoading,
   setIsFirstLoad,
   source,
-}: UseFetchDataAdminParams): (() => void) & { cancel: () => void } {
+}: UseFetchDataAdminParams): ((options?: { force?: boolean }) => void) & { cancel: () => void } {
   
   // Lưu tất cả các callbacks động vào ref để không bao giờ làm thay đổi identity của fetcher
   const callbacksRef = useRef({ onSuccess, setTotal, setLoading, setIsFirstLoad });
@@ -40,31 +47,60 @@ export function useFetchDataAdmin({
 
   const lastParamsRef = useRef({ status, keyword, page, sort, limit });
 
-  const fetchImmediately = useCallback(() => {
-    callbacksRef.current.setLoading(true);
+  const fetchImmediately = useCallback((options?: { force?: boolean }) => {
+    const params = {
+      ...(status && { status }),
+      ...(keyword && { keyWord: keyword }),
+      ...(sort && { sortKey: sort.key, sortValue: sort.value }),
+      page,
+      limit,
+    };
+    
+    const cacheKey = getCacheKey(source, params);
+
+    // If forcing refresh (e.g. after mutations), clear cache for this entire resource type
+    if (options?.force) {
+      Object.keys(cache).forEach((key) => {
+        if (key.startsWith(`${source}_`)) {
+          delete cache[key];
+        }
+      });
+    }
+
+    const cachedData = cache[cacheKey];
+    if (cachedData) {
+      // Instantly serve cached data to make page transitions feel 100% instant
+      callbacksRef.current.onSuccess(cachedData);
+      callbacksRef.current.setTotal(cachedData.total);
+      callbacksRef.current.setLoading(false);
+      callbacksRef.current.setIsFirstLoad?.(false);
+    } else {
+      callbacksRef.current.setLoading(true);
+    }
+
     axios
       .get(`${API_URL}/api/v1/${ADMIN_PREFIX}/${source}`, {
-        params: {
-          ...(status && { status }),
-          ...(keyword && { keyWord: keyword }),
-          ...(sort && { sortKey: sort.key, sortValue: sort.value }),
-          page,
-          limit,
-        },
+        params,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
         withCredentials: true,
       })
       .then((res) => {
-        callbacksRef.current.onSuccess({
+        const freshData = {
           items: res.data[source] || [],
           total: res.data.total || 0,
-        });
-        callbacksRef.current.setTotal(res.data.total || 0);
+        };
+        // Update global cache
+        cache[cacheKey] = freshData;
+
+        callbacksRef.current.onSuccess(freshData);
+        callbacksRef.current.setTotal(freshData.total);
       })
       .catch(() => {
-        callbacksRef.current.onSuccess({ items: [], total: 0 });
+        if (!cachedData) {
+          callbacksRef.current.onSuccess({ items: [], total: 0 });
+        }
       })
       .finally(() => {
         callbacksRef.current.setLoading(false);
@@ -78,13 +114,14 @@ export function useFetchDataAdmin({
     [fetchImmediately]
   );
 
-  const fetcher = useCallback(() => {
+  const fetcher = useCallback((options?: { force?: boolean }) => {
     const prev = lastParamsRef.current;
     const current = { status, keyword, page, sort, limit };
     lastParamsRef.current = current;
 
     // Nếu chỉ có keyword thay đổi (đang gõ tìm kiếm) -> dùng debounce 400ms bảo vệ server
     if (
+      !options?.force &&
       prev.keyword !== current.keyword &&
       prev.status === current.status &&
       prev.page === current.page &&
@@ -95,7 +132,7 @@ export function useFetchDataAdmin({
     } else {
       // Hủy mọi debounce đang chờ và tải dữ liệu INSTANTLY
       debouncedFetch.cancel();
-      fetchImmediately();
+      fetchImmediately(options);
     }
   }, [debouncedFetch, fetchImmediately, status, keyword, page, sort, limit]);
 

@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FiEdit2 } from "react-icons/fi";
+import { FaStar } from "react-icons/fa";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -83,7 +85,7 @@ export default function ReviewForm({
             Đánh giá của bạn
           </h3>
           <button className="px-4 py-2 cursor-pointer bg-secondary1 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors">
-            ✏️ Sửa
+            <FiEdit2 className="inline" /> Sửa
           </button>
         </div>
 
@@ -91,11 +93,11 @@ export default function ReviewForm({
           {[...Array(5)].map((_, i) => (
             <span
               key={i}
-              className={`text-lg ${
+              className={`text-base md:text-base ${
                 i < myReview.rating ? "text-yellow-400" : "text-gray-300"
               }`}
             >
-              ★
+              <FaStar />
             </span>
           ))}
         </div>
@@ -129,7 +131,7 @@ export default function ReviewForm({
               onMouseLeave={() => setHoverRating(0)}
               onClick={() => setRating(star)}
             >
-              ★
+              <FaStar />
             </span>
           ))}
         </div>

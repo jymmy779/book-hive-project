@@ -19,7 +19,7 @@ const getStatusColor = (status: string) => {
     case "pending":
       return "bg-yellow-500";
     case "processing":
-      return "bg-blue-500";
+      return "bg-secondary1";
     case "shipped":
       return "bg-purple-500";
     case "delivered":
@@ -120,7 +120,7 @@ export default function Dashboard() {
             <StatCard
               label="Tổng sách đang hoạt động"
               value={stats.totalBooks}
-              color="bg-blue-500"
+              color="bg-secondary1"
             />
             <StatCard
               label="Tổng đơn hàng"

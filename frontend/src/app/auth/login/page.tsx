@@ -9,6 +9,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
+import { FiHome, FiEye, FiEyeOff, FiLock, FiLoader } from "react-icons/fi";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -47,7 +48,7 @@ export default function LoginPage() {
 
       toast.success("Đăng nhập thành công!");
       setTimeout(() => {
-        router.push("/home");
+        router.push("/");
       }, 1600);
     } catch (err: any) {
       toast.error(err.response?.data?.message, {
@@ -74,7 +75,7 @@ export default function LoginPage() {
 
       toast.success("Đăng nhập với Google thành công!");
       setTimeout(() => {
-        router.push("/home");
+        router.push("/");
       }, 1600);
     } catch (err: any) {
       toast.error(err.response?.data?.message, {
@@ -93,20 +94,20 @@ export default function LoginPage() {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12 relative">
+      <div className="min-h-screen flex items-center justify-center bg-surface-secondary px-4 py-12 relative">
         <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10">
           <Link
-            href="/home"
-            className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-50 text-blue-600 font-semibold transition text-sm md:text-base"
+            href="/"
+            className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-surface border border-border rounded-lg shadow-sm hover:bg-surface-secondary text-primary font-semibold transition text-sm md:text-base"
           >
-            <span>🏠</span>
+            <FiHome size={16} />
             <span className="hidden sm:inline">Về trang chủ</span>
             <span className="sm:hidden">Trang chủ</span>
           </Link>
         </div>
         <div className="w-full max-w-md relative z-0">
-          <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-6 md:px-6 md:py-8 text-center">
+          <div className="bg-surface rounded-lg shadow-lg overflow-hidden">
+            <div className="bg-primary px-4 py-6 md:px-6 md:py-8 text-center">
               <div className="flex items-center justify-center gap-3 md:gap-5 mb-2">
                 <Image
                   src="/book-hive.jpg"
@@ -119,7 +120,7 @@ export default function LoginPage() {
                   BookHive
                 </h1>
               </div>
-              <p className="text-blue-100 text-sm md:text-base">
+              <p className="text-primary-light/70 text-sm md:text-base">
                 Đăng nhập tài khoản
               </p>
             </div>
@@ -131,7 +132,7 @@ export default function LoginPage() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-semibold text-gray-700 mb-1.5 md:mb-2"
+                  className="block text-sm font-semibold text-text-primary mb-1.5 md:mb-2"
                 >
                   Email
                 </label>
@@ -140,11 +141,11 @@ export default function LoginPage() {
                   type="email"
                   {...register("email")}
                   placeholder="Nhập email của bạn"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm md:text-base"
+                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition text-sm md:text-base"
                   disabled={loading}
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-error text-xs mt-1">
                     {errors.email.message}
                   </p>
                 )}
@@ -153,7 +154,7 @@ export default function LoginPage() {
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-semibold text-gray-700 mb-1.5 md:mb-2"
+                  className="block text-sm font-semibold text-text-primary mb-1.5 md:mb-2"
                 >
                   Mật Khẩu
                 </label>
@@ -163,19 +164,19 @@ export default function LoginPage() {
                     type={showPassword ? "text" : "password"}
                     {...register("password")}
                     placeholder="Nhập mật khẩu"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm md:text-base"
+                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition text-sm md:text-base"
                     disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-text-secondary"
                   >
-                    {showPassword ? "👁️" : "👁️‍🗨️"}
+                    {showPassword ? <FiEye size={18} /> : <FiEyeOff size={18} />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-error text-xs mt-1">
                     {errors.password.message}
                   </p>
                 )}
@@ -184,16 +185,16 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg transition duration-200 flex items-center justify-center gap-2 text-sm md:text-base"
+                className="w-full cursor-pointer bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg transition duration-200 flex items-center justify-center gap-2 text-sm md:text-base"
               >
                 {loading ? (
                   <>
-                    <span className="animate-spin">⏳</span>
+                    <FiLoader className="animate-spin" size={18} />
                     Đang đăng nhập...
                   </>
                 ) : (
                   <>
-                    <span>🔐</span>
+                    <FiLock size={16} />
                     Đăng Nhập
                   </>
                 )}
@@ -202,7 +203,7 @@ export default function LoginPage() {
               <div className="flex items-center justify-end flex-wrap gap-2">
                 <Link
                   href="/forgot-password"
-                  className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  className="text-sm text-primary hover:text-primary-dark font-medium"
                 >
                   Quên mật khẩu?
                 </Link>
@@ -210,10 +211,10 @@ export default function LoginPage() {
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-300"></div>
+                  <div className="w-full border-t border-border"></div>
                 </div>
                 <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Hoặc</span>
+                  <span className="px-2 bg-surface text-text-muted">Hoặc</span>
                 </div>
               </div>
 
@@ -226,12 +227,12 @@ export default function LoginPage() {
               </div>
             </form>
 
-            <div className="px-4 py-4 md:px-6 bg-gray-50 border-t border-gray-200 text-center">
-              <p className="text-gray-600 text-sm">
+            <div className="px-4 py-4 md:px-6 bg-surface-secondary border-t border-border text-center">
+              <p className="text-text-secondary text-sm">
                 Chưa có tài khoản?{" "}
                 <Link
                   href="/auth/register"
-                  className="text-blue-600 hover:text-blue-700 font-semibold"
+                  className="text-primary hover:text-primary-dark font-semibold"
                 >
                   Đăng ký ngay
                 </Link>
@@ -239,14 +240,14 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <div className="mt-6 text-center text-gray-600 text-xs px-2">
+          <div className="mt-6 text-center text-text-muted text-xs px-2">
             <p>
               Bằng cách đăng nhập, bạn đã đồng ý với{" "}
-              <Link href="/terms" className="text-blue-600 hover:underline">
+              <Link href="/terms" className="text-primary hover:underline">
                 Điều khoản dịch vụ
               </Link>{" "}
               và{" "}
-              <Link href="/privacy" className="text-blue-600 hover:underline">
+              <Link href="/privacy" className="text-primary hover:underline">
                 Chính sách bảo mật
               </Link>
             </p>

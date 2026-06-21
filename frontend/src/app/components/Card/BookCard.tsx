@@ -27,26 +27,26 @@ export const BookCard = ({
   return (
     <div className="relative group h-full">
       <Link href={`/books/detail/${book.slug}`} className="block h-full">
-        <div className="bg-[#ffff] rounded-2xl p-3 md:p-5 shadow-[0_2px_8px_rgba(0,0,0,0.05)] cursor-pointer transition-transform duration-300 hover:-translate-y-2 relative h-full flex flex-col">
+        <div className="bg-surface rounded-xl p-3 md:p-4 shadow-sm border border-border cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md relative h-full flex flex-col">
           {featured && (
-            <div className="absolute top-2 right-2 bg-yellow-500 text-white text-xs font-semibold px-2 py-1 rounded-md z-10">
+            <div className="absolute top-2 right-2 bg-warning text-white text-[10px] font-semibold px-2.5 py-1 rounded-md z-10 shadow-sm">
               Nổi bật
             </div>
           )}
           {newest && (
-            <div className="absolute top-2 right-2 bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-md z-10">
+            <div className="absolute top-2 right-2 bg-info text-white text-[10px] font-semibold px-2.5 py-1 rounded-md z-10 shadow-sm">
               Mới nhất
             </div>
           )}
           {bestSeller && (
-            <div className="absolute top-2 right-2 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded-md z-10">
+            <div className="absolute top-2 right-2 bg-error text-white text-[10px] font-semibold px-2.5 py-1 rounded-md z-10 shadow-sm">
               Bán chạy
             </div>
           )}
-          <div className="mb-2 h-[140px] sm:h-[160px] md:h-[190px] object-cover shrink-0">
+          <div className="mb-2 h-[140px] sm:h-[160px] md:h-[190px] shrink-0">
             <Image
               src={book.image || "/book-hive.jpg"}
-              className="w-full h-full object-cover rounded-[10px]"
+              className="w-full h-full object-cover rounded-lg"
               alt={book.title}
               loading="lazy"
               width={400}
@@ -55,44 +55,37 @@ export const BookCard = ({
           </div>
 
           <div className="flex flex-col flex-1">
-            <h3 className="text-left text-sm sm:text-base md:text-[17px] line-clamp-1 min-h-[20px] md:min-h-[28px] font-[700] mb-1 md:mb-[8px] text-primary">
+            <h3 className="text-left text-sm md:text-base line-clamp-1 font-bold mb-1 text-text-primary">
               {book.title}
             </h3>
-            <p className="text-xs sm:text-sm md:text-[14.4px] text-secondary2 text-left mb-1 md:mb-[8px] line-clamp-1">
+            <p className="text-xs md:text-sm text-text-secondary text-left mb-1 line-clamp-1">
               {book.author}
             </p>
-            <div className="flex justify-between items-center gap-2 mb-2 md:mb-3">
+            <div className="flex justify-between items-center gap-2 mb-2">
               <div className="flex items-center gap-1">
-                {book.rating ? (
-                  <span className="text-yellow-400 text-sm md:text-[16px]">
-                    <FaStar />
-                  </span>
-                ) : (
-                  <span className="text-gray-300 text-sm md:text-[16px]">
-                    <FaStar />
-                  </span>
-                )}
-                <span className="text-xs md:text-[14.4px] text-primary font-semibold">
-                  {book.rating ? book.rating : "Chưa có đánh giá"}
+                <span className={`text-sm ${book.rating ? "text-warning" : "text-gray-300"}`}>
+                  <FaStar />
+                </span>
+                <span className="text-xs font-semibold text-text-secondary">
+                  {book.rating || "Chưa có đánh giá"}
                 </span>
               </div>
-              <span className="text-xs md:text-[13.6px] text-secondary2 bg-gray-100 px-2 py-1 rounded-full">
+              <span className="text-[11px] text-text-muted bg-surface-secondary px-2 py-0.5 rounded-full">
                 Đã bán{" "}
                 {book.soldCount >= 1000
                   ? (book.soldCount / 1000).toFixed(1) + "k"
                   : book.soldCount}
               </span>
             </div>
-            <div className="flex justify-between items-center mt-auto pt-2">
+            <div className="flex justify-between items-center mt-auto pt-2 border-t border-border-light">
               <div>
-                <p className="text-base md:text-[17.6px] font-bold text-secondary1 m-0">
+                <p className="text-sm md:text-base font-bold text-accent">
                   {book.priceBuy
                     ? book.priceBuy.toLocaleString("vi-VN") + "đ"
                     : "Liên hệ"}
                 </p>
-                <p className="text-[10px] md:text-[13.6px] text-secondary2 mt-1 mb-0" />
               </div>
-              <span className="text-base md:text-[20px] text-primary">
+              <span className="text-text-muted group-hover:text-accent transition-colors duration-200">
                 <FaArrowRightLong />
               </span>
             </div>
@@ -101,7 +94,7 @@ export const BookCard = ({
       </Link>
       {isLoggedIn && (
         <button
-          className="absolute cursor-pointer top-2 left-2 md:top-6 md:left-6 z-20 bg-white/80 rounded-full p-1 hover:scale-110 transition-all shadow-sm"
+          className="absolute cursor-pointer top-2 left-2 md:top-4 md:left-4 z-20 bg-white/90 backdrop-blur-sm rounded-full p-1.5 hover:scale-110 transition-all shadow-sm"
           type="button"
           onClick={(e) => {
             e.preventDefault();
@@ -112,13 +105,13 @@ export const BookCard = ({
         >
           {isFavorite ? (
             <AiFillHeart
-              size={24}
-              className="text-red-500 transition-all duration-200 md:w-[28px] md:h-[28px]"
+              size={18}
+              className="text-error transition-all duration-200"
             />
           ) : (
             <AiOutlineHeart
-              size={24}
-              className="text-gray-400 transition-all duration-200 md:w-[28px] md:h-[28px]"
+              size={18}
+              className="text-text-muted transition-all duration-200"
             />
           )}
         </button>

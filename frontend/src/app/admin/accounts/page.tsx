@@ -21,6 +21,7 @@ import useChangeStatus from "@/app/utils/useChangeStatus";
 import { useUser } from "@/contexts/UserContext";
 import PrivateRoute from "@/app/components/Auth/PrivateRoute/PrivateRoute";
 import ConditionalRender from "@/app/components/Auth/ConditionalRender/ConditionalRender";
+import { FiUsers } from "react-icons/fi";
 
 const ADMIN_PREFIX = process.env.NEXT_PUBLIC_ADMIN_PREFIX;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -142,7 +143,7 @@ export default function Accounts() {
 
     try {
       await deletePromise;
-      fetchData();
+      fetchData({ force: true });
     } catch (error) {
       console.error(error);
     }
@@ -158,8 +159,8 @@ export default function Accounts() {
     <>
       <PrivateRoute permission="view_accounts">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-[32px] font-bold m-0 text-primary">
-            🔑 Quản lý tài khoản
+          <h1 className="text-[32px] font-bold m-0 text-primary flex items-center gap-2">
+            <FiUsers className="text-primary" /> Quản lý tài khoản
           </h1>
           <ConditionalRender permission="create_account">
             <NewAddButton label="Thêm tài khoản mới" source="accounts" />

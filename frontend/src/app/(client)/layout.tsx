@@ -19,31 +19,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <Suspense
-      fallback={
-        <div className="py-4 px-4 md:py-[32px] md:px-[24px]">
-          <div className="container mx-auto">
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-[24px]">
-              {Array.from({ length: 12 }).map((_, i) => (
-                <BookCardSkeleton key={i} />
-              ))}
-            </div>
-          </div>
-        </div>
-      }
-    >
-      <UserProvider>
-        <CartProvider>
-          <ClientAuthGuard>
-            <Header />
-            <main className="pt-[85px] md:pt-[120px] lg:pt-[144px]">
+    <UserProvider>
+      <CartProvider>
+        <ClientAuthGuard>
+          <Header />
+          <main className="pt-[85px] md:pt-[120px] lg:pt-[144px]">
+            <Suspense
+              fallback={
+                <div className="py-4 px-4 md:py-[32px] md:px-[24px]">
+                  <div className="container mx-auto">
+                    <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-[24px]">
+                      {Array.from({ length: 12 }).map((_, i) => (
+                        <BookCardSkeleton key={i} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              }
+            >
               {children}
-            </main>
-            <Footer />
-          </ClientAuthGuard>
-        </CartProvider>
-        <AIChat />
-      </UserProvider>
-    </Suspense>
+            </Suspense>
+          </main>
+          <Footer />
+        </ClientAuthGuard>
+      </CartProvider>
+      <AIChat />
+    </UserProvider>
   );
 }

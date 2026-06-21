@@ -5,6 +5,7 @@ import { ToastContainer, toast } from "react-toastify";
 import DOMPurify from "dompurify";
 import { useCart } from "@/contexts/CartContext";
 import { FaStar, FaStarHalfAlt } from "react-icons/fa";
+import { FiShoppingCart } from "react-icons/fi";
 import { useState } from "react";
 import { Book } from "@/app/interfaces/book.interface";
 import Image from "next/image";
@@ -51,7 +52,9 @@ export default function DetailClient({ book }: DetailClientProps) {
                   className="w-full h-auto max-h-[400px] object-contain rounded-lg mb-6"
                 />
               ) : (
-                <div className="text-8xl md:text-[128px] mb-6">📚</div>
+                <div className="text-8xl md:text-[128px] mb-6 flex items-center justify-center text-slate-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
               )}
               <div className="flex items-center justify-center gap-2 mb-4">
                 <div className="flex items-center gap-1">
@@ -130,7 +133,7 @@ export default function DetailClient({ book }: DetailClientProps) {
                   onClick={handleBuyNow}
                   className="flex-1 py-3 md:py-4 font-semibold cursor-pointer bg-secondary1 text-white rounded-xl text-sm md:text-base hover:bg-blue-700 transition-colors duration-200"
                 >
-                  🛒 Thêm vào giỏ hàng
+                  <FiShoppingCart className="inline mr-2" /> Thêm vào giỏ hàng
                 </button>
               </div>
             </div>

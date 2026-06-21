@@ -8,6 +8,7 @@ import { useCart } from "@/contexts/CartContext";
 import { Loading } from "@/app/components/Loading/Loading";
 import ConfirmModal from "@/app/components/ConfirmModal/ConfirmModal";
 import Image from "next/image";
+import { FiShoppingCart, FiTrash2, FiCreditCard, FiCheck, FiRefreshCw, FiShield, FiArrowLeft } from "react-icons/fi";
 
 export default function CartPage() {
   const router = useRouter();
@@ -55,7 +56,9 @@ export default function CartPage() {
       <div className="py-10 min-h-[500px] md:py-20">
         <div className="container mx-auto px-4">
           <div className="bg-white rounded-2xl p-8 md:p-12 shadow text-center">
-            <div className="text-5xl md:text-6xl mb-4">🛒</div>
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+              <FiShoppingCart size={40} className="text-gray-400" />
+            </div>
             <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">
               Giỏ hàng trống
             </h1>
@@ -63,10 +66,10 @@ export default function CartPage() {
               Chưa có sản phẩm nào trong giỏ hàng của bạn
             </p>
             <Link
-              href="/home"
+              href="/"
               className="inline-block px-5 py-2.5 md:px-6 md:py-3 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 text-sm md:text-base"
             >
-              ← Tiếp tục mua sắm
+              <FiArrowLeft className="inline mr-1" /> Tiếp tục mua sắm
             </Link>
           </div>
         </div>
@@ -91,14 +94,14 @@ export default function CartPage() {
     <div className="min-h-screen py-6 md:py-12 bg-gray-50">
       <div className="container mx-auto px-4">
         <div className="flex justify-between items-center mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-4xl font-bold text-slate-800">
+          <h1 className="text-xl md:text-3xl font-bold text-slate-800">
             Giỏ hàng
           </h1>
           <button
             onClick={handleClearCart}
-            className="cursor-pointer px-3 py-2 md:px-4 md:py-2.5 bg-red-50 text-red-600 font-bold rounded-lg hover:bg-red-100 transition-colors duration-200 active:scale-95 text-xs md:text-sm"
+            className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 md:px-4 md:py-2.5 bg-red-50 text-red-600 font-bold rounded-lg hover:bg-red-100 transition-colors duration-200 active:scale-95 text-xs md:text-sm"
           >
-            🗑️ Xóa tất cả
+            <FiTrash2 size={14} /> Xóa tất cả
           </button>
         </div>
 
@@ -170,9 +173,9 @@ export default function CartPage() {
                         e.preventDefault();
                         handleRemoveItem(item.bookId);
                       }}
-                      className="hidden sm:block flex-shrink-0 cursor-pointer px-3 py-1.5 md:px-4 md:py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200 font-semibold text-xs md:text-sm"
+                      className="hidden sm:inline-flex cursor-pointer items-center gap-1 px-3 py-1.5 md:px-4 md:py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200 font-semibold text-xs md:text-sm"
                     >
-                      🗑️ Xóa
+                      <FiTrash2 size={14} /> Xóa
                     </button>
 
                     <div className="flex items-center gap-2 md:gap-3">
@@ -257,22 +260,28 @@ export default function CartPage() {
 
               <button
                 onClick={handleCheckout}
-                className="w-full cursor-pointer py-2.5 md:py-3 bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-colors duration-200 mb-3 active:scale-95 text-sm md:text-base"
+                className="w-full cursor-pointer py-2.5 md:py-3 bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-colors duration-200 mb-3 active:scale-95 text-sm md:text-base inline-flex items-center justify-center gap-2"
               >
-                💳 Thanh toán
+                <FiCreditCard size={16} /> Thanh toán
               </button>
 
               <Link
-                href="/home"
+                href="/"
                 className="block w-full py-2.5 md:py-3 bg-gray-100 text-slate-800 font-bold rounded-lg hover:bg-gray-200 transition-colors duration-200 text-center text-sm md:text-base"
               >
-                ← Tiếp tục mua sắm
+                <FiArrowLeft className="inline mr-1" /> Tiếp tục mua sắm
               </Link>
 
-              <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-200 text-xs md:text-sm text-slate-500">
-                <p className="mb-1 md:mb-2">✓ Giao hàng toàn quốc</p>
-                <p className="mb-1 md:mb-2">✓ Đổi trả trong 30 ngày</p>
-                <p>✓ Thanh toán an toàn</p>
+              <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-200 text-xs md:text-sm text-slate-500 space-y-1.5">
+                <p className="flex items-center gap-1.5">
+                  <FiCheck size={14} className="text-green-500 shrink-0" /> Giao hàng toàn quốc
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <FiRefreshCw size={14} className="text-green-500 shrink-0" /> Đổi trả trong 30 ngày
+                </p>
+                <p className="flex items-center gap-1.5">
+                  <FiShield size={14} className="text-green-500 shrink-0" /> Thanh toán an toàn
+                </p>
               </div>
             </div>
           </div>

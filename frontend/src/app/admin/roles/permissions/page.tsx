@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation";
 import { useAdmin } from "@/contexts/AdminContext";
 import PrivateRoute from "@/app/components/Auth/PrivateRoute/PrivateRoute";
 import ConditionalRender from "@/app/components/Auth/ConditionalRender/ConditionalRender";
+import { FiShield } from "react-icons/fi";
 
 const ADMIN_PREFIX = process.env.NEXT_PUBLIC_ADMIN_PREFIX;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -114,7 +115,7 @@ export default function Permission() {
       );
       setHidden(true);
 
-      // ✅ Update admin user permissions
+      // Update admin user permissions
       const adminUserStr = localStorage.getItem("admin_user");
       if (adminUserStr) {
         const adminUser = JSON.parse(adminUserStr);
@@ -170,8 +171,8 @@ export default function Permission() {
           </div>
         ) : (
           <div>
-            <h1 className="text-[32px] font-bold m-0 mb-2 text-primary">
-              🛡️ Phân quyền
+            <h1 className="text-[32px] font-bold m-0 mb-2 text-primary flex items-center gap-2">
+              <FiShield className="text-primary" /> Phân quyền
             </h1>
             <div className="text-right mb-4">
               <ConditionalRender permission="create_permission">
@@ -210,10 +211,10 @@ export default function Permission() {
                         <tr>
                           <td
                             colSpan={roles.length + 1}
-                            className="py-2 px-4 text-[14px] font-semibold text-blue-700 bg-[#F0F6FF] border-t border-b border-blue-100"
+                            className="py-2 px-4 text-[14px] font-semibold text-primary bg-secondary1/5 border-t border-b border-secondary1/10"
                           >
                             <div className="flex items-center gap-2">
-                              <span className="w-5 h-5 bg-blue-200 rounded-full flex items-center justify-center text-blue-700">
+                              <span className="w-5 h-5 bg-secondary1/10 rounded-full flex items-center justify-center text-primary">
                                 <svg
                                   width="16"
                                   height="16"
@@ -236,7 +237,7 @@ export default function Permission() {
                               {perm.label}
                               <ConditionalRender permission="edit_permission">
                                 <button
-                                  className="ml-2 text-blue-500 hover:underline cursor-pointer text-xs"
+                                  className="ml-2 text-primary hover:underline cursor-pointer text-xs"
                                   onClick={() =>
                                     router.push(
                                       `/admin/roles/permissions/edit/${perm.slug}`,
@@ -259,7 +260,7 @@ export default function Permission() {
                                   onChange={() => handleChange(index, perm.key)}
                                   type="checkbox"
                                   checked={role.permissions.includes(perm.key)}
-                                  className="accent-blue-500 w-5 h-5 cursor-pointer"
+                                  className="accent-primary w-5 h-5 cursor-pointer"
                                 />
                               </td>
                             ))}
@@ -274,7 +275,7 @@ export default function Permission() {
             <div className="mb-5 text-right">
               {!hidden && (
                 <button
-                  className="py-3 px-6 mt-[20px] bg-secondary1 transition-colors duration-200 text-white rounded-lg text-[16px] font-semibold cursor-pointer hover:bg-blue-600 p-[10px]"
+                  className="py-3 px-6 mt-[20px] bg-primary transition-colors duration-200 text-white rounded-lg text-[16px] font-semibold cursor-pointer hover:bg-primary-dark p-[10px]"
                   onClick={handleSave}
                 >
                   Lưu thay đổi

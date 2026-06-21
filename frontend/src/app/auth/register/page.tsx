@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
+import { FiHome, FiEye, FiEyeOff, FiUserPlus, FiLoader } from "react-icons/fi";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -64,20 +65,20 @@ export default function RegisterPage() {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 py-12 relative">
+      <div className="min-h-screen flex items-center justify-center bg-surface-secondary px-4 py-12 relative">
         <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10">
           <Link
-            href="/home"
-            className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-50 text-blue-600 font-semibold transition text-sm md:text-base"
+            href="/"
+            className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-surface border border-border rounded-lg shadow-sm hover:bg-surface-secondary text-primary font-semibold transition text-sm md:text-base"
           >
-            <span>🏠</span>
+            <FiHome size={16} />
             <span className="hidden sm:inline">Về trang chủ</span>
             <span className="sm:hidden">Trang chủ</span>
           </Link>
         </div>
         <div className="w-full max-w-md relative z-0">
-          <div className="bg-white rounded-lg shadow-xl overflow-hidden">
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-6 md:px-6 md:py-8 text-center">
+          <div className="bg-surface rounded-lg shadow-lg overflow-hidden">
+            <div className="bg-primary px-4 py-6 md:px-6 md:py-8 text-center">
               <div className="flex items-center justify-center gap-3 md:gap-5 mb-2">
                 <Image
                   src="/book-hive.jpg"
@@ -90,7 +91,7 @@ export default function RegisterPage() {
                   BookHive
                 </h1>
               </div>
-              <p className="text-blue-100 text-sm md:text-base">
+              <p className="text-primary-light/70 text-sm md:text-base">
                 Tạo tài khoản mới
               </p>
             </div>
@@ -100,43 +101,43 @@ export default function RegisterPage() {
               className="px-4 py-6 md:px-6 md:py-8 space-y-4 md:space-y-5"
             >
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5 md:mb-2">
+                <label className="block text-sm font-semibold text-text-primary mb-1.5 md:mb-2">
                   Họ và Tên
                 </label>
                 <input
                   type="text"
                   {...register("fullName")}
                   placeholder="Nhập họ tên"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm md:text-base"
+                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition text-sm md:text-base"
                   disabled={loading}
                 />
                 {errors.fullName && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-error text-xs mt-1">
                     {errors.fullName.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5 md:mb-2">
+                <label className="block text-sm font-semibold text-text-primary mb-1.5 md:mb-2">
                   Email
                 </label>
                 <input
                   type="email"
                   {...register("email")}
                   placeholder="Nhập email"
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm md:text-base"
+                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition text-sm md:text-base"
                   disabled={loading}
                 />
                 {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-error text-xs mt-1">
                     {errors.email.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5 md:mb-2">
+                <label className="block text-sm font-semibold text-text-primary mb-1.5 md:mb-2">
                   Mật Khẩu
                 </label>
                 <div className="relative">
@@ -144,26 +145,26 @@ export default function RegisterPage() {
                     type={showPassword ? "text" : "password"}
                     {...register("password")}
                     placeholder="Nhập mật khẩu"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm md:text-base"
+                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition text-sm md:text-base"
                     disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-text-secondary"
                   >
-                    {showPassword ? "👁️" : "👁️‍🗨️"}
+                    {showPassword ? <FiEye size={18} /> : <FiEyeOff size={18} />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-error text-xs mt-1">
                     {errors.password.message}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5 md:mb-2">
+                <label className="block text-sm font-semibold text-text-primary mb-1.5 md:mb-2">
                   Xác Nhận Mật Khẩu
                 </label>
                 <div className="relative">
@@ -171,19 +172,19 @@ export default function RegisterPage() {
                     type={showConfirmPassword ? "text" : "password"}
                     {...register("confirmPassword")}
                     placeholder="Nhập lại mật khẩu"
-                    className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition text-sm md:text-base"
+                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition text-sm md:text-base"
                     disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                    className="absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-text-secondary"
                   >
-                    {showConfirmPassword ? "👁️" : "👁️‍🗨️"}
+                    {showConfirmPassword ? <FiEye size={18} /> : <FiEyeOff size={18} />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-red-500 text-xs mt-1">
+                  <p className="text-error text-xs mt-1">
                     {errors.confirmPassword.message}
                   </p>
                 )}
@@ -193,25 +194,25 @@ export default function RegisterPage() {
                 <input
                   type="checkbox"
                   {...register("accept")}
-                  className="w-4 h-4 rounded border-gray-300 mt-1 focus:ring-2 focus:ring-blue-500 shrink-0"
+                  className="w-4 h-4 rounded border-border mt-1 focus:ring-2 focus:ring-primary shrink-0"
                   disabled={loading}
                 />
-                <span className="text-xs md:text-sm text-gray-600">
+                <span className="text-xs md:text-sm text-text-secondary">
                   Tôi đồng ý với{" "}
-                  <Link href="/terms" className="text-blue-600 hover:underline">
+                  <Link href="/terms" className="text-primary hover:underline">
                     Điều khoản dịch vụ
                   </Link>{" "}
                   và{" "}
                   <Link
                     href="/privacy"
-                    className="text-blue-600 hover:underline"
+                    className="text-primary hover:underline"
                   >
                     Chính sách bảo mật
                   </Link>
                 </span>
               </label>
               {errors.accept && (
-                <p className="text-red-500 text-xs mt-1">
+                <p className="text-error text-xs mt-1">
                   {errors.accept.message}
                 </p>
               )}
@@ -219,18 +220,22 @@ export default function RegisterPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full cursor-pointer bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm md:text-base transition duration-200"
+                className="w-full cursor-pointer bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm md:text-base transition duration-200"
               >
-                {loading ? "Đang đăng ký..." : "Đăng Ký"}
+                {loading ? (
+                  <><FiLoader className="animate-spin" size={18} /> Đang đăng ký...</>
+                ) : (
+                  <><FiUserPlus size={16} /> Đăng Ký</>
+                )}
               </button>
             </form>
 
-            <div className="px-4 py-4 md:px-6 bg-gray-50 border-t border-gray-200 text-center">
-              <p className="text-gray-600 text-sm">
+            <div className="px-4 py-4 md:px-6 bg-surface-secondary border-t border-border text-center">
+              <p className="text-text-secondary text-sm">
                 Đã có tài khoản?{" "}
                 <Link
                   href="/auth/login"
-                  className="text-blue-600 hover:text-blue-700 font-semibold"
+                  className="text-primary hover:text-primary-dark font-semibold"
                 >
                   Đăng nhập
                 </Link>

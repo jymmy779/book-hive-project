@@ -5,10 +5,30 @@ body {
 }
 
 @theme {
-  /* Colors */
-  --color-primary: #1e293b;
-  --color-secondary1: #3b82f6;
-  --color-secondary2: #64748b;
+  /* Professional Color Palette */
+  --color-primary: #0c4a6e;
+  --color-primary-dark: #082f49;
+  --color-primary-light: #e0f2fe;
+  --color-accent: #7c3aed;
+  --color-accent-hover: #6d28d9;
+  --color-accent-light: #ede9fe;
+  --color-surface: #ffffff;
+  --color-surface-secondary: #f8fafc;
+  --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
+  --color-text-primary: #0f172a;
+  --color-text-secondary: #475569;
+  --color-text-muted: #94a3b8;
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+  /* Backward compatibility: map secondary1 to primary */
+  --color-secondary1: #0c4a6e;
+  /* Accent backgrounds */
+  --color-accent-blue: #eff6ff;
+  --color-accent-pink: #fdf2f8;
+  --color-accent-amber: #fffbeb;
 }
 
 .container {
@@ -38,36 +58,4 @@ body {
 
 .animate-ping-favorite {
   animation: ping-favorite 0.4s;
-}
-
-@keyframes gentle-bounce {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes gentle-bounce-md {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-12px);
-  }
-}
-
-.animate-gentle-bounce {
-  animation: gentle-bounce 2s ease-in-out infinite;
-}
-
-@media (min-width: 768px) {
-  .animate-gentle-bounce {
-    animation: gentle-bounce-md 2.5s ease-in-out infinite;
-  }
 }

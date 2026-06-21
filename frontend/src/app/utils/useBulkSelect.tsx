@@ -66,7 +66,7 @@ export function useBulkSelect(
         withCredentials: true,
       })
       .then(async () => {
-        await fetchData();
+        await fetchData({ force: true });
       });
 
     toast.promise(bulkPromise, {
@@ -106,7 +106,7 @@ export function useBulkSelect(
         },
       )
       .then(async () => {
-        await fetchData();
+        await fetchData({ force: true });
       });
 
     toast.promise(bulkPromise, {

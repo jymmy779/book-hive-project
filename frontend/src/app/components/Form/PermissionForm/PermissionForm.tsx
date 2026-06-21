@@ -72,7 +72,7 @@ export default function PermissionForm({
       </div>
       <button
         type="submit"
-        className="w-full transition-colors duration-200 bg-secondary1 cursor-pointer hover:bg-blue-600 text-white py-2 rounded font-semibold mt-4"
+        className="w-full transition-colors duration-200 bg-primary cursor-pointer hover:bg-primary-dark text-white py-2 rounded font-semibold mt-4"
         disabled={loading}
       >
         {loading ? "Đang xử lý..." : buttonLabel}

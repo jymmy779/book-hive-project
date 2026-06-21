@@ -48,7 +48,7 @@ export default function Pagination({
         disabled={page === 1}
         onClick={() => onPageChange(page - 1)}
         className={`px-2 md:px-3 py-1 text-sm md:text-base rounded bg-gray-200 disabled:opacity-50 transition-colors duration-200 ${
-          page === 1 ? "" : "hover:bg-blue-100 cursor-pointer"
+          page === 1 ? "" : "hover:bg-secondary1/10 cursor-pointer"
         }`}
       >
         Trước
@@ -69,8 +69,8 @@ export default function Pagination({
             className={`px-2 md:px-3 py-1 text-sm md:text-base rounded transition-colors duration-200 font-medium
               ${
                 page === p
-                  ? "bg-blue-500 text-white cursor-default"
-                  : "bg-gray-100 hover:bg-blue-100 cursor-pointer"
+                  ? "bg-primary text-white cursor-default"
+                  : "bg-gray-100 hover:bg-secondary1/10 cursor-pointer"
               }`}
           >
             {p}
@@ -82,7 +82,7 @@ export default function Pagination({
         disabled={page === totalPages}
         onClick={() => onPageChange(page + 1)}
         className={`px-2 md:px-3 py-1 text-sm md:text-base rounded bg-gray-200 disabled:opacity-50 transition-colors duration-200 ${
-          page === totalPages ? "" : "hover:bg-blue-100 cursor-pointer"
+          page === totalPages ? "" : "hover:bg-secondary1/10 cursor-pointer"
         }`}
       >
         Sau

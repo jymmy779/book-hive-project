@@ -1,6 +1,7 @@
 import { Order } from "@/app/interfaces/order.interface";
 import Image from "next/image";
 import Link from "next/link";
+import { FiPackage } from "react-icons/fi";
 
 function getStatusColor(status: string) {
   switch (status) {
@@ -110,7 +111,7 @@ export const OrderCard = ({ order }: { order: Order }) => (
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center text-base md:text-lg">
-                    📚
+                    <FiPackage />
                   </div>
                 )}
               </div>

@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { useCart } from "@/contexts/CartContext";
 import { Loading } from "@/app/components/Loading/Loading";
+import { FiCreditCard, FiTruck, FiCheck, FiArrowLeft } from "react-icons/fi";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -258,7 +259,7 @@ export default function CheckoutPage() {
                       />
                       <div className="ml-3 md:ml-4">
                         <p className="font-semibold text-slate-800 text-sm md:text-base">
-                          💳 Chuyển khoản ngân hàng
+                          <FiCreditCard className="inline mr-2" /> Chuyển khoản ngân hàng
                         </p>
                         <p className="text-xs md:text-sm text-slate-500">
                           Quét mã QR hoặc chuyển khoản thủ công
@@ -287,7 +288,7 @@ export default function CheckoutPage() {
                       />
                       <div className="ml-3 md:ml-4">
                         <p className="font-semibold text-slate-800 text-sm md:text-base">
-                          🚚 Thanh toán khi nhận hàng
+                          <FiTruck className="inline mr-2" /> Thanh toán khi nhận hàng
                         </p>
                         <p className="text-xs md:text-sm text-slate-500">
                           Thanh toán tiền mặt khi nhận sách
@@ -370,20 +371,20 @@ export default function CheckoutPage() {
                     disabled={isProcessing}
                     className="w-full py-3 cursor-pointer bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-sm md:text-base"
                   >
-                    {isProcessing ? "Đang xử lý..." : "✓ Tiếp tục"}
+                    {isProcessing ? "Đang xử lý..." : <><FiCheck className="inline mr-2" /> Tiếp tục</>}
                   </button>
 
                   <Link
                     href="/cart"
                     className="block w-full py-3 bg-gray-100 text-slate-800 font-bold rounded-lg hover:bg-gray-200 transition-colors duration-200 text-center mt-3 text-sm md:text-base"
                   >
-                    ← Quay lại giỏ hàng
+                    <FiArrowLeft className="inline mr-2" /> Quay lại giỏ hàng
                   </Link>
 
                   <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-200 text-xs md:text-sm text-slate-500 space-y-2">
-                    <p>✓ Giao hàng toàn quốc</p>
-                    <p>✓ Đổi trả trong 30 ngày</p>
-                    <p>✓ Thanh toán an toàn</p>
+                    <p><FiCheck className="inline mr-1" /> Giao hàng toàn quốc</p>
+                    <p><FiCheck className="inline mr-1" /> Đổi trả trong 30 ngày</p>
+                    <p><FiCheck className="inline mr-1" /> Thanh toán an toàn</p>
                   </div>
                 </div>
               </div>

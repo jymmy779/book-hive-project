@@ -29,7 +29,7 @@ export default function useChangeStatus(
           withCredentials: true,
         },
       );
-      fetchData();
+      fetchData({ force: true });
       toast.success("Cập nhật trạng thái thành công!");
     } catch (error) {
       console.log(error);

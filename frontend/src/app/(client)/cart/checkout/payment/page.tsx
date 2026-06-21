@@ -6,6 +6,7 @@ import { toast, ToastContainer } from "react-toastify";
 import axios from "axios";
 import { Loading } from "@/app/components/Loading/Loading";
 import ConfirmModal from "@/app/components/ConfirmModal/ConfirmModal";
+import { FiCreditCard, FiCheck, FiArrowRight, FiBook, FiArrowLeft, FiClock } from "react-icons/fi";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -202,7 +203,7 @@ export default function PaymentPage() {
 
           <div className="bg-blue-50 border-2 border-primary rounded-lg p-4 md:p-6 mb-4 md:mb-6">
             <p className="text-base md:text-lg font-semibold text-slate-800 mb-2">
-              💳 Chuyển khoản ngân hàng qua PayOS
+              <FiCreditCard className="inline mr-2" /> Chuyển khoản ngân hàng qua PayOS
             </p>
             <p className="text-sm md:text-base text-slate-600">
               Quét mã QR hoặc chuyển khoản thủ công. An toàn và nhanh chóng.
@@ -215,21 +216,21 @@ export default function PaymentPage() {
               disabled={isCreatingLink}
               className="w-full py-3 md:py-4 bg-primary text-white font-bold text-base md:text-lg rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isCreatingLink ? "⏳ Đang tạo link..." : "✓ Tạo link thanh toán"}
+              {isCreatingLink ? <><FiClock className="inline mr-2 animate-spin" /> Đang tạo link...</> : <><FiCheck className="inline mr-2" /> Tạo link thanh toán</>}
             </button>
           ) : (
             <button
               onClick={handlePayment}
               className="w-full py-3 md:py-4 bg-green-600 text-white font-bold text-base md:text-lg rounded-lg hover:bg-green-700 transition-colors duration-200 animate-pulse"
             >
-              → Tiến hành thanh toán
+              <FiArrowRight className="inline mr-2" /> Tiến hành thanh toán
             </button>
           )}
         </div>
 
         <div className="bg-white rounded-lg shadow p-4 md:p-8">
           <h2 className="text-lg md:text-xl font-bold text-slate-800 mb-3 md:mb-4">
-            📖 Hướng dẫn thanh toán
+            <FiBook className="inline mr-2" /> Hướng dẫn thanh toán
           </h2>
 
           <ol className="space-y-2 md:space-y-3 text-slate-600 text-sm md:text-base">
@@ -257,7 +258,7 @@ export default function PaymentPage() {
               disabled={isCancelling}
               className="py-2 px-0 md:px-4 cursor-pointer text-primary font-semibold hover:text-blue-700 text-sm md:text-base flex items-center gap-1 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span>←</span> {isCancelling ? "Đang hủy..." : "Quay lại"}
+              <FiArrowLeft className="inline mr-1" /> {isCancelling ? "Đang hủy..." : "Quay lại"}
             </button>
           </div>
         </div>
