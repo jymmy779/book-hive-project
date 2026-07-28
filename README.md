@@ -3,7 +3,7 @@
 Dự án **Book Hive** là một ứng dụng Web App hiện đại dành cho việc mua sắm và quản lý sách, được xây dựng với mục tiêu mang lại trải nghiệm mượt mà cho cả người dùng cuối và quản trị viên.
 
 ## 🚀 Demo Trực Tuyến
-- **Trang Khách hàng (Client):** [https://book-hive-project.vercel.app/home](https://book-hive-project.vercel.app/home)
+- **Trang Khách hàng (Client):** [https://book-hive-project.vercel.app/home](https://book-hive-project.vercel.app)
 - **Trang Quản trị (Admin):** [https://book-hive-project.vercel.app/auth/admin/login](https://book-hive-project.vercel.app/auth/admin/login)
 
 ---
