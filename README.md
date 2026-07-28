@@ -61,7 +61,7 @@ npm run format:all
 ```
 
 Ứng dụng sẽ khả dụng tại:
-- Frontend: `http://localhost:3000/home`
+- Frontend: `http://localhost:3000`
 - Backend: `http://localhost:3001/admin/dashboard/login` (Admin)
 
 ---
