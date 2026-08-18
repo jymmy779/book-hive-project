@@ -6,6 +6,9 @@ const nextConfig: NextConfig = {
     domains: ["res.cloudinary.com"],
     unoptimized: true,
   },
+  experimental: {
+    optimizePackageImports: ["react-icons", "lodash", "framer-motion", "lucide-react", "fi"],
+  },
 };
 
 export default nextConfig;

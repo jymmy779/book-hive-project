@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __rest = (this && this.__rest) || function (s, e) {
     var t = {};
     for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
@@ -23,7 +14,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const slugify = require("slugify");
 const bcrypt = require("bcryptjs");
 const Account = require("../../models/account.model");
-module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+module.exports.index = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 5;
@@ -44,14 +35,14 @@ module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function*
         if (req.query.sortKey && req.query.sortValue) {
             sort[req.query.sortKey] = Number(req.query.sortValue);
         }
-        const accounts = yield Account.find(find)
+        const accounts = await Account.find(find)
             .skip(skip)
             .limit(limit)
             .sort(sort)
             .populate("updatedBy", "fullName")
             .populate("createdBy", "fullName")
             .populate("deletedBy", "fullName");
-        const total = yield Account.countDocuments(find);
+        const total = await Account.countDocuments(find);
         if (accounts) {
             return res.status(200).json({
                 message: "Thành công!",
@@ -67,14 +58,14 @@ module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         return res.status(400).json("Không tìm thấy!");
     }
-});
-module.exports.changeStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.changeStatus = async (req, res) => {
     try {
         const { id, status } = req.params;
         if (!status) {
             return res.status(404).json({ message: "Không tìm thấy status!" });
         }
-        const account = yield Account.updateOne({
+        const account = await Account.updateOne({
             _id: id,
         }, {
             status: status,
@@ -91,8 +82,8 @@ module.exports.changeStatus = (req, res) => __awaiter(void 0, void 0, void 0, fu
     catch (error) {
         res.status(500).json({ message: "Lỗi server!" });
     }
-});
-module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.changeMulti = async (req, res) => {
     try {
         const type = req.body.type;
         const ids = Array.isArray(req.body.ids)
@@ -100,21 +91,21 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
             : req.body.ids.split(", ");
         switch (type) {
             case "active":
-                yield Account.updateMany({ _id: { $in: ids } }, { status: "active", updatedBy: req.user.id });
+                await Account.updateMany({ _id: { $in: ids } }, { status: "active", updatedBy: req.user.id });
                 return res.status(200).json({
                     message: `Cập nhật trạng thái thành công ${ids.length} tài khoản!`,
                 });
             case "inactive":
-                yield Account.updateMany({ _id: { $in: ids } }, { status: "inactive", updatedBy: req.user.id });
+                await Account.updateMany({ _id: { $in: ids } }, { status: "inactive", updatedBy: req.user.id });
                 return res.status(200).json({
                     message: `Cập nhật trạng thái thành công ${ids.length} tài khoản!`,
                 });
             case "delete_all":
-                yield Account.updateMany({ _id: { $in: ids } }, { deleted: true, deletedAt: new Date(), deletedBy: req.user.id });
-                const accountsLeft = yield Account.find({ deleted: false }).sort({
+                await Account.updateMany({ _id: { $in: ids } }, { deleted: true, deletedAt: new Date(), deletedBy: req.user.id });
+                const accountsLeft = await Account.find({ deleted: false }).sort({
                     position: 1,
                 });
-                yield Promise.all(accountsLeft.map((account, i) => Account.updateOne({ _id: account._id }, { position: i + 1 })));
+                await Promise.all(accountsLeft.map((account, i) => Account.updateOne({ _id: account._id }, { position: i + 1 })));
                 return res.status(200).json({
                     message: `Đã xóa ${ids.length} tài khoản!`,
                 });
@@ -129,8 +120,8 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
             message: "Cập nhật thất bại!",
         });
     }
-});
-module.exports.create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.create = async (req, res) => {
     try {
         let _a = req.body, { fullName, password } = _a, newAccData = __rest(_a, ["fullName", "password"]);
         const slug = slugify(fullName, { lower: true, strict: true, locale: "vi" });
@@ -138,11 +129,11 @@ module.exports.create = (req, res) => __awaiter(void 0, void 0, void 0, function
         if (req.file) {
             avatar = req.file.path || req.file.url || req.file.secure_url || "";
         }
-        const hashedPassword = yield bcrypt.hash(password, 10);
+        const hashedPassword = await bcrypt.hash(password, 10);
         const newAcc = new Account(Object.assign(Object.assign({}, newAccData), { avatar,
             slug,
             fullName, password: hashedPassword, createdBy: req.user.id }));
-        yield newAcc.save();
+        await newAcc.save();
         return res.status(200).json({
             message: "Tạo mới tài khoản thành công!",
             newAcc: newAcc,
@@ -153,11 +144,11 @@ module.exports.create = (req, res) => __awaiter(void 0, void 0, void 0, function
             message: "Tạo mới tài khoản thất bại",
         });
     }
-});
-module.exports.detail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.detail = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const account = yield Account.findOne({
+        const account = await Account.findOne({
             slug: slug,
             deleted: false,
         })
@@ -176,11 +167,11 @@ module.exports.detail = (req, res) => __awaiter(void 0, void 0, void 0, function
             message: "Lỗi khi lấy thông tin tài khoản!",
         });
     }
-});
-module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.edit = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const account = yield Account.findOne({ slug, deleted: false });
+        const account = await Account.findOne({ slug, deleted: false });
         if (!account) {
             return res.status(404).json({ message: "Không tìm thấy tài khoản!" });
         }
@@ -199,7 +190,7 @@ module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             });
         }
         updateData.updatedBy = req.user.id;
-        yield Account.updateOne({ _id: account._id }, updateData);
+        await Account.updateOne({ _id: account._id }, updateData);
         return res.status(200).json({
             message: "Cập nhật thông tin thành công!",
         });
@@ -209,11 +200,11 @@ module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             message: "Cập nhật thông tin thất bại",
         });
     }
-});
-module.exports.delete = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.delete = async (req, res) => {
     try {
         const id = req.params.id;
-        yield Account.updateOne({
+        await Account.updateOne({
             _id: id,
         }, {
             deleted: true,
@@ -229,12 +220,12 @@ module.exports.delete = (req, res) => __awaiter(void 0, void 0, void 0, function
             message: "Xóa thất bại",
         });
     }
-});
-module.exports.resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.resetPassword = async (req, res) => {
     try {
         const slug = req.params.slug;
         const { newPassword } = req.body;
-        const account = yield Account.findOne({
+        const account = await Account.findOne({
             slug: slug,
         });
         if (!account) {
@@ -242,8 +233,8 @@ module.exports.resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, f
                 message: "Không tìm thấy tài khoản!",
             });
         }
-        const hashedPassword = yield bcrypt.hash(newPassword, 10);
-        yield Account.updateOne({
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        await Account.updateOne({
             slug: slug,
         }, {
             password: hashedPassword,
@@ -258,11 +249,11 @@ module.exports.resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, f
             message: "Cập nhật thất bại!",
         });
     }
-});
-module.exports.profile = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.profile = async (req, res) => {
     try {
         const id = req.user.id;
-        const account = yield Account.findOne({
+        const account = await Account.findOne({
             _id: id,
         })
             .select("-password")
@@ -280,4 +271,4 @@ module.exports.profile = (req, res) => __awaiter(void 0, void 0, void 0, functio
             message: "Lỗi khi lấy thông tin hồ sơ!",
         });
     }
-});
+};

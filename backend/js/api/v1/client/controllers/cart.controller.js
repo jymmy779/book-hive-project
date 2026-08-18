@@ -1,19 +1,10 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const Cart = require("../../models/cart.model");
-module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+module.exports.index = async (req, res) => {
     try {
         const userId = req.user.id;
-        const cart = yield Cart.findOne({ userId });
+        const cart = await Cart.findOne({ userId });
         if (!cart) {
             return res.json({ items: [], total: 0 });
         }
@@ -26,12 +17,12 @@ module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         res.status(500).json({ error: "Lấy cart thất bại" });
     }
-});
-module.exports.add = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.add = async (req, res) => {
     try {
         const userId = req.user.id;
         const { bookId, quantity, title, price, image, slug } = req.body;
-        let cart = yield Cart.findOne({ userId });
+        let cart = await Cart.findOne({ userId });
         if (!cart) {
             cart = new Cart({ userId, items: [] });
         }
@@ -49,19 +40,19 @@ module.exports.add = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 slug,
             });
         }
-        yield cart.save();
+        await cart.save();
         res.json({ items: cart.items });
     }
     catch (error) {
         res.status(500).json({ error: "Thêm vào cart thất bại" });
     }
-});
-module.exports.editItem = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.editItem = async (req, res) => {
     try {
         const userId = req.user.id;
         const { id } = req.params;
         const { quantity } = req.body;
-        const cart = yield Cart.findOne({ userId });
+        const cart = await Cart.findOne({ userId });
         if (!cart)
             return res.status(404).json({ error: "Cart không tồn tại" });
         const item = cart.items.find((item) => item.bookId.toString() === id);
@@ -73,39 +64,39 @@ module.exports.editItem = (req, res) => __awaiter(void 0, void 0, void 0, functi
         else {
             item.quantity = quantity;
         }
-        yield cart.save();
+        await cart.save();
         res.json({ items: cart.items });
     }
     catch (error) {
         res.status(500).json({ error: "Cập nhật cart thất bại" });
     }
-});
-module.exports.deleteItem = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.deleteItem = async (req, res) => {
     try {
         const userId = req.user.id;
         const { id } = req.params;
-        const cart = yield Cart.findOne({ userId });
+        const cart = await Cart.findOne({ userId });
         if (!cart)
             return res.status(404).json({ error: "Cart không tồn tại" });
         cart.items = cart.items.filter((item) => item.bookId.toString() !== id);
-        yield cart.save();
+        await cart.save();
         res.json({ items: cart.items });
     }
     catch (error) {
         res.status(500).json({ error: "Xóa sản phẩm thất bại" });
     }
-});
-module.exports.clear = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.clear = async (req, res) => {
     try {
         const userId = req.user.id;
-        const cart = yield Cart.findOne({ userId });
+        const cart = await Cart.findOne({ userId });
         if (!cart)
             return res.status(404).json({ error: "Cart không tồn tại" });
         cart.items = [];
-        yield cart.save();
+        await cart.save();
         res.json({ items: [] });
     }
     catch (error) {
         res.status(500).json({ error: "Xóa toàn bộ cart thất bại" });
     }
-});
+};

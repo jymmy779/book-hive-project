@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const Book = require("../../models/book.model");
 const Category = require("../../models/category.model");
@@ -17,7 +8,7 @@ const Cart = require("../../models/cart.model");
 const User = require("../../models/user.model");
 const aiService = require("../services/ai.service");
 const jwt = require("jsonwebtoken");
-module.exports.query = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+module.exports.query = async (req, res) => {
     try {
         const { question } = req.body;
         if (!question || question.trim() === "") {
@@ -26,7 +17,7 @@ module.exports.query = (req, res) => __awaiter(void 0, void 0, void 0, function*
                 message: "Vui lòng nhập câu hỏi",
             });
         }
-        const relatedBooks = yield aiService.findRelatedBooks(Book, question, {
+        const relatedBooks = await aiService.findRelatedBooks(Book, question, {
             limit: 5,
         });
         let userData = {
@@ -39,18 +30,18 @@ module.exports.query = (req, res) => __awaiter(void 0, void 0, void 0, function*
             try {
                 const token = authHeader.split(" ")[1];
                 const decoded = jwt.verify(token, process.env.JWT_SECRET);
-                userData.orders = yield Order.find({ "userInfo.email": decoded.email })
+                userData.orders = await Order.find({ "userInfo.email": decoded.email })
                     .sort({ createdAt: -1 })
                     .limit(3);
-                userData.cart = yield Cart.findOne({ userId: decoded.id });
-                userData.user = yield User.findOne({ _id: decoded.id }).select("fullName email");
+                userData.cart = await Cart.findOne({ userId: decoded.id });
+                userData.user = await User.findOne({ _id: decoded.id }).select("fullName email");
             }
             catch (err) {
                 console.log("Chatbot Auth optional error:", err.message);
             }
         }
         const bookIds = relatedBooks.map((b) => b._id);
-        const relatedReviews = yield Review.find({ book: { $in: bookIds } })
+        const relatedReviews = await Review.find({ book: { $in: bookIds } })
             .populate("user", "fullName")
             .populate("book", "title")
             .limit(10);
@@ -60,7 +51,7 @@ module.exports.query = (req, res) => __awaiter(void 0, void 0, void 0, function*
             reviews: relatedReviews,
             user: userData.user,
         });
-        const result = yield aiService.queryAI(question, context, relatedBooks);
+        const result = await aiService.queryAI(question, context, relatedBooks);
         if (!result.success) {
             return res.status(500).json({
                 success: false,
@@ -104,4 +95,4 @@ module.exports.query = (req, res) => __awaiter(void 0, void 0, void 0, function*
             error: error.message,
         });
     }
-});
+};

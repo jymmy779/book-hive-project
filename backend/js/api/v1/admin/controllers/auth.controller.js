@@ -1,27 +1,18 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const Account = require("../../models/account.model");
 const generate = require("../../../../helpers/generate");
-module.exports.login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+module.exports.login = async (req, res) => {
     var _a, _b, _c;
     try {
         const { email, password } = req.body;
-        const user = yield Account.findOne({ email }).populate("role_id");
+        const user = await Account.findOne({ email }).populate("role_id");
         if (!user) {
             return res.status(400).json({ message: "Email không tồn tại" });
         }
-        const isMatch = yield bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: "Mật khẩu không đúng" });
         }
@@ -34,7 +25,7 @@ module.exports.login = (req, res) => __awaiter(void 0, void 0, void 0, function*
         const refreshToken = generate.generateRefreshToken();
         user.refreshToken = refreshToken;
         user.refreshTokenExpiresAt = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
-        yield user.save();
+        await user.save();
         res.cookie("refreshToken_admin", refreshToken, {
             httpOnly: true,
             secure: true,
@@ -64,8 +55,8 @@ module.exports.login = (req, res) => __awaiter(void 0, void 0, void 0, function*
             message: "Đăng nhập thất bại",
         });
     }
-});
-module.exports.verify = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.verify = async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -84,11 +75,11 @@ module.exports.verify = (req, res) => __awaiter(void 0, void 0, void 0, function
             message: "Xác thực không thành công",
         });
     }
-});
-module.exports.logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.logout = async (req, res) => {
     try {
         const refreshToken = req.cookies.refreshToken_admin;
-        yield Account.findOneAndUpdate({
+        await Account.findOneAndUpdate({
             refreshToken: refreshToken,
         }, { refreshToken: null, refreshTokenExpiresAt: null });
         res.clearCookie("refreshToken_admin", {
@@ -103,4 +94,4 @@ module.exports.logout = (req, res) => __awaiter(void 0, void 0, void 0, function
             message: "Đăng xuất thất bại",
         });
     }
-});
+};

@@ -1,25 +1,16 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const User = require("../../models/user.model");
-module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+module.exports.index = async (req, res) => {
     try {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
-        const users = yield User.find()
+        const users = await User.find()
             .skip(skip)
             .limit(limit)
             .sort({ createdAt: -1 });
-        const total = yield User.countDocuments();
+        const total = await User.countDocuments();
         return res.status(200).json({
             message: "Lấy danh sách người dùng thành công!",
             users,
@@ -33,11 +24,11 @@ module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function*
             error: error.message,
         });
     }
-});
-module.exports.getUser = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.getUser = async (req, res) => {
     try {
         const userId = req.user.userId;
-        const user = yield User.findOne({ _id: userId }).select("fullName phone email");
+        const user = await User.findOne({ _id: userId }).select("fullName phone email");
         if (!user) {
             return res.status(404).json({
                 message: "Không tìm thấy người dùng!",
@@ -59,11 +50,11 @@ module.exports.getUser = (req, res) => __awaiter(void 0, void 0, void 0, functio
             error: error.message,
         });
     }
-});
-module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.edit = async (req, res) => {
     try {
         const userId = req.user.userId;
-        const user = yield User.findOne({ _id: userId }).select("fullName phone ");
+        const user = await User.findOne({ _id: userId }).select("fullName phone ");
         if (!user) {
             return res.status(404).json({
                 message: "Không tìm thấy người dùng!",
@@ -74,7 +65,7 @@ module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             user.fullName = fullName;
         if (phone !== undefined)
             user.phone = phone || "";
-        yield user.save();
+        await user.save();
         return res.status(200).json({
             message: "Cập nhật thông tin thành công!",
             user: {
@@ -90,4 +81,4 @@ module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             error: error.message,
         });
     }
-});
+};

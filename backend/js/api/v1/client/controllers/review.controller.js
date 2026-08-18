@@ -1,18 +1,9 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const User = require("../../models/user.model");
 const Review = require("../../models/review.model");
 const Book = require("../../models/book.model");
-module.exports.bookReviews = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+module.exports.bookReviews = async (req, res) => {
     try {
         const bookId = req.params.bookId;
         const page = parseInt(req.query.page) || 1;
@@ -23,14 +14,14 @@ module.exports.bookReviews = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 message: "Không có bookId",
             });
         }
-        const records = yield Review.find({
+        const records = await Review.find({
             book: bookId,
         })
             .populate("user", "fullName")
             .skip(skip)
             .limit(limit)
             .sort({ createdAt: -1 });
-        const total = yield Review.countDocuments({ book: bookId });
+        const total = await Review.countDocuments({ book: bookId });
         res.status(200).json({
             records: records,
             total,
@@ -44,12 +35,12 @@ module.exports.bookReviews = (req, res) => __awaiter(void 0, void 0, void 0, fun
             error: error.message,
         });
     }
-});
-module.exports.sendReview = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.sendReview = async (req, res) => {
     try {
         const userId = req.user.userId;
         const { bookId, rating, comment } = req.body;
-        const existingReview = yield Review.findOne({
+        const existingReview = await Review.findOne({
             book: bookId,
             user: userId,
         });
@@ -64,10 +55,10 @@ module.exports.sendReview = (req, res) => __awaiter(void 0, void 0, void 0, func
             rating: rating,
             comment: comment,
         });
-        yield review.save();
-        const allReviews = yield Review.find({ book: bookId });
+        await review.save();
+        const allReviews = await Review.find({ book: bookId });
         const averageRating = allReviews.reduce((sum, rev) => sum + rev.rating, 0) / allReviews.length;
-        yield Book.findByIdAndUpdate(bookId, {
+        await Book.findByIdAndUpdate(bookId, {
             rating: Math.round(averageRating * 10) / 10,
             reviews: allReviews.length,
         });
@@ -83,12 +74,12 @@ module.exports.sendReview = (req, res) => __awaiter(void 0, void 0, void 0, func
             error: error.message,
         });
     }
-});
-module.exports.myReview = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.myReview = async (req, res) => {
     try {
         const userId = req.user.userId;
         const bookId = req.params.bookId;
-        const record = yield Review.findOne({
+        const record = await Review.findOne({
             user: userId,
             book: bookId,
         });
@@ -108,4 +99,4 @@ module.exports.myReview = (req, res) => __awaiter(void 0, void 0, void 0, functi
             error: error.message,
         });
     }
-});
+};

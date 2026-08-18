@@ -20,7 +20,9 @@ module.exports.index = async (req, res) => {
         slug: categorySlug,
         deleted: false,
         status: "active",
-      });
+      })
+        .select("_id")
+        .lean();
       if (category) {
         find.category_id = category._id.toString();
       } else {
@@ -36,7 +38,9 @@ module.exports.index = async (req, res) => {
         $or: [{ title: regex }, { slug: regex }],
         deleted: false,
         status: "active",
-      }).select("_id");
+      })
+        .select("_id")
+        .lean();
 
       const categoryIds = matchingCategories.map((cat: any) => cat._id);
 
@@ -59,24 +63,25 @@ module.exports.index = async (req, res) => {
       sort.position = "desc";
     }
 
-    const books = await Book.find(find).skip(skip).limit(limit).sort(sort);
+    const books = await Book.find(find).skip(skip).limit(limit).sort(sort).lean();
     const total = await Book.countDocuments(find);
 
     if (books && books.length > 0) {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-      // Tối ưu hóa N+1 query: Lấy tất cả category_id duy nhất và fetch bằng 1 query duy nhất
       const categoryIds = [...new Set(books.map((b: any) => b.category_id).filter(Boolean))];
       const categories = await Category.find({
         _id: { $in: categoryIds },
-      }).select("title");
+      })
+        .select("title")
+        .lean();
       const categoryMap = new Map(
         categories.map((cat: any) => [cat._id.toString(), cat.title])
       );
 
       const booksWithCategory = books.map((book: any) => {
-        const bookObj = book.toObject();
+        const bookObj = { ...book };
         if (book.category_id) {
           bookObj.category_name =
             categoryMap.get(book.category_id.toString()) || "";
@@ -113,17 +118,21 @@ module.exports.detail = async (req, res) => {
       slug: slug,
       deleted: false,
       status: "active",
-    });
+    }).lean();
     if (!book) {
       return res.status(404).json({ message: "Không tìm thấy sách!" });
     }
 
-    const bookObj = book.toObject();
+    const bookObj = { ...book };
     if (book.category_id) {
       const category = await Category.findOne({
         _id: book.category_id,
-      }).select("title");
-      bookObj.category_name = category.title;
+      })
+        .select("title")
+        .lean();
+      if (category) {
+        bookObj.category_name = category.title;
+      }
     }
 
     return res.status(200).json({
@@ -144,7 +153,9 @@ module.exports.featured = async (req, res) => {
       deleted: false,
       status: "active",
       featured: true,
-    }).sort({ position: -1 });
+    })
+      .sort({ position: -1 })
+      .lean();
 
     if (books) {
       return res.status(200).json({
@@ -169,7 +180,8 @@ module.exports.newest = async (req, res) => {
       status: "active",
     })
       .sort({ createdAt: -1 })
-      .limit(10);
+      .limit(10)
+      .lean();
 
     return res.status(200).json({
       message: "Thành công!",
@@ -186,7 +198,10 @@ module.exports.newest = async (req, res) => {
 // [GET] /api/v1/books/best-seller
 module.exports.bestSeller = async (req, res) => {
   try {
-    const records = await Book.find().sort({ soldCount: -1 }).limit(10);
+    const records = await Book.find()
+      .sort({ soldCount: -1 })
+      .limit(10)
+      .lean();
 
     if (!records) {
       return res.status(400).json({
@@ -210,7 +225,9 @@ module.exports.categories = async (req, res) => {
     const categories = await Category.find({
       deleted: false,
       status: "active",
-    }).select("title slug");
+    })
+      .select("title slug")
+      .lean();
     return res.status(200).json({
       message: "Thành công!",
       categories,

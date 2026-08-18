@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const { PayOS } = require("@payos/node");
 const Order = require("../../models/order.model");
@@ -19,13 +10,13 @@ const payOS = new PayOS({
     apiKey: process.env.PAYOS_API_KEY,
     checksumKey: process.env.PAYOS_CHECKSUM_KEY,
 });
-const findDocumentByCode = (code) => __awaiter(void 0, void 0, void 0, function* () {
-    const document = yield Order.findOne({ orderCode: String(code) });
+const findDocumentByCode = async (code) => {
+    const document = await Order.findOne({ orderCode: String(code) });
     if (document)
         return { document, type: "order" };
     return { document: null, type: null };
-});
-module.exports.createCombinedPaymentLink = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.createCombinedPaymentLink = async (req, res) => {
     try {
         const { codes, amount, items } = req.body;
         if (!codes || codes.length === 0) {
@@ -36,7 +27,7 @@ module.exports.createCombinedPaymentLink = (req, res) => __awaiter(void 0, void 
         }
         const documents = [];
         for (const code of codes) {
-            const { document, type } = yield findDocumentByCode(code);
+            const { document, type } = await findDocumentByCode(code);
             if (document) {
                 documents.push({ code, document, type });
             }
@@ -52,7 +43,7 @@ module.exports.createCombinedPaymentLink = (req, res) => __awaiter(void 0, void 
                 (doc.document.expiredAt && new Date() > doc.document.expiredAt)) {
                 doc.document.status = "cancelled";
                 doc.document.isExpired = true;
-                yield doc.document.save();
+                await doc.document.save();
                 return res.status(400).json({
                     error: -1,
                     message: `Đơn hàng ${doc.code} đã hết hạn`,
@@ -63,7 +54,7 @@ module.exports.createCombinedPaymentLink = (req, res) => __awaiter(void 0, void 
         const cancelUrl = `${process.env.FRONTEND_URL || "http://localhost:3000"}/cart`;
         const returnUrl = `${process.env.FRONTEND_URL}/order-success?codes=${encodeURIComponent(codes.join(","))}`;
         const descriptionCode = generateDescriptionCode();
-        const paymentLink = yield payOS.paymentRequests.create({
+        const paymentLink = await payOS.paymentRequests.create({
             orderCode: Number(String(mainCode).replace(/\D/g, "")),
             amount: Number(amount),
             description: descriptionCode,
@@ -73,7 +64,7 @@ module.exports.createCombinedPaymentLink = (req, res) => __awaiter(void 0, void 
         });
         for (const doc of documents) {
             doc.document.checkoutUrl = paymentLink.checkoutUrl;
-            yield doc.document.save();
+            await doc.document.save();
         }
         return res.json({
             error: 0,
@@ -93,25 +84,25 @@ module.exports.createCombinedPaymentLink = (req, res) => __awaiter(void 0, void 
             details: err.message,
         });
     }
-});
-module.exports.webhook = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.webhook = async (req, res) => {
     try {
         const { code, desc, data } = req.body;
         if (code === "00" && desc === "success") {
             const orderCode = String(data.orderCode);
-            const mainDoc = yield Order.findOne({ orderCode: orderCode });
+            const mainDoc = await Order.findOne({ orderCode: orderCode });
             const paidDocuments = [];
             if (mainDoc && mainDoc.checkoutUrl) {
                 const checkoutUrl = mainDoc.checkoutUrl;
-                const pendingOrders = yield Order.find({
+                const pendingOrders = await Order.find({
                     checkoutUrl,
                     status: "pending",
                 });
                 for (const order of pendingOrders) {
                     order.status = "confirmed";
-                    yield order.save();
+                    await order.save();
                     paidDocuments.push({ doc: order, type: "order" });
-                    yield new Transaction({
+                    await new Transaction({
                         orderCode: String(order.orderCode),
                         bankCode: data.counterAccountBankId,
                         accountNo: data.accountNumber,
@@ -134,7 +125,7 @@ module.exports.webhook = (req, res) => __awaiter(void 0, void 0, void 0, functio
                         items: doc.items || [],
                         totalAmount: doc.totalAmount || 0,
                     };
-                    yield sendOrderConfirmationEmail(emailOrder);
+                    await sendOrderConfirmationEmail(emailOrder);
                 }
                 else if (paidDocuments.length > 1) {
                     const firstDoc = paidDocuments[0].doc;
@@ -150,7 +141,7 @@ module.exports.webhook = (req, res) => __awaiter(void 0, void 0, void 0, functio
                         items: combinedItems,
                         totalAmount: combinedTotal,
                     };
-                    yield sendOrderConfirmationEmail(combinedOrder);
+                    await sendOrderConfirmationEmail(combinedOrder);
                 }
             }
             catch (emailErr) {
@@ -163,11 +154,11 @@ module.exports.webhook = (req, res) => __awaiter(void 0, void 0, void 0, functio
         console.error("Lỗi webhook:", err);
         return res.status(500).json({ message: "Lỗi xử lý webhook" });
     }
-});
-module.exports.cancelPaymentLink = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.cancelPaymentLink = async (req, res) => {
     try {
         const { code } = req.params;
-        const { document, type } = yield findDocumentByCode(code);
+        const { document, type } = await findDocumentByCode(code);
         if (!document) {
             return res.status(404).json({
                 error: -1,
@@ -182,10 +173,10 @@ module.exports.cancelPaymentLink = (req, res) => __awaiter(void 0, void 0, void 
         }
         document.status = "cancelled";
         document.isExpired = true;
-        yield document.save();
+        await document.save();
         try {
             const orderCode = Number(String(code).replace(/\D/g, ""));
-            yield payOS.paymentRequests.cancel(orderCode);
+            await payOS.paymentRequests.cancel(orderCode);
         }
         catch (e) { }
         return res.json({
@@ -202,4 +193,4 @@ module.exports.cancelPaymentLink = (req, res) => __awaiter(void 0, void 0, void 
             message: "Lỗi hủy",
         });
     }
-});
+};

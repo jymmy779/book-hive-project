@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = require("axios");
 const Category = require("../../models/category.model");
@@ -412,8 +403,10 @@ function guessCategorySlugsFromQuery(query) {
     }
     return Array.from(slugs);
 }
-module.exports.queryAI = (question, context, relatedBooks) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+module.exports.queryAI = async (question, context, relatedBooks) => {
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
+    const fallbackIntent = detectIntent(question);
+    const hasBooks = Array.isArray(relatedBooks) && relatedBooks.length > 0;
     try {
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
@@ -447,27 +440,46 @@ Bạn không chỉ tư vấn sách, mà còn là người quản gia tận tâm 
         const userContent = context
             ? `Câu hỏi: ${question}\n\nThông tin liên quan:\n${context}`
             : `Câu hỏi: ${question}`;
-        const response = yield axios_1.default.post("https://api.groq.com/openai/v1/chat/completions", {
-            model: "llama-3.3-70b-versatile",
-            messages: [
-                { role: "system", content: systemPrompt },
-                { role: "user", content: userContent },
-            ],
-            max_tokens: 800,
-            temperature: 0.7,
-        }, {
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${apiKey}`,
-            },
-        });
-        const raw = (_d = (_c = (_b = (_a = response.data) === null || _a === void 0 ? void 0 : _a.choices) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.message) === null || _d === void 0 ? void 0 : _d.content;
-        if (!raw) {
-            throw new Error("Không nhận được phản hồi từ Groq");
+        const models = [
+            "llama-3.3-70b-versatile",
+            "llama-3.1-8b-instant",
+            "llama3-70b-8192",
+            "mixtral-8x7b-32768",
+            "gemma2-9b-it",
+        ];
+        let response = null;
+        let lastError = null;
+        for (const model of models) {
+            try {
+                response = await axios_1.default.post("https://api.groq.com/openai/v1/chat/completions", {
+                    model: model,
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userContent },
+                    ],
+                    max_tokens: 800,
+                    temperature: 0.7,
+                }, {
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${apiKey}`,
+                    },
+                    timeout: 10000,
+                });
+                if ((_d = (_c = (_b = (_a = response === null || response === void 0 ? void 0 : response.data) === null || _a === void 0 ? void 0 : _a.choices) === null || _b === void 0 ? void 0 : _b[0]) === null || _c === void 0 ? void 0 : _c.message) === null || _d === void 0 ? void 0 : _d.content) {
+                    break;
+                }
+            }
+            catch (err) {
+                lastError = err;
+                console.log(`Groq model ${model} failed, trying next model...`);
+            }
         }
+        if (!((_h = (_g = (_f = (_e = response === null || response === void 0 ? void 0 : response.data) === null || _e === void 0 ? void 0 : _e.choices) === null || _f === void 0 ? void 0 : _f[0]) === null || _g === void 0 ? void 0 : _g.message) === null || _h === void 0 ? void 0 : _h.content)) {
+            throw lastError || new Error("Tất cả mô hình AI đều không khả dụng.");
+        }
+        const raw = (_m = (_l = (_k = (_j = response.data) === null || _j === void 0 ? void 0 : _j.choices) === null || _k === void 0 ? void 0 : _k[0]) === null || _l === void 0 ? void 0 : _l.message) === null || _m === void 0 ? void 0 : _m.content;
         const parsed = safeJsonParse(raw.trim());
-        const fallbackIntent = detectIntent(question);
-        const hasBooks = Array.isArray(relatedBooks) && relatedBooks.length > 0;
         let message = "";
         let intent = fallbackIntent;
         let actions = [];
@@ -480,19 +492,18 @@ Bạn không chỉ tư vấn sách, mà còn là người quản gia tận tâm 
                     : buildDefaultActions(intent, hasBooks);
         }
         else {
-            const aiContent = (_h = (_g = (_f = (_e = response.data) === null || _e === void 0 ? void 0 : _e.choices) === null || _f === void 0 ? void 0 : _f[0]) === null || _g === void 0 ? void 0 : _g.message) === null || _h === void 0 ? void 0 : _h.content;
-            if (aiContent && aiContent.length > 10) {
-                message = aiContent.replace(/```json|```/g, "").trim();
+            if (raw && raw.length > 10) {
+                message = raw.replace(/```json|```/g, "").trim();
             }
             else {
                 message =
-                    "Rất tiếc, em gặp một chút trục trặc khi suy nghĩ. Anh có thể hỏi lại được không?";
+                    "Xin chào! Book Hive rất vui được hỗ trợ bạn giải đáp thắc mắc về sách.";
             }
             intent = fallbackIntent;
             actions = buildDefaultActions(fallbackIntent, hasBooks);
         }
         const msgLower = message.toLowerCase();
-        const finalCards = (relatedBooks || [])
+        let finalCards = (relatedBooks || [])
             .filter((book) => {
             const title = (book.title || "").toLowerCase();
             if (title.length < 3)
@@ -513,6 +524,22 @@ Bạn không chỉ tư vấn sách, mà còn là người quản gia tận tâm 
                 href: book.slug ? `/books/detail/${book.slug}` : undefined,
             });
         });
+        if (finalCards.length === 0 && hasBooks) {
+            finalCards = (relatedBooks || []).slice(0, 4).map((book) => {
+                var _a, _b;
+                return ({
+                    type: "book",
+                    id: String((_b = (_a = book._id) !== null && _a !== void 0 ? _a : book.id) !== null && _b !== void 0 ? _b : ""),
+                    title: book.title,
+                    author: book.author,
+                    image: book.image,
+                    price: book.priceBuy,
+                    rating: book.rating,
+                    slug: book.slug,
+                    href: book.slug ? `/books/detail/${book.slug}` : undefined,
+                });
+            });
+        }
         const structured = {
             message,
             intent,
@@ -527,16 +554,44 @@ Bạn không chỉ tư vấn sách, mà còn là người quản gia tận tâm 
         };
     }
     catch (error) {
-        console.error("AI Service Error:", ((_j = error.response) === null || _j === void 0 ? void 0 : _j.data) || error.message);
+        console.error("AI Service Error:", ((_o = error.response) === null || _o === void 0 ? void 0 : _o.data) || error.message);
+        let fallbackMessage = "Xin chào! Book Hive sẵn sàng hỗ trợ bạn tìm kiếm và lựa chọn những cuốn sách hay nhất.";
+        if (hasBooks) {
+            const bookNames = (relatedBooks || [])
+                .slice(0, 3)
+                .map((b) => `"${b.title}"`)
+                .join(", ");
+            fallbackMessage = `Book Hive gợi ý cho bạn một số cuốn sách hay phù hợp với nhu cầu: ${bookNames}. Bạn có thể xem chi tiết bên dưới nhé!`;
+        }
+        const fallbackCards = (relatedBooks || []).map((book) => {
+            var _a, _b;
+            return ({
+                type: "book",
+                id: String((_b = (_a = book._id) !== null && _a !== void 0 ? _a : book.id) !== null && _b !== void 0 ? _b : ""),
+                title: book.title,
+                author: book.author,
+                image: book.image,
+                price: book.priceBuy,
+                rating: book.rating,
+                slug: book.slug,
+                href: book.slug ? `/books/detail/${book.slug}` : undefined,
+            });
+        });
+        const fallbackUi = {
+            message: fallbackMessage,
+            intent: fallbackIntent,
+            actions: buildDefaultActions(fallbackIntent, hasBooks),
+            cards: fallbackCards,
+        };
         return {
-            success: false,
-            error: ((_m = (_l = (_k = error.response) === null || _k === void 0 ? void 0 : _k.data) === null || _l === void 0 ? void 0 : _l.error) === null || _m === void 0 ? void 0 : _m.message) ||
-                error.message ||
-                "Lỗi khi xử lý câu hỏi",
+            success: true,
+            answer: fallbackMessage,
+            ui: fallbackUi,
+            context_used: false,
         };
     }
-});
-module.exports.findRelatedBooks = (Book_1, query_1, ...args_1) => __awaiter(void 0, [Book_1, query_1, ...args_1], void 0, function* (Book, query, options = {}) {
+};
+module.exports.findRelatedBooks = async (Book, query, options = {}) => {
     try {
         const limit = options.limit || 5;
         const { keywords } = extractKeywords(query);
@@ -581,13 +636,13 @@ module.exports.findRelatedBooks = (Book_1, query_1, ...args_1) => __awaiter(void
             filters.featured ||
             filters.newest ||
             filters.highRating) {
-            books = yield Book.find(baseFind).sort(sort).limit(limit);
+            books = await Book.find(baseFind).sort(sort).limit(limit);
             if (books && books.length > 0) {
                 return books;
             }
         }
         if (guessedCategorySlugs.length > 0) {
-            const cats = yield Category.find({
+            const cats = await Category.find({
                 deleted: false,
                 status: "active",
                 slug: { $in: guessedCategorySlugs },
@@ -596,7 +651,7 @@ module.exports.findRelatedBooks = (Book_1, query_1, ...args_1) => __awaiter(void
                 .map((c) => { var _a; return String((_a = c._id) !== null && _a !== void 0 ? _a : ""); })
                 .filter((id) => id);
             if (catIds.length > 0) {
-                books = yield Book.find(Object.assign(Object.assign({}, baseFind), { category_id: { $in: catIds } }))
+                books = await Book.find(Object.assign(Object.assign({}, baseFind), { category_id: { $in: catIds } }))
                     .sort(sort)
                     .limit(limit);
             }
@@ -607,7 +662,7 @@ module.exports.findRelatedBooks = (Book_1, query_1, ...args_1) => __awaiter(void
                 .trim();
             if (cleanedPhrase.length >= 3) {
                 const phraseRegex = new RegExp(cleanedPhrase, "i");
-                const phraseBooks = yield Book.find(Object.assign(Object.assign({}, baseFind), { $or: [{ title: phraseRegex }, { author: phraseRegex }] }))
+                const phraseBooks = await Book.find(Object.assign(Object.assign({}, baseFind), { $or: [{ title: phraseRegex }, { author: phraseRegex }] }))
                     .sort(sort)
                     .limit(limit);
                 if (phraseBooks.length > 0)
@@ -620,7 +675,7 @@ module.exports.findRelatedBooks = (Book_1, query_1, ...args_1) => __awaiter(void
                 .join("|");
             const regex = new RegExp(pattern, "i");
             if (!books || books.length === 0) {
-                books = yield Book.find(Object.assign(Object.assign({}, baseFind), { $or: [
+                books = await Book.find(Object.assign(Object.assign({}, baseFind), { $or: [
                         { title: regex },
                         { author: regex },
                         { description: regex },
@@ -633,7 +688,7 @@ module.exports.findRelatedBooks = (Book_1, query_1, ...args_1) => __awaiter(void
         else {
             const regex = new RegExp(query, "i");
             if (!books || books.length === 0) {
-                books = yield Book.find(Object.assign(Object.assign({}, baseFind), { $or: [
+                books = await Book.find(Object.assign(Object.assign({}, baseFind), { $or: [
                         { title: regex },
                         { author: regex },
                         { description: regex },
@@ -648,7 +703,7 @@ module.exports.findRelatedBooks = (Book_1, query_1, ...args_1) => __awaiter(void
                 .map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
                 .join("|");
             const regex = new RegExp(pattern, "i");
-            books = yield Book.find({
+            books = await Book.find({
                 deleted: false,
                 status: "active",
                 $or: [{ title: regex }, { author: regex }, { description: regex }],
@@ -661,7 +716,7 @@ module.exports.findRelatedBooks = (Book_1, query_1, ...args_1) => __awaiter(void
                 keywords.length === 0 ||
                 /(sách|book|gợi ý|recommend|truyện)/i.test(query);
             if (isGeneral) {
-                books = yield Book.find({ deleted: false, status: "active" })
+                books = await Book.find({ deleted: false, status: "active" })
                     .sort(sort)
                     .limit(limit);
             }
@@ -672,7 +727,7 @@ module.exports.findRelatedBooks = (Book_1, query_1, ...args_1) => __awaiter(void
         console.error("Error finding related books:", error.message);
         return [];
     }
-});
+};
 module.exports.buildContext = (books, options = {}) => {
     const { orders = [], reviews = [], cart = null, user = null } = options;
     let context = `## THUẬN TIỆN & CHÍNH SÁCH:

@@ -1,17 +1,8 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const Book = require("../../models/book.model");
 const Category = require("../../models/category.model");
-module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+module.exports.index = async (req, res) => {
     try {
         const keyword = req.query.keyWord;
         const categorySlug = req.query.categorySlug;
@@ -23,11 +14,13 @@ module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function*
             status: "active",
         };
         if (categorySlug) {
-            const category = yield Category.findOne({
+            const category = await Category.findOne({
                 slug: categorySlug,
                 deleted: false,
                 status: "active",
-            });
+            })
+                .select("_id")
+                .lean();
             if (category) {
                 find.category_id = category._id.toString();
             }
@@ -37,11 +30,13 @@ module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function*
         }
         if (keyword) {
             const regex = new RegExp(keyword, "i");
-            const matchingCategories = yield Category.find({
+            const matchingCategories = await Category.find({
                 $or: [{ title: regex }, { slug: regex }],
                 deleted: false,
                 status: "active",
-            }).select("_id");
+            })
+                .select("_id")
+                .lean();
             const categoryIds = matchingCategories.map((cat) => cat._id);
             find.$or = [
                 { title: regex },
@@ -59,18 +54,20 @@ module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function*
         else {
             sort.position = "desc";
         }
-        const books = yield Book.find(find).skip(skip).limit(limit).sort(sort);
-        const total = yield Book.countDocuments(find);
+        const books = await Book.find(find).skip(skip).limit(limit).sort(sort).lean();
+        const total = await Book.countDocuments(find);
         if (books && books.length > 0) {
             const thirtyDaysAgo = new Date();
             thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
             const categoryIds = [...new Set(books.map((b) => b.category_id).filter(Boolean))];
-            const categories = yield Category.find({
+            const categories = await Category.find({
                 _id: { $in: categoryIds },
-            }).select("title");
+            })
+                .select("title")
+                .lean();
             const categoryMap = new Map(categories.map((cat) => [cat._id.toString(), cat.title]));
             const booksWithCategory = books.map((book) => {
-                const bookObj = book.toObject();
+                const bookObj = Object.assign({}, book);
                 if (book.category_id) {
                     bookObj.category_name =
                         categoryMap.get(book.category_id.toString()) || "";
@@ -94,24 +91,28 @@ module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         res.json("Không tìm thấy!");
     }
-});
-module.exports.detail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.detail = async (req, res) => {
     try {
         const slug = req.params.bookSlug;
-        const book = yield Book.findOne({
+        const book = await Book.findOne({
             slug: slug,
             deleted: false,
             status: "active",
-        });
+        }).lean();
         if (!book) {
             return res.status(404).json({ message: "Không tìm thấy sách!" });
         }
-        const bookObj = book.toObject();
+        const bookObj = Object.assign({}, book);
         if (book.category_id) {
-            const category = yield Category.findOne({
+            const category = await Category.findOne({
                 _id: book.category_id,
-            }).select("title");
-            bookObj.category_name = category.title;
+            })
+                .select("title")
+                .lean();
+            if (category) {
+                bookObj.category_name = category.title;
+            }
         }
         return res.status(200).json({
             message: "Lấy thông tin sách thành công!",
@@ -123,14 +124,16 @@ module.exports.detail = (req, res) => __awaiter(void 0, void 0, void 0, function
             message: "Lỗi khi lấy thông tin sách!",
         });
     }
-});
-module.exports.featured = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.featured = async (req, res) => {
     try {
-        const books = yield Book.find({
+        const books = await Book.find({
             deleted: false,
             status: "active",
             featured: true,
-        }).sort({ position: -1 });
+        })
+            .sort({ position: -1 })
+            .lean();
         if (books) {
             return res.status(200).json({
                 message: "Thành công!",
@@ -144,15 +147,16 @@ module.exports.featured = (req, res) => __awaiter(void 0, void 0, void 0, functi
     catch (error) {
         res.json("Không tìm thấy!");
     }
-});
-module.exports.newest = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.newest = async (req, res) => {
     try {
-        const books = yield Book.find({
+        const books = await Book.find({
             deleted: false,
             status: "active",
         })
             .sort({ createdAt: -1 })
-            .limit(10);
+            .limit(10)
+            .lean();
         return res.status(200).json({
             message: "Thành công!",
             total: books.length,
@@ -164,10 +168,13 @@ module.exports.newest = (req, res) => __awaiter(void 0, void 0, void 0, function
             message: "Lỗi server!",
         });
     }
-});
-module.exports.bestSeller = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.bestSeller = async (req, res) => {
     try {
-        const records = yield Book.find().sort({ soldCount: -1 }).limit(10);
+        const records = await Book.find()
+            .sort({ soldCount: -1 })
+            .limit(10)
+            .lean();
         if (!records) {
             return res.status(400).json({
                 message: "Không tìm thấy sách nào!",
@@ -182,13 +189,15 @@ module.exports.bestSeller = (req, res) => __awaiter(void 0, void 0, void 0, func
             message: "Lỗi server!",
         });
     }
-});
-module.exports.categories = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.categories = async (req, res) => {
     try {
-        const categories = yield Category.find({
+        const categories = await Category.find({
             deleted: false,
             status: "active",
-        }).select("title slug");
+        })
+            .select("title slug")
+            .lean();
         return res.status(200).json({
             message: "Thành công!",
             categories,
@@ -199,4 +208,4 @@ module.exports.categories = (req, res) => __awaiter(void 0, void 0, void 0, func
             message: "Lỗi server!",
         });
     }
-});
+};

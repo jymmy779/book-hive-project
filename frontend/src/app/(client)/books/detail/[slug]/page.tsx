@@ -1,21 +1,26 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import DetailClient from "./DetailClient";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
-async function getBook(slug: string) {
-  const res = await fetch(`${API_URL}/api/v1/books/detail/${slug}`, {
-    cache: "no-store",
-  });
+const getBook = cache(async (slug: string) => {
+  try {
+    const res = await fetch(`${API_URL}/api/v1/books/detail/${slug}`, {
+      next: { revalidate: 60 },
+    });
 
-  if (!res.ok) {
+    if (!res.ok) {
+      return null;
+    }
+
+    const data = await res.json();
+    return data.book || null;
+  } catch {
     return null;
   }
-
-  const data = await res.json();
-  return data.book || null;
-}
+});
 
 export async function generateMetadata({
   params,

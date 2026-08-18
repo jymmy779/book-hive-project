@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const slugify_1 = require("slugify");
 const { OAuth2Client } = require("google-auth-library");
@@ -17,7 +8,7 @@ const jwt = require("jsonwebtoken");
 const User = require("../../models/user.model");
 const { sendOTPEmail } = require("../../../../helpers/sendEmail");
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-exports.register = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+exports.register = async (req, res) => {
     try {
         const { fullName, email, password, confirmPassword } = req.body;
         if (!fullName || !email || !password || !confirmPassword) {
@@ -32,8 +23,8 @@ exports.register = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
                 message: "Mật khẩu không khớp",
             });
         }
-        const hashedPassword = yield bcrypt.hash(password, 10);
-        const existingUser = yield User.findOne({ email });
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const existingUser = await User.findOne({ email });
         if (existingUser) {
             return res.status(400).json({
                 success: false,
@@ -49,7 +40,7 @@ exports.register = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             loginMethod: "password",
             status: "active",
         });
-        yield newUser.save();
+        await newUser.save();
         res.status(201).json({
             success: true,
             message: "Đăng ký thành công",
@@ -65,11 +56,11 @@ exports.register = (req, res) => __awaiter(void 0, void 0, void 0, function* () 
             message: "Lỗi server",
         });
     }
-});
-exports.loginWithPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+exports.loginWithPassword = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = yield User.findOne({
+        const user = await User.findOne({
             email,
             deleted: false,
             status: "active",
@@ -80,7 +71,7 @@ exports.loginWithPassword = (req, res) => __awaiter(void 0, void 0, void 0, func
                 message: "Email hoặc password sai",
             });
         }
-        const isPasswordValid = yield bcrypt.compare(password, user.password);
+        const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(401).json({
                 success: false,
@@ -97,7 +88,7 @@ exports.loginWithPassword = (req, res) => __awaiter(void 0, void 0, void 0, func
             sameSite: "strict",
             expires: user.refreshTokenExpiresAt,
         });
-        yield user.save();
+        await user.save();
         res.json({
             success: true,
             message: "Đăng nhập thành công",
@@ -118,8 +109,8 @@ exports.loginWithPassword = (req, res) => __awaiter(void 0, void 0, void 0, func
             error: error.message,
         });
     }
-});
-module.exports.verify = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.verify = async (req, res) => {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -138,11 +129,11 @@ module.exports.verify = (req, res) => __awaiter(void 0, void 0, void 0, function
             message: "Xác thực không thành công",
         });
     }
-});
-module.exports.logout = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.logout = async (req, res) => {
     try {
         const refreshToken = req.cookies.refreshToken_user;
-        yield User.findOneAndUpdate({
+        await User.findOneAndUpdate({
             refreshToken: refreshToken,
         }, { refreshToken: null, refreshTokenExpiresAt: null });
         res.clearCookie("refreshToken_user", {
@@ -157,8 +148,8 @@ module.exports.logout = (req, res) => __awaiter(void 0, void 0, void 0, function
             message: "Đăng xuất thất bại",
         });
     }
-});
-module.exports.loginWithGoogle = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.loginWithGoogle = async (req, res) => {
     try {
         const { token } = req.body;
         if (!token) {
@@ -167,7 +158,7 @@ module.exports.loginWithGoogle = (req, res) => __awaiter(void 0, void 0, void 0,
                 message: "Token Google không được cung cấp",
             });
         }
-        const ticket = yield client.verifyIdToken({
+        const ticket = await client.verifyIdToken({
             idToken: token,
             audience: process.env.GOOGLE_CLIENT_ID,
         });
@@ -175,9 +166,9 @@ module.exports.loginWithGoogle = (req, res) => __awaiter(void 0, void 0, void 0,
         const googleId = payload.sub;
         const googleEmail = payload.email;
         const fullName = payload.name;
-        let user = yield User.findOne({ googleId, deleted: false });
+        let user = await User.findOne({ googleId, deleted: false });
         if (!user) {
-            user = yield User.findOne({ email: googleEmail, deleted: false });
+            user = await User.findOne({ email: googleEmail, deleted: false });
             if (!user) {
                 const slug = (0, slugify_1.default)(fullName, {
                     lower: true,
@@ -194,14 +185,14 @@ module.exports.loginWithGoogle = (req, res) => __awaiter(void 0, void 0, void 0,
                     status: "active",
                     isEmailVerified: true,
                 });
-                yield user.save();
+                await user.save();
             }
             else {
                 user.googleId = googleId;
                 user.googleEmail = googleEmail;
                 user.loginMethod = "google";
                 user.isEmailVerified = true;
-                yield user.save();
+                await user.save();
             }
         }
         const accessToken = jwt.sign({ id: user._id, email: user.email }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN });
@@ -214,7 +205,7 @@ module.exports.loginWithGoogle = (req, res) => __awaiter(void 0, void 0, void 0,
             sameSite: "strict",
             expires: user.refreshTokenExpiresAt,
         });
-        yield user.save();
+        await user.save();
         return res.status(200).json({
             success: true,
             message: "Đăng nhập với Google thành công!",
@@ -236,8 +227,8 @@ module.exports.loginWithGoogle = (req, res) => __awaiter(void 0, void 0, void 0,
             error: error.message,
         });
     }
-});
-module.exports.sendOtpForgotPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.sendOtpForgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
         if (!email) {
@@ -246,7 +237,7 @@ module.exports.sendOtpForgotPassword = (req, res) => __awaiter(void 0, void 0, v
                 message: "Vui lòng nhập email",
             });
         }
-        const user = yield User.findOne({
+        const user = await User.findOne({
             email,
             deleted: false,
         });
@@ -260,8 +251,8 @@ module.exports.sendOtpForgotPassword = (req, res) => __awaiter(void 0, void 0, v
         const expiresAt = new Date(Date.now() + 3 * 60 * 1000);
         user.resetOTP = otp;
         user.resetOTPExpiresAt = expiresAt;
-        yield user.save();
-        yield sendOTPEmail(email, user.fullName, otp);
+        await user.save();
+        await sendOTPEmail(email, user.fullName, otp);
         return res.status(200).json({
             success: true,
             message: "OTP đã được gửi tới email của bạn",
@@ -275,8 +266,8 @@ module.exports.sendOtpForgotPassword = (req, res) => __awaiter(void 0, void 0, v
             error: error.message,
         });
     }
-});
-module.exports.verifyOtpForgotPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.verifyOtpForgotPassword = async (req, res) => {
     try {
         const { email, otp } = req.body;
         if (!email || !otp) {
@@ -285,7 +276,7 @@ module.exports.verifyOtpForgotPassword = (req, res) => __awaiter(void 0, void 0,
                 message: "Vui lòng nhập email và OTP",
             });
         }
-        const user = yield User.findOne({
+        const user = await User.findOne({
             email,
             deleted: false,
         });
@@ -319,8 +310,8 @@ module.exports.verifyOtpForgotPassword = (req, res) => __awaiter(void 0, void 0,
             error: error.message,
         });
     }
-});
-module.exports.resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.resetPassword = async (req, res) => {
     try {
         const { email, newPassword, confirmPassword } = req.body;
         if (!email || !newPassword || !confirmPassword) {
@@ -335,7 +326,7 @@ module.exports.resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, f
                 message: "Mật khẩu không khớp",
             });
         }
-        const user = yield User.findOne({
+        const user = await User.findOne({
             email,
             deleted: false,
         });
@@ -345,11 +336,11 @@ module.exports.resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, f
                 message: "User không tồn tại",
             });
         }
-        const hashedPassword = yield bcrypt.hash(newPassword, 10);
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
         user.password = hashedPassword;
         user.resetOTP = null;
         user.resetOTPExpiresAt = null;
-        yield user.save();
+        await user.save();
         return res.status(200).json({
             success: true,
             message: "Đặt lại mật khẩu thành công",
@@ -362,4 +353,4 @@ module.exports.resetPassword = (req, res) => __awaiter(void 0, void 0, void 0, f
             error: error.message,
         });
     }
-});
+};

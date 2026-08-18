@@ -1,14 +1,5 @@
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 const brevo = require("@getbrevo/brevo");
-const sendOrderConfirmationEmail = (order) => __awaiter(this, void 0, void 0, function* () {
+const sendOrderConfirmationEmail = async (order) => {
     var _a;
     try {
         const { userInfo, orderCode, items, totalAmount } = order;
@@ -183,7 +174,7 @@ const sendOrderConfirmationEmail = (order) => __awaiter(this, void 0, void 0, fu
         sendSmtpEmail.replyTo = {
             email: process.env.BREVO_SENDER_EMAIL || "support@bookhive.com",
         };
-        const data = yield apiInstance.sendTransacEmail(sendSmtpEmail);
+        const data = await apiInstance.sendTransacEmail(sendSmtpEmail);
         return { success: true };
     }
     catch (error) {
@@ -194,8 +185,8 @@ const sendOrderConfirmationEmail = (order) => __awaiter(this, void 0, void 0, fu
         });
         return { success: false };
     }
-});
-const sendOTPEmail = (email, fullName, otp) => __awaiter(this, void 0, void 0, function* () {
+};
+const sendOTPEmail = async (email, fullName, otp) => {
     try {
         if (!process.env.BREVO_API_KEY) {
             return { success: false, error: "Missing BREVO_API_KEY" };
@@ -306,7 +297,7 @@ const sendOTPEmail = (email, fullName, otp) => __awaiter(this, void 0, void 0, f
         sendSmtpEmail.replyTo = {
             email: process.env.BREVO_SENDER_EMAIL,
         };
-        yield apiInstance.sendTransacEmail(sendSmtpEmail);
+        await apiInstance.sendTransacEmail(sendSmtpEmail);
         return { success: true };
     }
     catch (error) {
@@ -316,5 +307,5 @@ const sendOTPEmail = (email, fullName, otp) => __awaiter(this, void 0, void 0, f
         });
         return { success: false };
     }
-});
+};
 module.exports = { sendOrderConfirmationEmail, sendOTPEmail };

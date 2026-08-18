@@ -18,6 +18,8 @@ import {
   FiBookOpen,
 } from "react-icons/fi";
 
+let cachedCategories: { title: string; slug: string }[] | null = null;
+
 export const Header = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -36,11 +38,36 @@ export const Header = () => {
   }, [searchParams]);
 
   useEffect(() => {
+    if (cachedCategories && cachedCategories.length > 0) {
+      setCategories(cachedCategories);
+      return;
+    }
+    if (typeof window !== "undefined") {
+      const sessionData = sessionStorage.getItem("bookhive_categories");
+      if (sessionData) {
+        try {
+          const parsed = JSON.parse(sessionData);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            cachedCategories = parsed;
+            setCategories(parsed);
+            return;
+          }
+        } catch {}
+      }
+    }
+
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
     fetch(`${API_URL}/api/v1/books/categories`)
       .then((res) => res.json())
-      .then((data) => setCategories(data.categories || []))
-      .catch(() => { });
+      .then((data) => {
+        const list = data.categories || [];
+        cachedCategories = list;
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("bookhive_categories", JSON.stringify(list));
+        }
+        setCategories(list);
+      })
+      .catch(() => {});
   }, []);
 
   const handleSearch = (e: any) => {

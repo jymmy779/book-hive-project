@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __rest = (this && this.__rest) || function (s, e) {
     var t = {};
     for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
@@ -24,7 +15,7 @@ const Book = require("../../models/book.model");
 const Category = require("../../models/category.model");
 const Account = require("../../models/account.model");
 const slugify = require("slugify");
-module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+module.exports.index = async (req, res) => {
     try {
         const status = req.query.status;
         const keyword = req.query.keyWord;
@@ -48,17 +39,17 @@ module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function*
         else {
             sort.position = "desc";
         }
-        const books = yield Book.find(find)
+        const books = await Book.find(find)
             .skip(skip)
             .limit(limit)
             .sort(sort)
             .populate("updatedBy", "fullName")
             .populate("createdBy", "fullName")
             .populate("deletedBy", "fullName");
-        const total = yield Book.countDocuments(find);
+        const total = await Book.countDocuments(find);
         if (books && books.length > 0) {
             const categoryIds = [...new Set(books.map((b) => b.category_id).filter(Boolean))];
-            const categories = yield Category.find({
+            const categories = await Category.find({
                 _id: { $in: categoryIds },
             }).select("title");
             const categoryMap = new Map(categories.map((cat) => [cat._id.toString(), cat.title]));
@@ -84,14 +75,14 @@ module.exports.index = (req, res) => __awaiter(void 0, void 0, void 0, function*
     catch (error) {
         res.json("Không tìm thấy!");
     }
-});
-module.exports.changeStatus = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.changeStatus = async (req, res) => {
     try {
         const { id, status } = req.params;
         if (!status) {
             return res.status(404).json({ message: "Không tìm thấy status!" });
         }
-        const book = yield Book.updateOne({
+        const book = await Book.updateOne({
             _id: id,
         }, {
             status: status,
@@ -108,8 +99,8 @@ module.exports.changeStatus = (req, res) => __awaiter(void 0, void 0, void 0, fu
     catch (error) {
         res.status(500).json({ message: "Lỗi server!" });
     }
-});
-module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.changeMulti = async (req, res) => {
     try {
         const type = req.body.type;
         const ids = Array.isArray(req.body.ids)
@@ -117,27 +108,27 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
             : req.body.ids.split(", ");
         switch (type) {
             case "active":
-                yield Book.updateMany({ _id: { $in: ids } }, { status: "active", updatedBy: req.user.id });
+                await Book.updateMany({ _id: { $in: ids } }, { status: "active", updatedBy: req.user.id });
                 return res.status(200).json({
                     message: `Cập nhật trạng thái thành công ${ids.length} sách!`,
                 });
             case "inactive":
-                yield Book.updateMany({ _id: { $in: ids } }, { status: "inactive", updatedBy: req.user.id });
+                await Book.updateMany({ _id: { $in: ids } }, { status: "inactive", updatedBy: req.user.id });
                 return res.status(200).json({
                     message: `Cập nhật trạng thái thành công ${ids.length} sách!`,
                 });
             case "delete_all":
-                const booksToDeleted = yield Book.find({ _id: { $in: ids } });
-                yield Promise.all(booksToDeleted.map((b) => Book.updateOne({ _id: b._id }, {
+                const booksToDeleted = await Book.find({ _id: { $in: ids } });
+                await Promise.all(booksToDeleted.map((b) => Book.updateOne({ _id: b._id }, {
                     deleted: true,
                     deletedAt: new Date(),
                     deletedBy: req.user.id,
                     slug: `${b.slug}-deleted-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
                 })));
-                const booksLeft = yield Book.find({ deleted: false }).sort({
+                const booksLeft = await Book.find({ deleted: false }).sort({
                     position: 1,
                 });
-                yield Promise.all(booksLeft.map((book, i) => Book.updateOne({ _id: book._id }, { position: i + 1 })));
+                await Promise.all(booksLeft.map((book, i) => Book.updateOne({ _id: book._id }, { position: i + 1 })));
                 return res.status(200).json({
                     message: `Đã xóa ${ids.length} sách!`,
                 });
@@ -145,7 +136,7 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 if (ids.length === 1) {
                     const [id, newPosStr] = ids[0].split("-");
                     const newPos = parseInt(newPosStr);
-                    const currentBook = yield Book.findById(id);
+                    const currentBook = await Book.findById(id);
                     if (!currentBook) {
                         return res.status(404).json({ message: "Không tìm thấy sách!" });
                     }
@@ -154,13 +145,13 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
                         break;
                     }
                     if (oldPos < newPos) {
-                        yield Book.updateMany({ position: { $gt: oldPos, $lte: newPos }, deleted: false }, { $inc: { position: -1 } });
+                        await Book.updateMany({ position: { $gt: oldPos, $lte: newPos }, deleted: false }, { $inc: { position: -1 } });
                     }
                     else {
-                        yield Book.updateMany({ position: { $gte: newPos, $lt: oldPos }, deleted: false }, { $inc: { position: 1 } });
+                        await Book.updateMany({ position: { $gte: newPos, $lt: oldPos }, deleted: false }, { $inc: { position: 1 } });
                     }
-                    yield Book.updateOne({ _id: id }, { position: newPos, updatedBy: req.user.id });
-                    const books = yield Book.find({ deleted: false }).sort({
+                    await Book.updateOne({ _id: id }, { position: newPos, updatedBy: req.user.id });
+                    const books = await Book.find({ deleted: false }).sort({
                         position: 1,
                     });
                     return res.status(200).json({
@@ -168,16 +159,16 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
                         books: books,
                     });
                 }
-                yield Promise.all(ids.map((item) => {
+                await Promise.all(ids.map((item) => {
                     const [id, newPosStr] = item.split("-");
                     const newPos = parseInt(newPosStr);
                     return Book.updateOne({ _id: id }, { position: newPos, updatedBy: req.user.id });
                 }));
-                const allBooks = yield Book.find({ deleted: false }).sort({
+                const allBooks = await Book.find({ deleted: false }).sort({
                     position: 1,
                 });
-                yield Promise.all(allBooks.map((book, i) => Book.updateOne({ _id: book._id }, { position: i + 1 })));
-                const books = yield Book.find({ deleted: false }).sort({ position: 1 });
+                await Promise.all(allBooks.map((book, i) => Book.updateOne({ _id: book._id }, { position: i + 1 })));
+                const books = await Book.find({ deleted: false }).sort({ position: 1 });
                 return res.status(200).json({
                     message: `Cập nhật vị trí thành công cho ${ids.length} sách!`,
                     books: books,
@@ -193,13 +184,13 @@ module.exports.changeMulti = (req, res) => __awaiter(void 0, void 0, void 0, fun
             message: "Cập nhật thất bại!",
         });
     }
-});
-module.exports.delete = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.delete = async (req, res) => {
     try {
         const id = req.params.id;
-        const book = yield Book.findById(id);
+        const book = await Book.findById(id);
         const deletedSlug = book ? `${book.slug}-deleted-${Date.now()}` : `deleted-${Date.now()}`;
-        yield Book.updateOne({
+        await Book.updateOne({
             _id: id,
         }, {
             deleted: true,
@@ -207,10 +198,10 @@ module.exports.delete = (req, res) => __awaiter(void 0, void 0, void 0, function
             deletedAt: new Date(),
             slug: deletedSlug,
         });
-        const booksLeft = yield Book.find({ deleted: false }).sort({
+        const booksLeft = await Book.find({ deleted: false }).sort({
             position: 1,
         });
-        yield Promise.all(booksLeft.map((book, i) => Book.updateOne({ _id: book._id }, { position: i + 1 })));
+        await Promise.all(booksLeft.map((book, i) => Book.updateOne({ _id: book._id }, { position: i + 1 })));
         return res.status(200).json({
             message: "Xóa thành công!",
         });
@@ -220,8 +211,8 @@ module.exports.delete = (req, res) => __awaiter(void 0, void 0, void 0, function
             message: "Xóa thất bại",
         });
     }
-});
-module.exports.create = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.create = async (req, res) => {
     try {
         console.log("--- CREATE BOOK LOGS ---");
         console.log("req.file:", req.file);
@@ -233,7 +224,7 @@ module.exports.create = (req, res) => __awaiter(void 0, void 0, void 0, function
         if (req.file) {
             image = req.file.path || req.file.url || req.file.secure_url || "";
         }
-        const maxBook = yield Book.findOne({
+        const maxBook = await Book.findOne({
             deleted: false,
         }).sort({ position: -1 });
         const maxPosition = maxBook ? maxBook.position : 0;
@@ -241,14 +232,14 @@ module.exports.create = (req, res) => __awaiter(void 0, void 0, void 0, function
             position = maxPosition + 1;
         }
         else {
-            yield Book.updateMany({ position: { $gte: position } }, { $inc: { position: 1 } });
+            await Book.updateMany({ position: { $gte: position } }, { $inc: { position: 1 } });
         }
         const newBook = new Book(Object.assign(Object.assign({}, newBookData), { position,
             image,
             priceBuy,
             slug,
             title, createdBy: req.user.id }));
-        yield newBook.save();
+        await newBook.save();
         return res.status(200).json({
             message: "Tạo mới sản phẩm thành công!",
             newBook: newBook,
@@ -265,11 +256,11 @@ module.exports.create = (req, res) => __awaiter(void 0, void 0, void 0, function
             message: "Tạo mới sản phẩm thất bại!",
         });
     }
-});
-module.exports.getBySlug = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.getBySlug = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const book = yield Book.findOne({ slug: slug, deleted: false });
+        const book = await Book.findOne({ slug: slug, deleted: false });
         if (!book) {
             return res.status(404).json({ message: "Không tìm thấy sách!" });
         }
@@ -283,11 +274,11 @@ module.exports.getBySlug = (req, res) => __awaiter(void 0, void 0, void 0, funct
             message: "Lỗi khi lấy thông tin sách!",
         });
     }
-});
-module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.edit = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const book = yield Book.findOne({ slug, deleted: false });
+        const book = await Book.findOne({ slug, deleted: false });
         if (!book) {
             return res.status(404).json({ message: "Không tìm thấy sách!" });
         }
@@ -295,10 +286,10 @@ module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const newPos = Number(req.body.position);
         if (newPos && newPos !== oldPos) {
             if (oldPos < newPos) {
-                yield Book.updateMany({ position: { $gt: oldPos, $lte: newPos }, deleted: false }, { $inc: { position: -1 } });
+                await Book.updateMany({ position: { $gt: oldPos, $lte: newPos }, deleted: false }, { $inc: { position: -1 } });
             }
             else {
-                yield Book.updateMany({ position: { $gte: newPos, $lt: oldPos }, deleted: false }, { $inc: { position: 1 } });
+                await Book.updateMany({ position: { $gte: newPos, $lt: oldPos }, deleted: false }, { $inc: { position: 1 } });
             }
         }
         const priceBuy = req.body.priceBuy ? Number(req.body.priceBuy) : 0;
@@ -317,7 +308,7 @@ module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             });
         }
         updateData.updatedBy = req.user.id;
-        yield Book.updateOne({ _id: book._id }, updateData);
+        await Book.updateOne({ _id: book._id }, updateData);
         return res.status(200).json({
             message: "Cập nhật thông tin thành công!",
         });
@@ -333,17 +324,17 @@ module.exports.edit = (req, res) => __awaiter(void 0, void 0, void 0, function* 
             message: "Cập nhật thông tin thất bại!",
         });
     }
-});
-module.exports.detail = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+};
+module.exports.detail = async (req, res) => {
     try {
         const slug = req.params.slug;
-        const book = yield Book.findOne({ slug: slug, deleted: false });
+        const book = await Book.findOne({ slug: slug, deleted: false });
         if (!book) {
             return res.status(404).json({ message: "Không tìm thấy sách!" });
         }
         const bookObj = book.toObject();
         if (book.category_id) {
-            const category = yield Category.findOne({
+            const category = await Category.findOne({
                 _id: book.category_id,
             }).select("title");
             bookObj.category_name = category.title;
@@ -358,4 +349,4 @@ module.exports.detail = (req, res) => __awaiter(void 0, void 0, void 0, function
             message: "Lỗi khi lấy thông tin sách!",
         });
     }
-});
+};

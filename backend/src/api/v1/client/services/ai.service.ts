@@ -536,6 +536,9 @@ module.exports.queryAI = async (
   context?: string,
   relatedBooks?: any[],
 ) => {
+  const fallbackIntent = detectIntent(question);
+  const hasBooks = Array.isArray(relatedBooks) && relatedBooks.length > 0;
+
   try {
     const apiKey = process.env.GROQ_API_KEY;
     if (!apiKey) {
@@ -572,41 +575,60 @@ Bạn không chỉ tư vấn sách, mà còn là người quản gia tận tâm 
       ? `Câu hỏi: ${question}\n\nThông tin liên quan:\n${context}`
       : `Câu hỏi: ${question}`;
 
-    const response = await axios.post(
-      "https://api.groq.com/openai/v1/chat/completions",
-      {
-        model: "llama-3.3-70b-versatile",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userContent },
-        ],
-        max_tokens: 800,
-        temperature: 0.7,
-      },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-      },
-    );
+    const models = [
+      "llama-3.3-70b-versatile",
+      "llama-3.1-8b-instant",
+      "llama3-70b-8192",
+      "mixtral-8x7b-32768",
+      "gemma2-9b-it",
+    ];
 
-    const raw = response.data?.choices?.[0]?.message?.content;
-    if (!raw) {
-      throw new Error("Không nhận được phản hồi từ Groq");
+    let response: any = null;
+    let lastError: any = null;
+
+    for (const model of models) {
+      try {
+        response = await axios.post(
+          "https://api.groq.com/openai/v1/chat/completions",
+          {
+            model: model,
+            messages: [
+              { role: "system", content: systemPrompt },
+              { role: "user", content: userContent },
+            ],
+            max_tokens: 800,
+            temperature: 0.7,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+            timeout: 10000,
+          },
+        );
+        if (response?.data?.choices?.[0]?.message?.content) {
+          break;
+        }
+      } catch (err: any) {
+        lastError = err;
+        console.log(`Groq model ${model} failed, trying next model...`);
+      }
     }
 
-    const parsed = safeJsonParse<AiStructuredResponse>(raw.trim());
-    const fallbackIntent = detectIntent(question);
-    const hasBooks = Array.isArray(relatedBooks) && relatedBooks.length > 0;
+    if (!response?.data?.choices?.[0]?.message?.content) {
+      throw lastError || new Error("Tất cả mô hình AI đều không khả dụng.");
+    }
 
-    // Build structured response - only use AI message if properly parsed
+    const raw = response.data?.choices?.[0]?.message?.content;
+    const parsed = safeJsonParse<AiStructuredResponse>(raw.trim());
+
+    // Build structured response - use AI message if properly parsed
     let message = "";
     let intent = fallbackIntent;
     let actions: UiAction[] = [];
 
     if (parsed?.message) {
-      // AI returned valid JSON with message field
       message = parsed.message;
       intent = parsed.intent || fallbackIntent;
       actions =
@@ -614,25 +636,22 @@ Bạn không chỉ tư vấn sách, mà còn là người quản gia tận tâm 
           ? parsed.actions
           : buildDefaultActions(intent, hasBooks);
     } else {
-      // JSON parse fail - use AI raw content if available or fallback
-      const aiContent = response.data?.choices?.[0]?.message?.content;
-      if (aiContent && aiContent.length > 10) {
-        message = aiContent.replace(/```json|```/g, "").trim();
+      if (raw && raw.length > 10) {
+        message = raw.replace(/```json|```/g, "").trim();
       } else {
         message =
-          "Rất tiếc, em gặp một chút trục trặc khi suy nghĩ. Anh có thể hỏi lại được không?";
+          "Xin chào! Book Hive rất vui được hỗ trợ bạn giải đáp thắc mắc về sách.";
       }
       intent = fallbackIntent;
       actions = buildDefaultActions(fallbackIntent, hasBooks);
     }
 
-    // Sync cards with message content (Version 3)
+    // Sync cards with message content
     const msgLower = message.toLowerCase();
-    const finalCards: UiCard[] = (relatedBooks || [])
+    let finalCards: UiCard[] = (relatedBooks || [])
       .filter((book: any) => {
         const title = (book.title || "").toLowerCase();
         if (title.length < 3) return false;
-        // Check if message contains the exact title
         return msgLower.includes(title);
       })
       .map((book: any) => ({
@@ -646,6 +665,20 @@ Bạn không chỉ tư vấn sách, mà còn là người quản gia tận tâm 
         slug: book.slug,
         href: book.slug ? `/books/detail/${book.slug}` : undefined,
       }));
+
+    if (finalCards.length === 0 && hasBooks) {
+      finalCards = (relatedBooks || []).slice(0, 4).map((book: any) => ({
+        type: "book",
+        id: String(book._id ?? book.id ?? ""),
+        title: book.title,
+        author: book.author,
+        image: book.image,
+        price: book.priceBuy,
+        rating: book.rating,
+        slug: book.slug,
+        href: book.slug ? `/books/detail/${book.slug}` : undefined,
+      }));
+    }
 
     const structured: AiStructuredResponse = {
       message,
@@ -662,12 +695,42 @@ Bạn không chỉ tư vấn sách, mà còn là người quản gia tận tâm 
     };
   } catch (error: any) {
     console.error("AI Service Error:", error.response?.data || error.message);
+
+    // Fallback response when AI provider is completely unavailable
+    let fallbackMessage =
+      "Xin chào! Book Hive sẵn sàng hỗ trợ bạn tìm kiếm và lựa chọn những cuốn sách hay nhất.";
+    if (hasBooks) {
+      const bookNames = (relatedBooks || [])
+        .slice(0, 3)
+        .map((b: any) => `"${b.title}"`)
+        .join(", ");
+      fallbackMessage = `Book Hive gợi ý cho bạn một số cuốn sách hay phù hợp với nhu cầu: ${bookNames}. Bạn có thể xem chi tiết bên dưới nhé!`;
+    }
+
+    const fallbackCards: UiCard[] = (relatedBooks || []).map((book: any) => ({
+      type: "book",
+      id: String(book._id ?? book.id ?? ""),
+      title: book.title,
+      author: book.author,
+      image: book.image,
+      price: book.priceBuy,
+      rating: book.rating,
+      slug: book.slug,
+      href: book.slug ? `/books/detail/${book.slug}` : undefined,
+    }));
+
+    const fallbackUi: AiStructuredResponse = {
+      message: fallbackMessage,
+      intent: fallbackIntent,
+      actions: buildDefaultActions(fallbackIntent, hasBooks),
+      cards: fallbackCards,
+    };
+
     return {
-      success: false,
-      error:
-        error.response?.data?.error?.message ||
-        error.message ||
-        "Lỗi khi xử lý câu hỏi",
+      success: true,
+      answer: fallbackMessage,
+      ui: fallbackUi,
+      context_used: false,
     };
   }
 };

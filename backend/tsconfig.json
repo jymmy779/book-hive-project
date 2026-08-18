@@ -1,8 +1,10 @@
 {
   "compilerOptions": {
     "outDir": "js",
-    "target": "ES6",
+    "target": "ES2017",
+    "lib": ["ES2017", "DOM"],
     "module": "commonjs",
-    "removeComments": true
+    "removeComments": true,
+    "skipLibCheck": true
   }
 }

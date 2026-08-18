@@ -45,6 +45,11 @@ const bookSchema = new mongoose.Schema(
   },
 );
 
+bookSchema.index({ deleted: 1, status: 1, featured: 1 });
+bookSchema.index({ deleted: 1, status: 1, category_id: 1 });
+bookSchema.index({ soldCount: -1 });
+bookSchema.index({ createdAt: -1 });
+
 const Book = mongoose.model("Book", bookSchema, "books");
 
 module.exports = Book;
