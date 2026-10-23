@@ -20,13 +20,19 @@ import {
 
 let cachedCategories: { title: string; slug: string }[] | null = null;
 
-export const Header = () => {
+type HeaderProps = {
+  initialCategories?: { title: string; slug: string }[];
+};
+
+export const Header = ({ initialCategories = [] }: HeaderProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { getTotalItems } = useCart();
   const [keyword, setKeyword] = useState(searchParams.get("keyWord") || "");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [categories, setCategories] = useState<{ title: string; slug: string }[]>([]);
+  const [categories, setCategories] = useState<{ title: string; slug: string }[]>(
+    initialCategories,
+  );
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(false);
   const cartCount = getTotalItems();
   const { user } = useUser();
@@ -38,6 +44,15 @@ export const Header = () => {
   }, [searchParams]);
 
   useEffect(() => {
+    if (initialCategories.length > 0) {
+      cachedCategories = initialCategories;
+      sessionStorage.setItem(
+        "bookhive_categories",
+        JSON.stringify(initialCategories),
+      );
+      return;
+    }
+
     if (cachedCategories && cachedCategories.length > 0) {
       setCategories(cachedCategories);
       return;
@@ -68,7 +83,7 @@ export const Header = () => {
         setCategories(list);
       })
       .catch(() => {});
-  }, []);
+  }, [initialCategories]);
 
   const handleSearch = (e: any) => {
     e.preventDefault();
