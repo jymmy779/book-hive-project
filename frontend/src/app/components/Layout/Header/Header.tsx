@@ -116,8 +116,8 @@ export const Header = ({ initialCategories = [] }: HeaderProps) => {
   return (
     <>
       <header className="px-3 md:px-6 fixed top-0 z-[999] w-full bg-white border-b border-border shadow-sm">
-        <nav className="max-w-7xl mx-auto flex flex-wrap items-center justify-between h-14 md:h-16">
-          <div className="flex items-center justify-between w-full lg:w-auto">
+        <nav className="max-w-7xl mx-auto flex flex-wrap items-center justify-between min-h-14 md:min-h-16 lg:h-16">
+          <div className="flex items-center justify-between w-full lg:w-auto h-14 md:h-16">
             <Link
               href={"/"}
               className="flex gap-2 md:gap-3 items-center"
@@ -153,7 +153,7 @@ export const Header = ({ initialCategories = [] }: HeaderProps) => {
 
           <div
             className={`${isMobileMenuOpen ? "flex" : "hidden"
-              } lg:flex flex-col lg:flex-row w-full lg:w-auto gap-2 lg:gap-4 items-stretch lg:items-center mt-3 lg:mt-0 pb-4 lg:pb-0 transition-all duration-200`}
+              } lg:flex flex-col lg:flex-row w-full lg:w-auto gap-2 lg:gap-4 items-stretch lg:items-center mt-3 lg:mt-0 pb-4 lg:pb-0 transition-all duration-200 max-h-[calc(100vh-4rem)] overflow-y-auto lg:overflow-visible`}
           >
             <form
               className="flex items-center gap-2 bg-surface-secondary rounded-lg px-3 py-2 border border-border transition-all duration-200 focus-within:border-accent focus-within:ring-1 focus-within:ring-accent w-full lg:w-72"
