@@ -37,7 +37,6 @@ export default function Categories() {
   const [editedCategories, setEditedCategories] = useState<Category[]>([]);
   const [sort, setSort] = useState<{ key: string; value: 1 | -1 } | null>(null);
   const limit = 8;
-  const accessToken = localStorage.getItem("accessToken_admin");
   const [sortValue, setSortValue] = useState("");
   const sortOptions = [
     { value: "", label: "Sắp xếp" },
@@ -54,7 +53,6 @@ export default function Categories() {
     page,
     sort,
     limit,
-    accessToken,
     ADMIN_PREFIX,
     onSuccess: ({ items, total }) => {
       setCategories(items);
@@ -84,9 +82,8 @@ export default function Categories() {
       {
         params: { page: 1, limit: 10000 },
         headers: {
-          Authorization: `Bearer ${accessToken}`,
         },
-        withCredentials: true,
+        
       },
     );
     return res.data.categories || [];
@@ -130,9 +127,8 @@ export default function Categories() {
       {},
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
         },
-        withCredentials: true,
+        
       },
     );
 
@@ -159,21 +155,21 @@ export default function Categories() {
   return (
     <>
       <PrivateRoute permission="view_categories">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-[32px] font-bold m-0 text-primary flex items-center gap-2">
+        <div className="mb-6 flex w-full min-w-0 flex-col gap-4 sm:mb-8 lg:flex-row lg:items-center lg:justify-between">
+          <h1 className="m-0 flex min-w-0 items-center gap-2 text-2xl font-bold text-primary sm:text-[32px]">
             <FiFolder className="text-primary" /> Quản lý thể loại
           </h1>
           <ConditionalRender permission="create_category">
-            <NewAddButton label="Thêm thể loại mới" source="categories" />
+            <NewAddButton label="Thêm thể loại mới" source="categories" className="w-full justify-center whitespace-nowrap lg:w-auto" />
           </ConditionalRender>
         </div>
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex w-full min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <StatusFilter value={status} onChange={setStatus} />
           <Search value={keyword} onChange={setKeyword} label="thể loại" />
         </div>
 
-        <div className="flex justify-between items-center">
+        <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <ConditionalRender permission="edit_category">
             <ChangeMulti
               options={[
@@ -188,7 +184,7 @@ export default function Categories() {
               disabled={!bulkValue || selectedIds.length === 0}
             />
           </ConditionalRender>
-          <div className="mb-6">
+          <div className="w-full sm:w-auto">
             <SortSelect
               sortValue={sortValue}
               onChange={(e) => {

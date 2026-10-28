@@ -2,7 +2,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const { PayOS } = require("@payos/node");
 const Order = require("../../models/order.model");
+const Book = require("../../models/book.model");
 const Transaction = require("../../models/transaction.model");
+const mongoose = require("mongoose");
 const { sendOrderConfirmationEmail } = require("../../../../helpers/sendEmail");
 const { generateDescriptionCode } = require("../../../../helpers/generate");
 const payOS = new PayOS({
@@ -10,6 +12,34 @@ const payOS = new PayOS({
     apiKey: process.env.PAYOS_API_KEY,
     checksumKey: process.env.PAYOS_CHECKSUM_KEY,
 });
+async function cancelOrderAndRestoreStock(orderId) {
+    const session = await mongoose.startSession();
+    let cancelledOrder = null;
+    try {
+        await session.withTransaction(async () => {
+            const order = await Order.findById(orderId).session(session);
+            if (!order || order.status === "delivered")
+                return;
+            if (order.status === "cancelled") {
+                cancelledOrder = order;
+                return;
+            }
+            const itemsToRestore = order.stockDeducted ? order.items || [] : [];
+            order.status = "cancelled";
+            order.isExpired = true;
+            order.stockDeducted = false;
+            await order.save({ session });
+            for (const item of itemsToRestore) {
+                await Book.updateOne({ _id: item.id }, { $inc: { inStock: Number(item.quantity) || 0 } }, { session });
+            }
+            cancelledOrder = order;
+        });
+    }
+    finally {
+        await session.endSession();
+    }
+    return cancelledOrder;
+}
 const findDocumentByCode = async (code) => {
     const document = await Order.findOne({ orderCode: String(code) });
     if (document)
@@ -41,9 +71,7 @@ module.exports.createCombinedPaymentLink = async (req, res) => {
         for (const doc of documents) {
             if (doc.document.isExpired ||
                 (doc.document.expiredAt && new Date() > doc.document.expiredAt)) {
-                doc.document.status = "cancelled";
-                doc.document.isExpired = true;
-                await doc.document.save();
+                await cancelOrderAndRestoreStock(doc.document._id);
                 return res.status(400).json({
                     error: -1,
                     message: `Đơn hàng ${doc.code} đã hết hạn`,
@@ -171,9 +199,13 @@ module.exports.cancelPaymentLink = async (req, res) => {
                 message: "Đã thanh toán, không thể hủy",
             });
         }
-        document.status = "cancelled";
-        document.isExpired = true;
-        await document.save();
+        const cancelledDocument = await cancelOrderAndRestoreStock(document._id);
+        if (!cancelledDocument) {
+            return res.status(400).json({
+                error: -1,
+                message: "Không thể hủy đơn hàng đã hoàn tất.",
+            });
+        }
         try {
             const orderCode = Number(String(code).replace(/\D/g, ""));
             await payOS.paymentRequests.cancel(orderCode);

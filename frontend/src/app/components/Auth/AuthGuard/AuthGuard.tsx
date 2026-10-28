@@ -14,34 +14,17 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
 
   const logout = () => {
-    localStorage.removeItem("accessToken_admin");
-    localStorage.removeItem("admin_user");
     setAdmin(null);
     router.replace(`/auth/${ADMIN_PREFIX}/login`);
   };
 
   const checkAuth = async () => {
-    const accessToken = localStorage.getItem("accessToken_admin");
-    const adminUserStr = localStorage.getItem("admin_user");
-
-    if (!accessToken || !adminUserStr) {
-      logout();
-      setCheckedAuth(true);
-      return;
-    }
-
     try {
-      await axios.post(
+      const response = await axios.post(
         `${API_URL}/api/v1/${ADMIN_PREFIX}/auth/verify`,
         {},
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        },
       );
-      const adminData = JSON.parse(adminUserStr);
-      setAdmin(adminData);
+      setAdmin(response.data.user || null);
     } catch {
       logout();
     } finally {
@@ -51,22 +34,6 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     checkAuth();
-  }, [setAdmin]);
-
-  useEffect(() => {
-    const handleStorageChange = (e: any) => {
-      if (e.key === "accessToken_admin" || e.key === "admin_user") {
-        const accessToken = localStorage.getItem("accessToken_admin");
-        const adminUserStr = localStorage.getItem("admin_user");
-
-        if (!accessToken || !adminUserStr) {
-          logout();
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
   }, [setAdmin]);
 
   if (!checkedAuth)

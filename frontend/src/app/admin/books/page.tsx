@@ -40,7 +40,6 @@ export default function Books() {
   const [editedBooks, setEditedBooks] = useState<Book[]>([]);
   const [sort, setSort] = useState<{ key: string; value: 1 | -1 } | null>(null);
   const limit = 7;
-  const accessToken = localStorage.getItem("accessToken_admin");
   const sortOptions = [
     { value: "", label: "Sắp xếp" },
     { value: "title_asc", label: "Tên A-Z" },
@@ -59,7 +58,6 @@ export default function Books() {
     page,
     sort,
     limit,
-    accessToken,
     ADMIN_PREFIX,
     onSuccess: ({ items, total }) => {
       setBooks(items);
@@ -88,9 +86,8 @@ export default function Books() {
     const res = await axios.get(`${API_URL}/api/v1/${ADMIN_PREFIX}/books`, {
       params: { page: 1, limit: 10000 },
       headers: {
-        Authorization: `Bearer ${accessToken}`,
       },
-      withCredentials: true,
+      
     });
     return res.data.books || [];
   };
@@ -136,9 +133,8 @@ export default function Books() {
       {},
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
         },
-        withCredentials: true,
+        
       },
     );
 
@@ -165,19 +161,19 @@ export default function Books() {
   return (
     <>
       <PrivateRoute permission="view_books">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-[32px] font-bold m-0 text-primary flex items-center gap-2">
+        <div className="mb-6 flex w-full min-w-0 flex-col gap-4 sm:mb-8 lg:flex-row lg:items-center lg:justify-between">
+          <h1 className="m-0 flex min-w-0 items-center gap-2 text-2xl font-bold text-primary sm:text-[32px]">
             <FiBookOpen className="text-primary" /> Quản lý sách
           </h1>
           <ConditionalRender permission="create_book">
-            <NewAddButton label="Thêm sách mới" source="books" />
+            <NewAddButton label="Thêm sách mới" source="books" className="w-full justify-center whitespace-nowrap lg:w-auto" />
           </ConditionalRender>
         </div>
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex w-full min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <StatusFilter value={status} onChange={setStatus} />
           <Search value={keyword} onChange={setKeyword} label="sách" />
         </div>
-        <div className="flex justify-between items-center">
+        <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <ConditionalRender permission="edit_book">
             <ChangeMulti
               options={[
@@ -192,7 +188,7 @@ export default function Books() {
               disabled={!bulkValue || selectedIds.length === 0}
             />
           </ConditionalRender>
-          <div className="mb-6">
+          <div className="w-full sm:w-auto">
             <SortSelect
               sortValue={sortValue}
               onChange={(e) => {

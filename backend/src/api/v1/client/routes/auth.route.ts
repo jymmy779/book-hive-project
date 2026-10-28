@@ -6,6 +6,7 @@ const {
   validateLogin,
   validateRegister,
 } = require("../../../../middleware/validate.middleware");
+const { clientAuth } = require("../../../../middleware/auth.middleware");
 
 router.post("/register", validateRegister, controller.register);
 
@@ -22,6 +23,8 @@ router.post("/forgot-password/send-otp", controller.sendOtpForgotPassword);
 router.post("/forgot-password/verify-otp", controller.verifyOtpForgotPassword);
 
 router.patch("/reset-password", controller.resetPassword);
+
+router.patch("/change-password", clientAuth, controller.changePassword);
 
 module.exports = router;
 

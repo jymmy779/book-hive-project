@@ -61,6 +61,9 @@ export default function BookTable({
             <th className="py-4 px-4 text-left text-[14.4px] font-semibold text-primary">
               Giá
             </th>
+            <th className="py-4 px-4 text-left text-[14.4px] font-semibold text-primary">
+              Tồn kho
+            </th>
             <ConditionalRender permission="edit_book">
               <th className="py-4 px-4 text-left lg:w-[180px] text-[14.4px] font-semibold text-primary">
                 Trạng thái
@@ -106,7 +109,7 @@ export default function BookTable({
                   <Image
                     width={400}
                     height={400}
-                    src={book.image || "/book-hive.jpg"}
+                    src={book.image || "/book-hive.webp"}
                     alt={book.title}
                     loading="lazy"
                     className="w-16 h-16 object-cover rounded bg-gray-100"
@@ -126,6 +129,9 @@ export default function BookTable({
                 {book.priceBuy
                   ? book.priceBuy.toLocaleString("vi-VN") + "đ"
                   : "Liên hệ"}
+              </td>
+              <td className="py-4 px-4 text-[14.4px] text-primary">
+                {book.inStock ?? 0}
               </td>
               <ConditionalRender permission="edit_book">
                 <td className="py-4 px-4">

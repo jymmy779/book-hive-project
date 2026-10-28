@@ -14,4 +14,5 @@ router.patch("/edit/:slug", uploadImageHelper.single("image"), validateAccount, 
 router.patch("/delete/:id", controller.delete);
 router.patch("/reset-password/:slug", validateResetPassword, controller.resetPassword);
 router.get("/profile", controller.profile);
+router.patch("/profile", controller.updateProfile);
 module.exports = router;

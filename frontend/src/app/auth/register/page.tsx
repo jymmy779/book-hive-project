@@ -8,7 +8,19 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Image from "next/image";
-import { FiHome, FiEye, FiEyeOff, FiUserPlus, FiLoader } from "react-icons/fi";
+import {
+  FiHome,
+  FiEye,
+  FiEyeOff,
+  FiUserPlus,
+  FiLoader,
+  FiMail,
+  FiLock,
+  FiUser,
+  FiBookOpen,
+  FiStar,
+  FiHeart,
+} from "react-icons/fi";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -18,9 +30,7 @@ const registerSchema = z
     email: z.string().email("Email không hợp lệ"),
     password: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
     confirmPassword: z.string().min(6, "Xác nhận mật khẩu tối thiểu 6 ký tự"),
-    accept: z.literal(true, {
-      message: "Bạn phải đồng ý với điều khoản",
-    }),
+    accept: z.literal(true, { message: "Bạn phải đồng ý với điều khoản" }),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: "Mật khẩu xác nhận không khớp",
@@ -28,6 +38,12 @@ const registerSchema = z
   });
 
 type RegisterForm = z.infer<typeof registerSchema>;
+
+const FEATURES = [
+  { icon: FiBookOpen, text: "Truy cập 10,000+ đầu sách độc quyền" },
+  { icon: FiStar, text: "Gợi ý cá nhân hóa từ AI BookHive" },
+  { icon: FiHeart, text: "Lưu danh sách yêu thích & Theo dõi đơn hàng" },
+];
 
 export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
@@ -53,9 +69,7 @@ export default function RegisterPage() {
         confirmPassword: data.confirmPassword,
       });
       toast.success("Đăng ký thành công! Vui lòng đăng nhập.");
-      setTimeout(() => {
-        router.push("/auth/login");
-      }, 1600);
+      setTimeout(() => router.push("/auth/login"), 1600);
     } catch (err: any) {
       toast.error(err.response?.data?.message || "Đăng ký thất bại");
     } finally {
@@ -65,185 +79,236 @@ export default function RegisterPage() {
 
   return (
     <>
-      <div className="min-h-screen flex items-center justify-center bg-surface-secondary px-4 py-12 relative">
-        <div className="absolute top-4 left-4 md:top-6 md:left-6 z-10">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-surface border border-border rounded-lg shadow-sm hover:bg-surface-secondary text-primary font-semibold transition text-sm md:text-base"
-          >
-            <FiHome size={16} />
-            <span className="hidden sm:inline">Về trang chủ</span>
-            <span className="sm:hidden">Trang chủ</span>
-          </Link>
-        </div>
-        <div className="w-full max-w-md relative z-0">
-          <div className="bg-surface rounded-lg shadow-lg overflow-hidden">
-            <div className="bg-primary px-4 py-6 md:px-6 md:py-8 text-center">
-              <div className="flex items-center justify-center gap-3 md:gap-5 mb-2">
+      <div className="min-h-screen flex bg-surface-cream">
+        {/* Left panel – branding */}
+        <div className="hidden lg:flex lg:w-[42%] bg-primary flex-col justify-between p-10 xl:p-14 relative overflow-hidden">
+          {/* Decorative circles */}
+          <div className="absolute -top-24 -left-24 w-72 h-72 bg-white/5 rounded-full" />
+          <div className="absolute -bottom-20 -right-20 w-96 h-96 bg-white/5 rounded-full" />
+          <div className="absolute top-1/3 right-0 w-32 h-64 bg-white/5 rounded-l-full" />
+
+          {/* Logo */}
+          <div className="relative z-10">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-11 h-11 rounded-xl bg-white/15 border border-white/20 flex items-center justify-center p-2">
                 <Image
-                  src="/book-hive.jpg"
-                  className="w-12 h-12 md:w-16 md:h-16 rounded-[10px] object-cover"
-                  alt="logo"
-                  width={400}
-                  height={400}
+                  src="/book-hive.webp"
+                  alt="BookHive logo"
+                  width={100}
+                  height={100}
+                  className="w-full h-full object-contain"
                 />
-                <h1 className="text-2xl md:text-3xl font-bold text-white">
-                  BookHive
-                </h1>
               </div>
-              <p className="text-primary-light/70 text-sm md:text-base">
-                Tạo tài khoản mới
+              <span className="text-xl font-extrabold text-white tracking-tight">BookHive</span>
+            </Link>
+          </div>
+
+          {/* Hero content */}
+          <div className="relative z-10 space-y-8">
+            <div>
+              <h2 className="text-3xl xl:text-4xl font-bold text-white leading-snug mb-3">
+                Tham Gia Cộng Đồng
+                <br />
+                <span className="text-accent-light opacity-90">Tri Thức BookHive</span>
+              </h2>
+              <p className="text-primary-light/70 text-base leading-relaxed">
+                Tạo tài khoản miễn phí và mở khóa thế giới sách không giới hạn.
               </p>
             </div>
 
-            <form
-              onSubmit={handleSubmit(handleRegister)}
-              className="px-4 py-6 md:px-6 md:py-8 space-y-4 md:space-y-5"
+            <div className="space-y-4">
+              {FEATURES.map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-3">
+                  <div className="w-9 h-9 bg-white/10 border border-white/15 rounded-xl flex items-center justify-center shrink-0">
+                    <Icon size={16} className="text-white" />
+                  </div>
+                  <span className="text-white/80 text-sm font-medium">{text}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Footer */}
+          <div className="relative z-10">
+            <blockquote className="text-white/50 text-xs italic border-l-2 border-white/20 pl-3">
+              &quot;Đọc sách là cách tốt nhất để du hành mà không cần rời khỏi ghế.&quot;
+            </blockquote>
+          </div>
+        </div>
+
+        {/* Right panel – form */}
+        <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 sm:px-8 relative overflow-y-auto">
+          {/* Back to home */}
+          <div className="absolute top-4 left-4 md:top-6 md:left-6">
+            <Link
+              href="/"
+              className="inline-flex items-center gap-2 px-3 py-1.5 bg-surface border border-border rounded-lg shadow-sm hover:bg-surface-secondary text-text-secondary font-medium text-sm transition"
             >
+              <FiHome size={14} />
+              <span>Trang chủ</span>
+            </Link>
+          </div>
+
+          <div className="w-full max-w-sm md:max-w-md">
+            {/* Mobile logo */}
+            <div className="lg:hidden flex items-center justify-center gap-2 mb-8">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 p-1.5 flex items-center justify-center">
+                <Image src="/book-hive.webp" alt="logo" width={100} height={100} className="w-full h-full object-contain" />
+              </div>
+              <span className="text-xl font-extrabold text-primary tracking-tight">BookHive</span>
+            </div>
+
+            <div className="mb-7">
+              <h1 className="text-2xl md:text-3xl font-bold text-primary mb-1">Tạo tài khoản</h1>
+              <p className="text-text-muted text-sm">
+                Đã có tài khoản?{" "}
+                <Link href="/auth/login" className="text-accent font-semibold hover:text-accent-hover">
+                  Đăng nhập ngay
+                </Link>
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit(handleRegister)} className="space-y-4">
+              {/* Full name */}
               <div>
-                <label className="block text-sm font-semibold text-text-primary mb-1.5 md:mb-2">
+                <label className="block text-sm font-semibold text-text-primary mb-1.5">
                   Họ và Tên
                 </label>
-                <input
-                  type="text"
-                  {...register("fullName")}
-                  placeholder="Nhập họ tên"
-                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition text-sm md:text-base"
-                  disabled={loading}
-                />
+                <div className="relative">
+                  <FiUser size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                  <input
+                    type="text"
+                    {...register("fullName")}
+                    placeholder="Nhập họ tên đầy đủ"
+                    className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary bg-surface-secondary transition text-sm"
+                    disabled={loading}
+                  />
+                </div>
                 {errors.fullName && (
-                  <p className="text-error text-xs mt-1">
-                    {errors.fullName.message}
-                  </p>
+                  <p className="text-error text-xs mt-1">{errors.fullName.message}</p>
                 )}
               </div>
 
+              {/* Email */}
               <div>
-                <label className="block text-sm font-semibold text-text-primary mb-1.5 md:mb-2">
+                <label className="block text-sm font-semibold text-text-primary mb-1.5">
                   Email
                 </label>
-                <input
-                  type="email"
-                  {...register("email")}
-                  placeholder="Nhập email"
-                  className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition text-sm md:text-base"
-                  disabled={loading}
-                />
+                <div className="relative">
+                  <FiMail size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
+                  <input
+                    type="email"
+                    {...register("email")}
+                    placeholder="Nhập địa chỉ email"
+                    className="w-full pl-10 pr-4 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary bg-surface-secondary transition text-sm"
+                    disabled={loading}
+                  />
+                </div>
                 {errors.email && (
-                  <p className="text-error text-xs mt-1">
-                    {errors.email.message}
-                  </p>
+                  <p className="text-error text-xs mt-1">{errors.email.message}</p>
                 )}
               </div>
 
+              {/* Password */}
               <div>
-                <label className="block text-sm font-semibold text-text-primary mb-1.5 md:mb-2">
+                <label className="block text-sm font-semibold text-text-primary mb-1.5">
                   Mật Khẩu
                 </label>
                 <div className="relative">
+                  <FiLock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     type={showPassword ? "text" : "password"}
                     {...register("password")}
-                    placeholder="Nhập mật khẩu"
-                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition text-sm md:text-base"
+                    placeholder="Tối thiểu 6 ký tự"
+                    className="w-full pl-10 pr-11 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary bg-surface-secondary transition text-sm"
                     disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-text-secondary"
+                    className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary p-1"
                   >
-                    {showPassword ? <FiEye size={18} /> : <FiEyeOff size={18} />}
+                    {showPassword ? <FiEye size={16} /> : <FiEyeOff size={16} />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-error text-xs mt-1">
-                    {errors.password.message}
-                  </p>
+                  <p className="text-error text-xs mt-1">{errors.password.message}</p>
                 )}
               </div>
 
+              {/* Confirm password */}
               <div>
-                <label className="block text-sm font-semibold text-text-primary mb-1.5 md:mb-2">
+                <label className="block text-sm font-semibold text-text-primary mb-1.5">
                   Xác Nhận Mật Khẩu
                 </label>
                 <div className="relative">
+                  <FiLock size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-text-muted" />
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     {...register("confirmPassword")}
                     placeholder="Nhập lại mật khẩu"
-                    className="w-full px-4 py-2.5 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition text-sm md:text-base"
+                    className="w-full pl-10 pr-11 py-2.5 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary bg-surface-secondary transition text-sm"
                     disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute cursor-pointer right-3 top-1/2 transform -translate-y-1/2 text-text-muted hover:text-text-secondary"
+                    className="absolute cursor-pointer right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-secondary p-1"
                   >
-                    {showConfirmPassword ? <FiEye size={18} /> : <FiEyeOff size={18} />}
+                    {showConfirmPassword ? <FiEye size={16} /> : <FiEyeOff size={16} />}
                   </button>
                 </div>
                 {errors.confirmPassword && (
-                  <p className="text-error text-xs mt-1">
-                    {errors.confirmPassword.message}
-                  </p>
+                  <p className="text-error text-xs mt-1">{errors.confirmPassword.message}</p>
                 )}
               </div>
 
-              <label className="flex items-center gap-2 md:gap-3 cursor-pointer">
+              {/* Terms */}
+              <label className="flex items-start gap-3 cursor-pointer">
                 <input
                   type="checkbox"
                   {...register("accept")}
-                  className="w-4 h-4 rounded border-border mt-1 focus:ring-2 focus:ring-primary shrink-0"
+                  className="w-4 h-4 rounded border-border mt-0.5 focus:ring-2 focus:ring-primary shrink-0 accent-primary"
                   disabled={loading}
                 />
-                <span className="text-xs md:text-sm text-text-secondary">
+                <span className="text-xs text-text-secondary leading-relaxed">
                   Tôi đồng ý với{" "}
-                  <Link href="/terms" className="text-primary hover:underline">
+                  <Link href="/terms" className="text-primary hover:underline font-medium">
                     Điều khoản dịch vụ
                   </Link>{" "}
                   và{" "}
-                  <Link
-                    href="/privacy"
-                    className="text-primary hover:underline"
-                  >
+                  <Link href="/privacy" className="text-primary hover:underline font-medium">
                     Chính sách bảo mật
-                  </Link>
+                  </Link>{" "}
+                  của BookHive
                 </span>
               </label>
               {errors.accept && (
-                <p className="text-error text-xs mt-1">
-                  {errors.accept.message}
-                </p>
+                <p className="text-error text-xs -mt-2">{errors.accept.message}</p>
               )}
 
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full cursor-pointer bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm md:text-base transition duration-200"
+                className="w-full cursor-pointer bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-xl flex items-center justify-center gap-2 text-sm transition-all shadow-md"
               >
                 {loading ? (
-                  <><FiLoader className="animate-spin" size={18} /> Đang đăng ký...</>
+                  <>
+                    <FiLoader className="animate-spin" size={16} />
+                    Đang đăng ký...
+                  </>
                 ) : (
-                  <><FiUserPlus size={16} /> Đăng Ký</>
+                  <>
+                    <FiUserPlus size={15} />
+                    Tạo Tài Khoản
+                  </>
                 )}
               </button>
             </form>
-
-            <div className="px-4 py-4 md:px-6 bg-surface-secondary border-t border-border text-center">
-              <p className="text-text-secondary text-sm">
-                Đã có tài khoản?{" "}
-                <Link
-                  href="/auth/login"
-                  className="text-primary hover:text-primary-dark font-semibold"
-                >
-                  Đăng nhập
-                </Link>
-              </p>
-            </div>
           </div>
         </div>
       </div>
+
       <ToastContainer
         autoClose={1500}
         hideProgressBar={true}

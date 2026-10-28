@@ -10,11 +10,17 @@ export interface Book {
   category_name: string;
   description: string;
   priceBuy: number;
+  inStock?: number;
   rating: number;
   reviews: number;
   image: string;
   status: string;
   featured: boolean;
+  readerFavorite?: boolean;
+  topChartPosition?: number;
+  flashSale?: boolean;
+  discountPercent?: number;
+  flashSaleEndAt?: string;
   position: number;
   deleted: boolean;
   deletedAt?: Date;

@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useUser } from "./UserContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -32,18 +33,15 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { user } = useUser();
+  const isAuthenticated = Boolean(user);
 
   useEffect(() => {
-    const accessToken = localStorage.getItem("accessToken_user");
-    setIsAuthenticated(!!accessToken);
-
-    if (accessToken) {
+    if (isAuthenticated) {
       setIsLoading(true);
       axios
         .get(`${API_URL}/api/v1/cart`, {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
           },
         })
         .then((res) => {
@@ -64,7 +62,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       setIsLoaded(true);
       setIsLoading(false);
     }
-  }, []);
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isLoaded) return;
@@ -88,22 +86,15 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       return [...prevItems, newItem];
     });
     if (isAuthenticated) {
-      const accessToken = localStorage.getItem("accessToken_user");
-      axios.post(`${API_URL}/api/v1/cart/add-item`, newItem, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
+      axios.post(`${API_URL}/api/v1/cart/add-item`, newItem);
     }
   };
 
   const removeFromCart = async (id: string) => {
     if (isAuthenticated) {
-      const accessToken = localStorage.getItem("accessToken_user");
       try {
         const res = await axios.delete(`${API_URL}/api/v1/cart/delete/${id}`, {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
           },
         });
         setItems(res.data.items || []);
@@ -126,13 +117,11 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       ),
     );
     if (isAuthenticated) {
-      const accessToken = localStorage.getItem("accessToken_user");
       axios.patch(
         `${API_URL}/api/v1/cart/edit/${id}`,
         { quantity },
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
           },
         },
       );
@@ -142,10 +131,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const clearCart = () => {
     setItems([]);
     if (isAuthenticated) {
-      const accessToken = localStorage.getItem("accessToken_user");
       axios.delete(`${API_URL}/api/v1/cart/delete-all`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
         },
       });
     }

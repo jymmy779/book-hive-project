@@ -15,6 +15,163 @@ const Book = require("../../models/book.model");
 const Category = require("../../models/category.model");
 const Account = require("../../models/account.model");
 const slugify = require("slugify");
+const { getBookDescription } = require("../../../../helpers/bookDescription");
+const HOMEPAGE_SECTION_LIMITS = {
+    readerFavorite: 8,
+    featured: 8,
+    flashSale: 12,
+};
+module.exports.homepageSectionsIndex = async (_req, res) => {
+    try {
+        const books = await Book.find({ deleted: false, status: "active" })
+            .select("title author image priceBuy inStock featured editorRecommended readerFavorite topChartPosition heroPosition flashSale discountPercent flashSaleEndAt slug")
+            .sort({ title: 1 })
+            .lean();
+        return res.status(200).json({ books });
+    }
+    catch (_error) {
+        return res.status(500).json({ message: "Could not load homepage section books." });
+    }
+};
+module.exports.updateHomepageSections = async (req, res) => {
+    var _a, _b, _c;
+    try {
+        const allowedFields = [
+            "featured",
+            "editorRecommended",
+            "readerFavorite",
+            "topChartPosition",
+            "heroPosition",
+            "flashSale",
+            "discountPercent",
+            "flashSaleEndAt",
+        ];
+        const updates = {};
+        for (const field of allowedFields) {
+            if (!Object.prototype.hasOwnProperty.call(req.body, field))
+                continue;
+            const value = req.body[field];
+            if (["featured", "editorRecommended", "readerFavorite", "flashSale"].includes(field)) {
+                if (typeof value !== "boolean") {
+                    return res.status(400).json({ message: `${field} must be a boolean.` });
+                }
+                updates[field] = value;
+            }
+            else if (field === "topChartPosition") {
+                if (value !== null && (!Number.isInteger(value) || value < 1 || value > 3)) {
+                    return res.status(400).json({ message: "Top chart position must be 1, 2, 3, or null." });
+                }
+                updates[field] = value;
+            }
+            else if (field === "heroPosition") {
+                if (value !== null && (!Number.isInteger(value) || value < 1 || value > 8)) {
+                    return res.status(400).json({ message: "Hero position must be between 1 and 8, or null." });
+                }
+                updates[field] = value;
+            }
+            else if (field === "discountPercent") {
+                if (!Number.isInteger(value) || value < 0 || value > 90) {
+                    return res.status(400).json({ message: "Discount must be an integer from 0 to 90." });
+                }
+                updates[field] = value;
+            }
+            else if (field === "flashSaleEndAt") {
+                const date = new Date(value);
+                if (!value || Number.isNaN(date.getTime())) {
+                    return res.status(400).json({ message: "Flash sale end time is invalid." });
+                }
+                updates[field] = date;
+            }
+        }
+        if (Object.keys(updates).length === 0) {
+            return res.status(400).json({ message: "No homepage section settings provided." });
+        }
+        const currentBook = await Book.findOne({ _id: req.params.id, deleted: false });
+        if (!currentBook) {
+            return res.status(404).json({ message: "Book not found." });
+        }
+        const now = new Date();
+        const selectionCaps = [
+            {
+                field: "readerFavorite",
+                currentlySelected: Boolean(currentBook.readerFavorite),
+                filter: { readerFavorite: true },
+            },
+            {
+                field: "featured",
+                currentlySelected: Boolean(currentBook.featured),
+                filter: { featured: true },
+            },
+            {
+                field: "flashSale",
+                currentlySelected: Boolean(currentBook.flashSale && currentBook.flashSaleEndAt && currentBook.flashSaleEndAt > now),
+                filter: { flashSale: true, flashSaleEndAt: { $gt: now } },
+            },
+        ];
+        for (const section of selectionCaps) {
+            if (updates[section.field] !== true || section.currentlySelected)
+                continue;
+            const selectedCount = await Book.countDocuments(Object.assign(Object.assign({}, section.filter), { _id: { $ne: currentBook._id }, deleted: false, status: "active" }));
+            const limit = HOMEPAGE_SECTION_LIMITS[section.field];
+            if (selectedCount >= limit) {
+                return res.status(400).json({
+                    message: `This homepage section already has the maximum of ${limit} books.`,
+                    limit,
+                    selectedCount,
+                });
+            }
+        }
+        const nextFlashSale = (_a = updates.flashSale) !== null && _a !== void 0 ? _a : currentBook.flashSale;
+        const nextDiscount = (_b = updates.discountPercent) !== null && _b !== void 0 ? _b : currentBook.discountPercent;
+        const nextEndAt = (_c = updates.flashSaleEndAt) !== null && _c !== void 0 ? _c : currentBook.flashSaleEndAt;
+        if (nextFlashSale && (!nextDiscount || !nextEndAt || nextEndAt <= new Date())) {
+            return res.status(400).json({
+                message: "A flash deal needs a discount and a future end time.",
+            });
+        }
+        const rankField = Object.prototype.hasOwnProperty.call(updates, "topChartPosition")
+            ? "topChartPosition"
+            : Object.prototype.hasOwnProperty.call(updates, "heroPosition")
+                ? "heroPosition"
+                : null;
+        if (rankField && updates[rankField]) {
+            await Book.updateMany({
+                _id: { $ne: currentBook._id },
+                [rankField]: updates[rankField],
+            }, { $unset: { [rankField]: 1 } });
+        }
+        if (updates.editorRecommended === true) {
+            await Book.updateMany({ _id: { $ne: currentBook._id }, editorRecommended: true }, { $set: { editorRecommended: false } });
+        }
+        updates.updatedBy = req.user.id;
+        const book = await Book.findByIdAndUpdate(currentBook._id, updates, {
+            new: true,
+            runValidators: true,
+        }).lean();
+        if (rankField) {
+            const rankedBooks = await Book.find({
+                deleted: false,
+                status: "active",
+                [rankField]: { $gte: 1 },
+            })
+                .sort({ [rankField]: 1 })
+                .select(`_id ${rankField}`)
+                .lean();
+            if (rankedBooks.length > 0) {
+                await Book.bulkWrite(rankedBooks.map((rankedBook, index) => ({
+                    updateOne: {
+                        filter: { _id: rankedBook._id },
+                        update: { $set: { [rankField]: index + 1 } },
+                    },
+                })));
+            }
+        }
+        return res.status(200).json({ book });
+    }
+    catch (_error) {
+        return res.status(500).json({ message: "Could not update homepage section settings." });
+    }
+};
 module.exports.index = async (req, res) => {
     try {
         const status = req.query.status;
@@ -29,7 +186,7 @@ module.exports.index = async (req, res) => {
             find.status = status;
         }
         if (keyword) {
-            const regex = new RegExp(keyword, "i");
+            const regex = new RegExp(String(keyword).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
             find.$or = [{ title: regex }, { author: regex }];
         }
         let sort = {};
@@ -39,14 +196,16 @@ module.exports.index = async (req, res) => {
         else {
             sort.position = "desc";
         }
-        const books = await Book.find(find)
-            .skip(skip)
-            .limit(limit)
-            .sort(sort)
-            .populate("updatedBy", "fullName")
-            .populate("createdBy", "fullName")
-            .populate("deletedBy", "fullName");
-        const total = await Book.countDocuments(find);
+        const [books, total] = await Promise.all([
+            Book.find(find)
+                .skip(skip)
+                .limit(limit)
+                .sort(sort)
+                .populate("updatedBy", "fullName")
+                .populate("createdBy", "fullName")
+                .populate("deletedBy", "fullName"),
+            Book.countDocuments(find),
+        ]);
         if (books && books.length > 0) {
             const categoryIds = [...new Set(books.map((b) => b.category_id).filter(Boolean))];
             const categories = await Category.find({
@@ -264,9 +423,11 @@ module.exports.getBySlug = async (req, res) => {
         if (!book) {
             return res.status(404).json({ message: "Không tìm thấy sách!" });
         }
+        const bookObj = book.toObject();
+        bookObj.description = getBookDescription(bookObj);
         return res.status(200).json({
             message: "Lấy thông tin sách thành công!",
-            book: book,
+            book: bookObj,
         });
     }
     catch (error) {
@@ -333,6 +494,7 @@ module.exports.detail = async (req, res) => {
             return res.status(404).json({ message: "Không tìm thấy sách!" });
         }
         const bookObj = book.toObject();
+        bookObj.description = getBookDescription(bookObj);
         if (book.category_id) {
             const category = await Category.findOne({
                 _id: book.category_id,

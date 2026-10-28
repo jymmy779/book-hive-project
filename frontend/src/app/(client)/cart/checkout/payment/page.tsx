@@ -82,6 +82,10 @@ export default function PaymentPage() {
             price: targetAmount,
           })),
         },
+        {
+          headers: {
+          },
+        },
       );
 
       if (response.data.error === 0 && response.data.data.checkoutUrl) {
@@ -119,7 +123,14 @@ export default function PaymentPage() {
     try {
       for (const code of codes) {
         try {
-          await axios.patch(`${API_URL}/api/v1/payment/cancel-payment/${code}`);
+          await axios.patch(
+            `${API_URL}/api/v1/payment/cancel-payment/${code}`,
+            {},
+            {
+              headers: {
+              },
+            },
+          );
         } catch (error) {
           console.error(`Lỗi hủy thanh toán ${code}:`, error);
         }

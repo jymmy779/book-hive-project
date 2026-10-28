@@ -95,14 +95,7 @@ export default function CheckoutPage() {
 
       if (paymentMethod === "cod") {
         try {
-          const accessToken = localStorage.getItem("accessToken_user");
-          if (accessToken) {
-            await axios.delete(`${API_URL}/api/v1/cart/delete-all`, {
-              headers: {
-                Authorization: `Bearer ${accessToken}`,
-              },
-            });
-          }
+          await axios.delete(`${API_URL}/api/v1/cart/delete-all`);
         } catch (error) {
           console.error("Lỗi xóa cart:", error);
         }

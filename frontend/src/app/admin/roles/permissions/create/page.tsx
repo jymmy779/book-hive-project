@@ -18,7 +18,6 @@ export default function CreatePermission() {
   });
   const [loading, setLoading] = useState(false);
   const [allPermissions, setAllPermissions] = useState<Permissions[]>([]);
-  const accessToken = localStorage.getItem("accessToken_admin");
 
   let groupNames: string[] = [];
 
@@ -26,9 +25,8 @@ export default function CreatePermission() {
     axios
       .get(`${API_URL}/api/v1/${ADMIN_PREFIX}/roles/permissions`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
         },
-        withCredentials: true,
+        
       })
       .then((res) => {
         setAllPermissions(res.data.permissionGroups);
@@ -64,9 +62,8 @@ export default function CreatePermission() {
           data,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
             },
-            withCredentials: true,
+            
           },
         ),
         {
@@ -99,8 +96,8 @@ export default function CreatePermission() {
   return (
     <PrivateRoute permission="create_permission">
       <div>
-        <div className="max-w-xl mx-auto mt-8 bg-white p-8 rounded-xl shadow relative">
-          <BackButton className="absolute -top-10 -left-70 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
+        <div className="max-w-xl mx-auto mt-8 bg-white p-4 sm:p-8 rounded-xl shadow relative">
+          <BackButton className="absolute -top-10 left-0 lg:-left-70 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
           <h1 className="text-2xl font-bold mb-6 text-primary">
             Tạo mới quyền
           </h1>

@@ -7,4 +7,5 @@ const { validateLogin } = require("../../../../middleware/validate.middleware");
 router.post("/login", validateLogin, controller.login);
 router.post("/verify", controller.verify);
 router.post("/logout", controller.logout);
+router.patch("/change-password", controller.changePassword);
 module.exports = router;

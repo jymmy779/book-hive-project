@@ -6,8 +6,8 @@ module.exports.index = async (req, res) => {
   try {
     const status = req.query.status;
     const keyword = req.query.keyWord;
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 0;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.max(1, parseInt(req.query.limit, 10) || 20);
     const skip = (page - 1) * limit;
 
     const find: any = {
@@ -19,7 +19,7 @@ module.exports.index = async (req, res) => {
     }
 
     if (keyword) {
-      const regex = new RegExp(keyword, "i");
+      const regex = new RegExp(String(keyword).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
       find.$or = [{ title: regex }];
     }
 
@@ -31,15 +31,16 @@ module.exports.index = async (req, res) => {
       sort.position = "desc";
     }
 
-    const categories = await Category.find(find)
-      .skip(skip)
-      .limit(limit)
-      .sort(sort)
-      .populate("updatedBy", "fullName")
-      .populate("createdBy", "fullName")
-      .populate("deletedBy", "fullName");
-
-    const total = await Category.countDocuments(find);
+    const [categories, total] = await Promise.all([
+      Category.find(find)
+        .skip(skip)
+        .limit(limit)
+        .sort(sort)
+        .populate("updatedBy", "fullName")
+        .populate("createdBy", "fullName")
+        .populate("deletedBy", "fullName"),
+      Category.countDocuments(find),
+    ]);
 
     if (categories) {
       return res.status(200).json({

@@ -19,10 +19,47 @@ module.exports.query = async (req, res) => {
       });
     }
 
-    // 1. Phân tích intent và lấy sách liên quan
-    const relatedBooks = await aiService.findRelatedBooks(Book, question, {
-      limit: 5,
-    });
+    const history = Array.isArray(req.body.history)
+      ? req.body.history
+          .slice(-10)
+          .filter((item: any) => item && ["user", "assistant"].includes(item.role))
+          .map((item: any) => ({
+            role: item.role,
+            content: String(item.content || "").slice(0, 1200),
+            bookIds: Array.isArray(item.bookIds)
+              ? item.bookIds
+                  .filter((id: any) => /^[a-f\d]{24}$/i.test(String(id)))
+                  .slice(0, 8)
+              : [],
+          }))
+      : [];
+    const normalizedQuestion = question
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/đ/g, "d");
+    const isContextualFollowUp =
+      /(may sach|sach tren|nhung sach|nhung cuon|cuon tren|sach do|cuon do|vua goi y|goi y tren|noi ve gi|noi ve cuon|tac gia do|gia cuon do|review cuon do|chung la gi)/.test(
+        normalizedQuestion,
+      );
+
+    // For follow-up questions, resolve the books the bot previously showed from
+    // the database so the assistant can explain their real descriptions.
+    let relatedBooks: any[] = [];
+    if (isContextualFollowUp) {
+      const previousBookIds = Array.from(
+        new Set(history.flatMap((item: any) => item.role === "assistant" ? item.bookIds : [])),
+      ).slice(-12);
+      if (previousBookIds.length > 0) {
+        relatedBooks = await Book.find({
+          _id: { $in: previousBookIds },
+          deleted: false,
+          status: "active",
+        }).limit(8);
+      }
+    } else {
+      relatedBooks = await aiService.findRelatedBooks(Book, question, { limit: 5 });
+    }
 
     // 2. Lấy thông tin người dùng (nếu có token)
     let userData = {
@@ -31,11 +68,14 @@ module.exports.query = async (req, res) => {
       user: null,
     };
 
-    const authHeader = req.headers.authorization;
-    if (authHeader && authHeader.startsWith("Bearer ")) {
+    const token = req.cookies?.bh_user_session;
+    if (token) {
       try {
-        const token = authHeader.split(" ")[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        if (decoded.tokenType !== "user") {
+          throw new Error("Invalid session type");
+        }
 
         // Lấy 3 đơn hàng gần nhất
         userData.orders = await Order.find({ "userInfo.email": decoded.email })
@@ -70,7 +110,7 @@ module.exports.query = async (req, res) => {
     });
 
     // 5. Query AI
-    const result = await aiService.queryAI(question, context, relatedBooks);
+    const result = await aiService.queryAI(question, context, relatedBooks, history);
 
     if (!result.success) {
       return res.status(500).json({
@@ -88,10 +128,13 @@ module.exports.query = async (req, res) => {
       "order",
       "payment",
       "general_help",
+      "general_chat",
       "out_of_scope",
     ];
     // Version 4: Chỉ gửi các sách mà AI đã chọn lọc trong ui.cards
+    const shouldShowBooks = !noBookIntents.includes(result.ui?.intent);
     const relatedBooksPayload =
+      shouldShowBooks &&
       result.ui && Array.isArray(result.ui.cards) && result.ui.cards.length > 0
         ? result.ui.cards.map((card: any) => ({
             id: card.id,

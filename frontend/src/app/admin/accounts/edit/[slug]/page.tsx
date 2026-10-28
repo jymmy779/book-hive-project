@@ -34,15 +34,12 @@ export default function EditBook() {
   const [roles, setRoles] = useState<Role[]>([]);
   const fileInputRef = useRef<any>(null);
 
-  const accessToken = localStorage.getItem("accessToken_admin");
-
   useEffect(() => {
     axios
       .get(`${API_URL}/api/v1/${ADMIN_PREFIX}/roles`, {
         headers: {
-          Authorization: accessToken ? `Bearer ${accessToken}` : "",
         },
-        withCredentials: true,
+        
       })
       .then((res) => setRoles(res.data.roles || []))
       .catch(() => setRoles([]));
@@ -80,9 +77,8 @@ export default function EditBook() {
           `${API_URL}/api/v1/${ADMIN_PREFIX}/accounts/detail/${params.slug}`,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
             },
-            withCredentials: true,
+            
           },
         );
         const account = res.data.account;
@@ -121,9 +117,8 @@ export default function EditBook() {
           formData,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
             },
-            withCredentials: true,
+            
           },
         ),
         {
@@ -154,8 +149,8 @@ export default function EditBook() {
             <div className="text-xl text-gray-500">Đang tải...</div>
           </div>
         ) : (
-          <div className="max-w-2xl mx-auto mt-8 bg-white p-8 rounded-xl shadow relative">
-            <BackButton className="absolute -top-10 -left-60 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
+          <div className="max-w-2xl mx-auto mt-8 bg-white p-4 sm:p-8 rounded-xl shadow relative">
+            <BackButton className="absolute -top-10 left-0 lg:-left-60 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
 
             <h1 className="text-2xl font-bold mb-6 text-primary">
               Chỉnh sửa sách

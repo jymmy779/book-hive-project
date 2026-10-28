@@ -10,6 +10,7 @@ module.exports.connect = async () => {
         console.log("connect success");
     }
     catch (error) {
-        console.log("connect error", error);
+        console.error("connect error", error);
+        throw error;
     }
 };

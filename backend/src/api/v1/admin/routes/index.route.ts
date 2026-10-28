@@ -5,6 +5,8 @@ const roleRoutes = require("./role.route");
 const permissionRoutes = require("./permission.route");
 const accountRoutes = require("./account.route");
 const authRoutes = require("./auth.route");
+const transactionRoutes = require("./transaction.route");
+const dashboardRoutes = require("./dashboard.route");
 const { adminAuth } = require("../../../../middleware/auth.middleware");
 const {
   checkPermission,
@@ -26,6 +28,15 @@ module.exports = (app) => {
   app.use(version + prefixAdmin + "/roles", adminAuth, roleRoutes);
 
   app.use(version + prefixAdmin + "/accounts", adminAuth, accountRoutes);
+
+  app.use(version + prefixAdmin + "/dashboard", adminAuth, dashboardRoutes);
+
+  app.use(
+    version + prefixAdmin + "/transactions",
+    adminAuth,
+    checkPermission("view_transactions"),
+    transactionRoutes,
+  );
 
   app.use(version + prefixAdmin + "/auth", authRoutes);
 };

@@ -12,11 +12,6 @@ const userSchema = new mongoose.Schema(
       index: true,
     },
     googleEmail: String,
-    refreshToken: {
-      type: String,
-      default: null,
-    },
-    refreshTokenExpiresAt: Date,
     phone: String,
     avatar: String,
     status: String,

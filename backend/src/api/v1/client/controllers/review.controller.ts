@@ -1,4 +1,4 @@
-const User = require("../../models/user.model");
+const mongoose = require("mongoose");
 const Review = require("../../models/review.model");
 const Book = require("../../models/book.model");
 
@@ -16,15 +16,15 @@ module.exports.bookReviews = async (req, res) => {
       });
     }
 
-    const records = await Review.find({
-      book: bookId,
-    })
-      .populate("user", "fullName")
-      .skip(skip)
-      .limit(limit)
-      .sort({ createdAt: -1 });
-
-    const total = await Review.countDocuments({ book: bookId });
+    const reviewFilter = { book: bookId };
+    const [records, total] = await Promise.all([
+      Review.find(reviewFilter)
+        .populate("user", "fullName")
+        .skip(skip)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+      Review.countDocuments(reviewFilter),
+    ]);
 
     res.status(200).json({
       records: records,
@@ -67,13 +67,20 @@ module.exports.sendReview = async (req, res) => {
     await review.save();
 
     // Cập nhật rating cho sách
-    const allReviews = await Review.find({ book: bookId });
-    const averageRating =
-      allReviews.reduce((sum, rev) => sum + rev.rating, 0) / allReviews.length;
+    const [reviewStats] = await Review.aggregate([
+      { $match: { book: new mongoose.Types.ObjectId(bookId) } },
+      {
+        $group: {
+          _id: null,
+          averageRating: { $avg: "$rating" },
+          reviews: { $sum: 1 },
+        },
+      },
+    ]);
 
     await Book.findByIdAndUpdate(bookId, {
-      rating: Math.round(averageRating * 10) / 10,
-      reviews: allReviews.length,
+      rating: Math.round((reviewStats?.averageRating || 0) * 10) / 10,
+      reviews: reviewStats?.reviews || 0,
     });
 
     return res.status(201).json({

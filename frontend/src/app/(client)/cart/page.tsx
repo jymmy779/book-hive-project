@@ -5,10 +5,22 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast, ToastContainer } from "react-toastify";
 import { useCart } from "@/contexts/CartContext";
-import { Loading } from "@/app/components/Loading/Loading";
+import CartSkeleton from "@/app/components/Skeleton/CartSkeleton";
 import ConfirmModal from "@/app/components/ConfirmModal/ConfirmModal";
+import { ScrollReveal } from "@/app/components/Animation/ScrollReveal";
 import Image from "next/image";
-import { FiShoppingCart, FiTrash2, FiCreditCard, FiCheck, FiRefreshCw, FiShield, FiArrowLeft } from "react-icons/fi";
+import {
+  FiShoppingCart,
+  FiTrash2,
+  FiCreditCard,
+  FiCheck,
+  FiRefreshCw,
+  FiShield,
+  FiArrowLeft,
+  FiMinus,
+  FiPlus,
+  FiPackage,
+} from "react-icons/fi";
 
 export default function CartPage() {
   const router = useRouter();
@@ -21,15 +33,11 @@ export default function CartPage() {
   });
 
   if (isLoading) {
-    return <Loading fullScreen={true} size="lg" text="Đang tải giỏ hàng..." />;
+    return <CartSkeleton />;
   }
 
   const handleConfirmModal = (message: string, action: () => void) => {
-    setConfirmModal({
-      open: true,
-      message,
-      action,
-    });
+    setConfirmModal({ open: true, message, action });
   };
 
   const handleRemoveItem = (bookId: string) => {
@@ -51,36 +59,34 @@ export default function CartPage() {
     );
   };
 
+  // Empty cart state
   if (items.length === 0) {
     return (
-      <div className="py-10 min-h-[500px] md:py-20">
-        <div className="container mx-auto px-4">
-          <div className="bg-white rounded-2xl p-8 md:p-12 shadow text-center">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-              <FiShoppingCart size={40} className="text-gray-400" />
-            </div>
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-2">
-              Giỏ hàng trống
-            </h1>
-            <p className="text-sm md:text-base text-slate-500 mb-8">
-              Chưa có sản phẩm nào trong giỏ hàng của bạn
-            </p>
-            <Link
-              href="/"
-              className="inline-block px-5 py-2.5 md:px-6 md:py-3 bg-primary text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 text-sm md:text-base"
-            >
-              <FiArrowLeft className="inline mr-1" /> Tiếp tục mua sắm
-            </Link>
+      <div className="min-h-[70vh] flex items-center justify-center py-12 px-4">
+        <div className="text-center max-w-md">
+          <div className="w-24 h-24 rounded-full bg-primary-light flex items-center justify-center mx-auto mb-6">
+            <FiShoppingCart size={42} className="text-primary" />
           </div>
+          <h1 className="text-2xl md:text-3xl font-bold text-primary mb-3">
+            Giỏ hàng trống
+          </h1>
+          <p className="text-text-muted text-base mb-8">
+            Chưa có sản phẩm nào trong giỏ hàng. Khám phá kho sách phong phú của BookHive ngay!
+          </p>
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-all shadow-md text-sm md:text-base"
+          >
+            <FiArrowLeft size={16} />
+            Tiếp tục mua sắm
+          </Link>
         </div>
       </div>
     );
   }
 
-  const totalPrice = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
-  );
+  const totalPrice = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
   const handleCheckout = () => {
     if (items.length === 0) {
@@ -91,53 +97,53 @@ export default function CartPage() {
   };
 
   return (
-    <div className="min-h-screen py-6 md:py-12 bg-gray-50">
+    <div className="min-h-screen py-6 md:py-10 bg-surface-cream">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center mb-6 md:mb-8">
-          <h1 className="text-xl md:text-3xl font-bold text-slate-800">
-            Giỏ hàng
-          </h1>
-          <button
-            onClick={handleClearCart}
-            className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 md:px-4 md:py-2.5 bg-red-50 text-red-600 font-bold rounded-lg hover:bg-red-100 transition-colors duration-200 active:scale-95 text-xs md:text-sm"
-          >
-            <FiTrash2 size={14} /> Xóa tất cả
-          </button>
-        </div>
+        {/* Page Header */}
+        <ScrollReveal direction="down" distance={16} duration={0.4}>
+          <div className="flex items-center justify-between mb-6 md:mb-8">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-primary-light rounded-xl">
+                <FiShoppingCart size={20} className="text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold text-primary leading-tight">
+                  Giỏ hàng của tôi
+                </h1>
+                <p className="text-xs text-text-muted">{totalItems} sản phẩm</p>
+              </div>
+            </div>
+            <button
+              onClick={handleClearCart}
+              className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-2 md:px-4 md:py-2.5 bg-red-50 border border-red-100 text-red-600 font-semibold rounded-xl hover:bg-red-100 transition-all active:scale-95 text-xs md:text-sm"
+            >
+              <FiTrash2 size={14} />
+              <span className="hidden sm:inline">Xóa tất cả</span>
+            </button>
+          </div>
+        </ScrollReveal>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-8">
+        <ScrollReveal direction="up" distance={20} duration={0.5} delay={0.1}>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 md:gap-8">
+          {/* Cart Items */}
           <div className="lg:col-span-2 space-y-3 md:space-y-4">
             {items.map((item, index) => (
               <div
                 key={index}
-                className="relative bg-white rounded-lg shadow p-3 md:p-6 flex gap-3 md:gap-6 items-start hover:shadow-lg transition-shadow duration-200"
+                className="group relative bg-surface rounded-2xl border border-border shadow-sm hover:shadow-md hover:border-primary/20 transition-all duration-200 p-4 md:p-5 flex gap-4 items-start"
               >
+                {/* Mobile remove button */}
                 <button
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleRemoveItem(item.bookId);
-                  }}
-                  className="absolute top-2 right-2 p-1.5 text-gray-400 hover:text-red-600 sm:hidden z-10"
+                  onClick={() => handleRemoveItem(item.bookId)}
+                  className="absolute top-3 right-3 p-1.5 text-text-muted hover:text-red-600 hover:bg-red-50 rounded-lg transition-all sm:hidden z-10"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
+                  <FiTrash2 size={16} />
                 </button>
 
+                {/* Book cover */}
                 <Link
                   href={`/books/detail/${item.slug}`}
-                  className="flex-shrink-0 w-20 h-28 md:w-24 md:h-32 bg-gray-100 rounded-lg overflow-hidden hover:opacity-80 transition-opacity duration-200"
+                  className="flex-shrink-0 w-[72px] h-[100px] md:w-[88px] md:h-[120px] bg-surface-secondary rounded-xl overflow-hidden shadow-sm hover:opacity-85 transition-opacity"
                 >
                   {item.image ? (
                     <Image
@@ -148,48 +154,31 @@ export default function CartPage() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-xs text-center text-gray-400">
-                      No Image
+                    <div className="w-full h-full flex items-center justify-center bg-primary-light">
+                      <FiPackage size={24} className="text-primary/40" />
                     </div>
                   )}
                 </Link>
 
-                <div className="flex flex-col sm:flex-row flex-1 w-full justify-between h-full min-h-[112px] sm:min-h-[128px]">
-                  <Link
-                    href={`/books/detail/${item.slug}`}
-                    className="flex-1 hover:opacity-80 transition-opacity duration-200 pr-6 sm:pr-0"
-                  >
-                    <h3 className="text-sm md:text-lg font-bold text-slate-800 mb-1 line-clamp-2">
-                      {item.title}
-                    </h3>
-                    <p className="text-primary font-bold text-base md:text-xl mb-2 sm:mb-4">
-                      {item.price.toLocaleString("vi-VN")} đ
+                {/* Book info */}
+                <div className="flex flex-col sm:flex-row flex-1 gap-3 pr-7 sm:pr-0">
+                  <div className="flex-1">
+                    <Link href={`/books/detail/${item.slug}`}>
+                      <h3 className="text-sm md:text-base font-bold text-primary mb-1 line-clamp-2 hover:text-primary-dark transition-colors">
+                        {item.title}
+                      </h3>
+                    </Link>
+                    <p className="text-accent font-bold text-base md:text-lg mb-3">
+                      {item.price.toLocaleString("vi-VN")}đ
                     </p>
-                  </Link>
 
-                  <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between gap-2 sm:gap-3 mt-auto sm:mt-0">
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        handleRemoveItem(item.bookId);
-                      }}
-                      className="hidden sm:inline-flex cursor-pointer items-center gap-1 px-3 py-1.5 md:px-4 md:py-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors duration-200 font-semibold text-xs md:text-sm"
-                    >
-                      <FiTrash2 size={14} /> Xóa
-                    </button>
-
-                    <div className="flex items-center gap-2 md:gap-3">
+                    {/* Quantity controls */}
+                    <div className="flex items-center gap-2">
                       <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          updateQuantity(
-                            item.bookId,
-                            Math.max(1, item.quantity - 1),
-                          );
-                        }}
-                        className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-md transition-colors duration-200 font-bold text-slate-700 text-sm md:text-base"
+                        onClick={() => updateQuantity(item.bookId, Math.max(1, item.quantity - 1))}
+                        className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-surface-secondary hover:bg-primary-light hover:text-primary border border-border rounded-lg transition-all font-bold text-text-secondary"
                       >
-                        −
+                        <FiMinus size={12} />
                       </button>
                       <input
                         type="number"
@@ -197,95 +186,102 @@ export default function CartPage() {
                         value={item.quantity}
                         onChange={(e) => {
                           const value = parseInt(e.target.value) || 1;
-                          if (value > 0) {
-                            updateQuantity(item.bookId, value);
-                          }
+                          if (value > 0) updateQuantity(item.bookId, value);
                         }}
-                        className="w-8 h-6 md:w-12 md:h-8 text-center border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary text-xs md:text-sm"
+                        className="w-10 h-7 md:h-8 text-center border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/30 text-sm font-semibold bg-surface"
                       />
                       <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          updateQuantity(item.bookId, item.quantity + 1);
-                        }}
-                        className="w-6 h-6 md:w-8 md:h-8 flex items-center justify-center bg-gray-200 hover:bg-gray-300 rounded-md transition-colors duration-200 font-bold text-slate-700 text-sm md:text-base"
+                        onClick={() => updateQuantity(item.bookId, item.quantity + 1)}
+                        className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center bg-surface-secondary hover:bg-primary-light hover:text-primary border border-border rounded-lg transition-all font-bold text-text-secondary"
                       >
-                        +
+                        <FiPlus size={12} />
                       </button>
                     </div>
+                  </div>
 
-                    <p className="text-xs md:text-sm text-slate-500 whitespace-nowrap">
-                      <span className="sm:hidden">Tổng: </span>
-                      {(item.price * item.quantity).toLocaleString("vi-VN")} đ
+                  {/* Subtotal + remove (desktop) */}
+                  <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2">
+                    <p className="text-sm font-bold text-primary">
+                      {(item.price * item.quantity).toLocaleString("vi-VN")}đ
                     </p>
+                    <button
+                      onClick={() => handleRemoveItem(item.bookId)}
+                      className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors text-xs font-semibold"
+                    >
+                      <FiTrash2 size={12} />
+                      Xóa
+                    </button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
 
+          {/* Order Summary */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow p-4 md:p-6 sticky top-[80px] md:top-40">
-              <h2 className="text-lg md:text-xl font-bold text-slate-800 mb-4 md:mb-6">
+            <div className="bg-surface rounded-2xl border border-border shadow-sm p-5 md:p-6 sticky top-[80px] md:top-[90px]">
+              <h2 className="text-base md:text-lg font-bold text-primary mb-5 flex items-center gap-2">
+                <FiPackage size={18} />
                 Tóm tắt đơn hàng
               </h2>
 
-              <div className="space-y-2 md:space-y-3 mb-4 md:mb-6 pb-4 md:pb-6 border-b border-gray-200 text-sm md:text-base">
-                <div className="flex justify-between text-slate-600">
-                  <span>Số lượng:</span>
-                  <span className="font-semibold">
-                    {items.reduce((sum, item) => sum + item.quantity, 0)}
-                  </span>
+              <div className="space-y-2.5 mb-5 pb-5 border-b border-border text-sm">
+                <div className="flex justify-between text-text-secondary">
+                  <span>Số lượng sản phẩm</span>
+                  <span className="font-semibold text-text-primary">{totalItems}</span>
                 </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Tạm tính:</span>
-                  <span className="font-semibold">
-                    {totalPrice.toLocaleString("vi-VN")} đ
-                  </span>
+                <div className="flex justify-between text-text-secondary">
+                  <span>Tạm tính</span>
+                  <span className="font-semibold text-text-primary">{totalPrice.toLocaleString("vi-VN")}đ</span>
                 </div>
-                <div className="flex justify-between text-slate-600">
-                  <span>Vận chuyển:</span>
-                  <span className="font-semibold text-green-600">Miễn phí</span>
+                <div className="flex justify-between text-text-secondary">
+                  <span>Phí vận chuyển</span>
+                  <span className="font-semibold text-success">Miễn phí</span>
                 </div>
               </div>
 
-              <div className="flex justify-between mb-4 md:mb-6">
-                <span className="text-base md:text-lg font-bold text-slate-800">
-                  Tổng:
-                </span>
-                <span className="text-xl md:text-2xl font-bold text-primary">
-                  {totalPrice.toLocaleString("vi-VN")} đ
+              <div className="flex justify-between items-center mb-5">
+                <span className="text-base font-bold text-primary">Tổng cộng</span>
+                <span className="text-xl md:text-2xl font-bold text-accent">
+                  {totalPrice.toLocaleString("vi-VN")}đ
                 </span>
               </div>
 
               <button
                 onClick={handleCheckout}
-                className="w-full cursor-pointer py-2.5 md:py-3 bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-colors duration-200 mb-3 active:scale-95 text-sm md:text-base inline-flex items-center justify-center gap-2"
+                className="w-full cursor-pointer py-3 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl transition-all duration-200 mb-3 active:scale-95 text-sm md:text-base inline-flex items-center justify-center gap-2 shadow-md"
               >
-                <FiCreditCard size={16} /> Thanh toán
+                <FiCreditCard size={16} />
+                Thanh toán ngay
               </button>
 
               <Link
                 href="/"
-                className="block w-full py-2.5 md:py-3 bg-gray-100 text-slate-800 font-bold rounded-lg hover:bg-gray-200 transition-colors duration-200 text-center text-sm md:text-base"
+                className="block w-full py-2.5 bg-surface-secondary border border-border text-text-secondary font-semibold rounded-xl hover:bg-primary-light hover:text-primary hover:border-primary/30 transition-all text-center text-sm"
               >
-                <FiArrowLeft className="inline mr-1" /> Tiếp tục mua sắm
+                <FiArrowLeft className="inline mr-1.5" size={14} />
+                Tiếp tục mua sắm
               </Link>
 
-              <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-200 text-xs md:text-sm text-slate-500 space-y-1.5">
-                <p className="flex items-center gap-1.5">
-                  <FiCheck size={14} className="text-green-500 shrink-0" /> Giao hàng toàn quốc
+              {/* Trust badges */}
+              <div className="mt-5 pt-5 border-t border-border text-xs text-text-muted space-y-2">
+                <p className="flex items-center gap-2">
+                  <FiCheck size={13} className="text-success shrink-0" />
+                  Giao hàng toàn quốc
                 </p>
-                <p className="flex items-center gap-1.5">
-                  <FiRefreshCw size={14} className="text-green-500 shrink-0" /> Đổi trả trong 30 ngày
+                <p className="flex items-center gap-2">
+                  <FiRefreshCw size={13} className="text-success shrink-0" />
+                  Đổi trả miễn phí trong 30 ngày
                 </p>
-                <p className="flex items-center gap-1.5">
-                  <FiShield size={14} className="text-green-500 shrink-0" /> Thanh toán an toàn
+                <p className="flex items-center gap-2">
+                  <FiShield size={13} className="text-success shrink-0" />
+                  Thanh toán bảo mật 100%
                 </p>
               </div>
             </div>
           </div>
         </div>
+        </ScrollReveal>
       </div>
 
       <ConfirmModal
@@ -294,16 +290,10 @@ export default function CartPage() {
         label="Xóa"
         labelCancel="Hủy"
         onConfirm={() => confirmModal.action?.()}
-        onCancel={() =>
-          setConfirmModal({ open: false, message: "", action: null })
-        }
+        onCancel={() => setConfirmModal({ open: false, message: "", action: null })}
       />
 
-      <ToastContainer
-        autoClose={1500}
-        hideProgressBar={true}
-        pauseOnHover={false}
-      />
+      <ToastContainer autoClose={1500} hideProgressBar={true} pauseOnHover={false} />
     </div>
   );
 }

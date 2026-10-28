@@ -5,13 +5,6 @@ const accountSchema = new mongoose.Schema({
     fullName: String,
     email: String,
     password: String,
-    refreshToken: {
-        type: String,
-        default: null,
-    },
-    refreshTokenExpiresAt: {
-        type: Date,
-    },
     phone: String,
     avatar: String,
     role_id: {

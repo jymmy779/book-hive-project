@@ -4,8 +4,6 @@ import { toast } from "react-toastify";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const accessToken = localStorage.getItem("accessToken_admin");
-
 export function useBulkSelect(
   items: any[],
   fetchData: (options?: { force?: boolean }) => void,
@@ -61,9 +59,8 @@ export function useBulkSelect(
     const bulkPromise = axios
       .patch(`${API_URL}/api/v1/admin/${resource}/change-multi`, payload, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
         },
-        withCredentials: true,
+        
       })
       .then(async () => {
         await fetchData({ force: true });
@@ -100,9 +97,8 @@ export function useBulkSelect(
         },
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
           },
-          withCredentials: true,
+          
         },
       )
       .then(async () => {

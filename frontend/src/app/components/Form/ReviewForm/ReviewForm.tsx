@@ -10,14 +10,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type ReviewFormProps = {
   bookId: string;
-  token: string | null;
+  isAuthenticated: boolean;
   onReviewSubmitted?: (refreshTrigger: number) => void;
   refreshTrigger?: number;
 };
 
 export default function ReviewForm({
   bookId,
-  token,
+  isAuthenticated,
   onReviewSubmitted,
   refreshTrigger,
 }: ReviewFormProps) {
@@ -32,7 +32,6 @@ export default function ReviewForm({
       try {
         const response = await axios.get(
           `${API_URL}/api/v1/reviews/my-review/${bookId}`,
-          { headers: { Authorization: `Bearer ${token}` } },
         );
         setMyReview(response.data.record || null);
       } catch (error) {
@@ -42,10 +41,10 @@ export default function ReviewForm({
       }
     };
 
-    if (bookId && token) {
+    if (bookId && isAuthenticated) {
       fetchMyReview();
     }
-  }, [bookId, token, refreshTrigger]);
+  }, [bookId, isAuthenticated, refreshTrigger]);
 
   const handleSubmitReview = async () => {
     if (rating === 0) {
@@ -62,7 +61,6 @@ export default function ReviewForm({
           rating: rating,
           comment: reviewText.trim(),
         },
-        { headers: { Authorization: `Bearer ${token}` } },
       );
 
       toast.success(`${response.data.message}`);

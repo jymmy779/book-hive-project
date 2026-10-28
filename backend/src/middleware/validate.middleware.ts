@@ -16,6 +16,14 @@ module.exports.validateBook = (req, res, next) => {
     return res.status(400).json({ message: "Vui lòng chọn thể loại" });
   }
 
+  if (req.body.inStock !== undefined) {
+    const inStock = Number(req.body.inStock);
+    if (!Number.isInteger(inStock) || inStock < 0) {
+      return res.status(400).json({ message: "inStock must be a non-negative integer." });
+    }
+    req.body.inStock = inStock;
+  }
+
   if (errors.length > 0) {
     return res.status(400).json({ message: "Dữ liệu không hợp lệ!", errors });
   }

@@ -10,6 +10,15 @@ const bookSchema = new mongoose.Schema({
         type: Number,
         default: 0,
     },
+    inStock: {
+        type: Number,
+        default: 0,
+        min: 0,
+        validate: {
+            validator: Number.isInteger,
+            message: "Sá»‘ lÆ°á»£ng tá»“n kho pháº£i lÃ  sá»‘ nguyÃªn",
+        },
+    },
     rating: {
         type: Number,
         default: 0,
@@ -29,6 +38,35 @@ const bookSchema = new mongoose.Schema({
         default: false,
     },
     featured: Boolean,
+    editorRecommended: {
+        type: Boolean,
+        default: false,
+    },
+    readerFavorite: {
+        type: Boolean,
+        default: false,
+    },
+    topChartPosition: {
+        type: Number,
+        min: 1,
+        max: 3,
+    },
+    heroPosition: {
+        type: Number,
+        min: 1,
+        max: 8,
+    },
+    flashSale: {
+        type: Boolean,
+        default: false,
+    },
+    discountPercent: {
+        type: Number,
+        default: 0,
+        min: 0,
+        max: 90,
+    },
+    flashSaleEndAt: Date,
     newest: Boolean,
     soldCount: {
         type: Number,

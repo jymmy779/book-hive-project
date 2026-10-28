@@ -38,27 +38,23 @@ Dựa vào các file `.env.example`, hãy tạo file `.env` tương ứng trong 
 
 ### 2. Chạy ứng dụng
 
-Dự án sử dụng **NPM Workspaces**, bạn có thể quản lý cả Frontend và Backend từ thư mục gốc:
+Install and run each app from its own directory:
 
-**Cài đặt thư viện cho toàn bộ dự án:**
+**Cài đặt và chạy Backend:**
 ```bash
-npm install
+cd backend
+npm ci
+npm run dev
 ```
 
-**Chạy Backend:**
+**Cài đặt và chạy Frontend** (mở terminal riêng):
 ```bash
-npm run dev:backend
+cd frontend
+npm ci
+npm run dev
 ```
 
-**Chạy Frontend:**
-```bash
-npm run dev:frontend
-```
-
-**Định dạng lại code (Prettier):**
-```bash
-npm run format:all
-```
+**Định dạng code:** chạy `npm run format` trong thư mục `backend` hoặc `frontend`.
 
 Ứng dụng sẽ khả dụng tại:
 - Frontend: `http://localhost:3000`

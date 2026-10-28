@@ -8,40 +8,22 @@ import ClientAuthGuard from "../components/Auth/ClientAuthGuard/ClientAuthGuard"
 import { BookCardSkeleton } from "../components/Skeleton/BookCardSkeleton";
 import AIChat from "../components/AIChat/AIChat";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-
-async function getCategories(): Promise<{ title: string; slug: string }[]> {
-  try {
-    const response = await fetch(`${API_URL}/api/v1/books/categories`, {
-      next: { revalidate: 3600 },
-    });
-    if (!response.ok) return [];
-
-    const data = await response.json();
-    return Array.isArray(data.categories) ? data.categories : [];
-  } catch {
-    return [];
-  }
-}
-
 export const metadata: Metadata = {
   title: "BookHive",
   description: "Nơi tri thức hội tụ",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const categories = await getCategories();
-
   return (
     <UserProvider>
       <CartProvider>
         <ClientAuthGuard>
           <Suspense fallback={null}>
-            <Header initialCategories={categories} />
+            <Header />
           </Suspense>
           <main className="pt-[85px] md:pt-[120px] lg:pt-[144px]">
             <Suspense

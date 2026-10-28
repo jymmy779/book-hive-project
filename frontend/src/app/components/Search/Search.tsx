@@ -7,11 +7,11 @@ interface SearchProps {
 export default function Search({ value, onChange, label }: SearchProps) {
   return (
     <>
-      <div className="relative w-full max-w-xs">
+      <div className="relative w-full min-w-0 max-w-xs">
         <input
           type="text"
           placeholder={`Tìm kiếm ${label}...`}
-          className="border hover:border-secondary1 bg-[#ffff] border-gray-300 rounded-lg px-4 py-2 text-[15px] outline-none focus:ring-2 focus:ring-secondary1 focus:border-secondary1 transition shadow-sm w-full pr-10"
+          className="min-h-11 w-full min-w-0 border hover:border-secondary1 bg-[#ffff] border-gray-300 rounded-lg px-4 py-2 text-[15px] outline-none focus:ring-2 focus:ring-secondary1 focus:border-secondary1 transition shadow-sm pr-10"
           value={value}
           onChange={(e) => onChange(e.target.value)}
         />

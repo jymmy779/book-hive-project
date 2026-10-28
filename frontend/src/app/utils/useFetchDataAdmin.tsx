@@ -17,7 +17,6 @@ type UseFetchDataAdminParams = {
   page: number;
   sort?: any;
   limit: number;
-  accessToken: unknown;
   ADMIN_PREFIX: unknown;
   onSuccess: (data: { items: any[]; total: number }) => void;
   setTotal: (total: number) => void;
@@ -32,7 +31,6 @@ export function useFetchDataAdmin({
   page,
   sort,
   limit,
-  accessToken,
   ADMIN_PREFIX,
   onSuccess,
   setTotal,
@@ -82,9 +80,8 @@ export function useFetchDataAdmin({
       .get(`${API_URL}/api/v1/${ADMIN_PREFIX}/${source}`, {
         params,
         headers: {
-          Authorization: `Bearer ${accessToken}`,
         },
-        withCredentials: true,
+        
       })
       .then((res) => {
         const freshData = {
@@ -106,7 +103,7 @@ export function useFetchDataAdmin({
         callbacksRef.current.setLoading(false);
         callbacksRef.current.setIsFirstLoad?.(false);
       });
-  }, [status, keyword, page, sort, limit, accessToken, ADMIN_PREFIX, source]);
+  }, [status, keyword, page, sort, limit, ADMIN_PREFIX, source]);
 
   // Debounced version of fetch
   const debouncedFetch = useCallback(

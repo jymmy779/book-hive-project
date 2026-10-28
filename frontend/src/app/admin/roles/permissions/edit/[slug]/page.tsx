@@ -21,7 +21,6 @@ export default function EditPermission() {
   const [loading, setLoading] = useState(false);
   const [allPermissions, setAllPermissions] = useState<any>({});
   let groupNames: string[] = [];
-  const accessToken = localStorage.getItem("accessToken_admin");
 
   const params = useParams();
   const router = useRouter();
@@ -31,9 +30,8 @@ export default function EditPermission() {
     axios
       .get(`${API_URL}/api/v1/${ADMIN_PREFIX}/roles/permissions`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
         },
-        withCredentials: true,
+        
       })
       .then((res) => {
         setAllPermissions(res.data.permissionGroups);
@@ -51,9 +49,8 @@ export default function EditPermission() {
         `${API_URL}/api/v1/${ADMIN_PREFIX}/roles/permissions/detail/${slug}`,
         {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
           },
-          withCredentials: true,
+          
         },
       )
       .then((res) => {
@@ -98,9 +95,8 @@ export default function EditPermission() {
           data,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
             },
-            withCredentials: true,
+            
           },
         ),
         {
@@ -126,8 +122,8 @@ export default function EditPermission() {
   return (
     <PrivateRoute permission="edit_permission">
       <div>
-        <div className="max-w-xl mx-auto mt-8 bg-white p-8 rounded-xl shadow relative">
-          <BackButton className="absolute -top-10 -left-70 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
+        <div className="max-w-xl mx-auto mt-8 bg-white p-4 sm:p-8 rounded-xl shadow relative">
+          <BackButton className="absolute -top-10 left-0 lg:-left-70 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
           <h1 className="text-2xl font-bold mb-6 text-primary">
             Chỉnh sửa quyền
           </h1>

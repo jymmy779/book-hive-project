@@ -13,6 +13,7 @@ type BookFormData = {
   author: string;
   description: string;
   priceBuy: number | string;
+  inStock: number | string;
   position?: number | string;
   status: string;
   featured: boolean;
@@ -162,6 +163,19 @@ export default function BookForm({
         </div>
       </div>
       <div className="mb-4">
+        <label className="mb-1 font-medium text-primary">Số lượng tồn kho</label>
+        <input
+          type="number"
+          name="inStock"
+          className={inputClass}
+          value={form.inStock}
+          onChange={handleChange}
+          min={0}
+          step={1}
+          placeholder="Nhập số lượng sách hiện có"
+        />
+      </div>
+      <div className="mb-4">
         <div>
           <label className="mb-1 font-medium text-primary flex justify-between">
             Ảnh sách
@@ -251,6 +265,7 @@ export default function BookForm({
           />
           <span className="text-primary font-medium">Nổi bật</span>
         </label>
+        
       </div>
       <button
         type="submit"

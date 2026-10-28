@@ -1,6 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const Order = require("../../models/order.model");
+const Book = require("../../models/book.model");
+const mongoose = require("mongoose");
 const generateHelper = require("../../../../helpers/generate");
 const { sendOrderConfirmationEmail } = require("../../../../helpers/sendEmail");
 module.exports.index = async (req, res) => {
@@ -8,11 +10,10 @@ module.exports.index = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit);
         const skip = (page - 1) * limit;
-        const orders = await Order.find()
-            .skip(skip)
-            .limit(limit)
-            .sort({ createdAt: -1 });
-        const total = await Order.countDocuments();
+        const [orders, total] = await Promise.all([
+            Order.find().skip(skip).limit(limit).sort({ createdAt: -1 }),
+            Order.countDocuments(),
+        ]);
         return res.status(200).json({
             message: "Lấy danh sách đơn hàng thành công!",
             orders,
@@ -28,6 +29,7 @@ module.exports.index = async (req, res) => {
     }
 };
 module.exports.create = async (req, res) => {
+    var _a;
     try {
         const { userInfo, items, totalAmount, paymentMethod } = req.body;
         if (!userInfo || !items || items.length === 0 || !totalAmount) {
@@ -35,15 +37,56 @@ module.exports.create = async (req, res) => {
                 message: "Thông tin đơn hàng không đầy đủ!",
             });
         }
+        const quantitiesByBook = new Map();
+        for (const item of items) {
+            const bookId = String(item.id || "");
+            const quantity = Number(item.quantity);
+            if (!mongoose.isValidObjectId(bookId) || !Number.isInteger(quantity) || quantity < 1) {
+                return res.status(400).json({ message: "Sản phẩm hoặc số lượng trong đơn không hợp lệ." });
+            }
+            quantitiesByBook.set(bookId, (quantitiesByBook.get(bookId) || 0) + quantity);
+        }
         const orderCode = generateHelper.generateOrderCode();
-        const order = new Order({
-            orderCode,
-            userInfo,
-            items,
-            totalAmount,
-            paymentMethod,
-        });
-        await order.save();
+        const session = await mongoose.startSession();
+        let order;
+        try {
+            await session.withTransaction(async () => {
+                for (const [bookId, quantity] of quantitiesByBook) {
+                    const result = await Book.updateOne({
+                        _id: bookId,
+                        deleted: false,
+                        status: "active",
+                        inStock: { $gte: quantity },
+                    }, { $inc: { inStock: -quantity } }, { session });
+                    if (result.modifiedCount !== 1) {
+                        const error = new Error("Không đủ tồn kho để tạo đơn hàng.");
+                        error.code = "INSUFFICIENT_STOCK";
+                        error.bookId = bookId;
+                        throw error;
+                    }
+                }
+                order = new Order({
+                    orderCode,
+                    userInfo,
+                    items,
+                    totalAmount,
+                    paymentMethod,
+                    stockDeducted: true,
+                });
+                await order.save({ session });
+            });
+        }
+        catch (error) {
+            if (error.code === "INSUFFICIENT_STOCK") {
+                return res.status(409).json({
+                    message: `Sách "${((_a = items.find((item) => String(item.id) === error.bookId)) === null || _a === void 0 ? void 0 : _a.title) || "đã chọn"}" không đủ số lượng trong kho.`,
+                });
+            }
+            throw error;
+        }
+        finally {
+            await session.endSession();
+        }
         if (paymentMethod === "cod") {
             try {
                 await sendOrderConfirmationEmail({
@@ -98,11 +141,11 @@ module.exports.getOrdersByUser = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
-        const orders = await Order.find({ "userInfo.email": email })
-            .skip(skip)
-            .limit(limit)
-            .sort({ createdAt: -1 });
-        const total = await Order.countDocuments({ "userInfo.email": email });
+        const userFilter = { "userInfo.email": email };
+        const [orders, total] = await Promise.all([
+            Order.find(userFilter).skip(skip).limit(limit).sort({ createdAt: -1 }),
+            Order.countDocuments(userFilter),
+        ]);
         return res.status(200).json({
             orders,
             total,

@@ -9,6 +9,14 @@ router.get("/categories", controller.categories);
 
 router.get("/featured", controller.featured);
 
+router.get("/hero", controller.hero);
+
+router.get("/editor-recommended", controller.editorRecommended);
+
+router.get("/reader-favorites", controller.readerFavorites);
+
+router.get("/flash-sale", controller.flashSale);
+
 router.get("/detail/:bookSlug", controller.detail);
 
 router.get("/newest", controller.newest);

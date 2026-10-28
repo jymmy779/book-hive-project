@@ -22,6 +22,7 @@ export default function EditBook() {
     category_id: "",
     description: "",
     priceBuy: "",
+    inStock: 0,
     position: "",
     status: "active",
     image: "",
@@ -33,7 +34,6 @@ export default function EditBook() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
   const fileInputRef = useRef<any>(null);
-  const accessToken = localStorage.getItem("accessToken_admin");
 
   const handleMoneyChange = (e: any) => {
     let value = e.target.value.replace(/\D/g, "");
@@ -48,9 +48,8 @@ export default function EditBook() {
     axios
       .get(`${API_URL}/api/v1/${ADMIN_PREFIX}/categories`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
         },
-        withCredentials: true,
+        
       })
       .then((res) => setCategories(res.data.categories || []))
       .catch(() => setCategories([]));
@@ -88,9 +87,8 @@ export default function EditBook() {
           `${API_URL}/api/v1/${ADMIN_PREFIX}/books/${params.slug}`,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
             },
-            withCredentials: true,
+            
           },
         );
         const book = res.data.book;
@@ -100,6 +98,7 @@ export default function EditBook() {
           category_id: book.category_id,
           description: book.description,
           priceBuy: book.priceBuy,
+          inStock: book.inStock ?? 0,
           position: book.position,
           status: book.status,
           image: book.image,
@@ -121,7 +120,7 @@ export default function EditBook() {
     setLoading(true);
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => {
-      formData.append(key, typeof value === "boolean" ? String(value) : value);
+      formData.append(key, String(value));
     });
     if (imageFile) {
       formData.append("image", imageFile);
@@ -134,9 +133,8 @@ export default function EditBook() {
           formData,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
             },
-            withCredentials: true,
+            
           },
         ),
         {
@@ -167,8 +165,8 @@ export default function EditBook() {
             <div className="text-xl text-gray-500">Đang tải...</div>
           </div>
         ) : (
-          <div className="max-w-2xl mx-auto mt-8 bg-white p-8 rounded-xl shadow relative">
-            <BackButton className="absolute -top-10 xl:-left-60 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
+          <div className="max-w-2xl mx-auto mt-8 bg-white p-4 sm:p-8 rounded-xl shadow relative">
+            <BackButton className="absolute -top-10 left-0 xl:-left-60 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
 
             <h1 className="text-2xl font-bold mb-6 text-primary">
               Chỉnh sửa sách

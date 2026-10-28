@@ -15,7 +15,6 @@ export default function AccountDetail() {
   const params = useParams();
   const router = useRouter();
   const slug = params.slug;
-  const accessToken = localStorage.getItem("accessToken_admin");
 
   const [account, setAccount] = useState<any>(null);
   const [role, setRole] = useState<any>(null);
@@ -28,9 +27,8 @@ export default function AccountDetail() {
           `${API_URL}/api/v1/${ADMIN_PREFIX}/accounts/detail/${slug}`,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
             },
-            withCredentials: true,
+            
           },
         );
         setAccount(res.data.account);
@@ -57,8 +55,8 @@ export default function AccountDetail() {
   return (
     <>
       <PrivateRoute permission="view_accounts">
-        <div className="max-w-xl mx-auto mt-8 bg-white p-8 rounded-xl shadow relative">
-          <BackButton className="absolute -top-10 -left-80 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
+        <div className="max-w-xl mx-auto mt-8 bg-white p-4 sm:p-8 rounded-xl shadow relative">
+          <BackButton className="absolute -top-10 left-0 lg:-left-80 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
           <h1 className="text-2xl font-bold mb-6 text-primary">
             Chi tiết tài khoản
           </h1>

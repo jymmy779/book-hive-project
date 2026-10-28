@@ -4,7 +4,6 @@ import {
   createContext,
   useContext,
   useState,
-  useEffect,
   ReactNode,
 } from "react";
 
@@ -25,57 +24,6 @@ const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export function UserProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User>(null);
-
-  useEffect(() => {
-    const userStr = localStorage.getItem("client_user");
-    const accessToken = localStorage.getItem("accessToken_user");
-
-    if (!userStr || !accessToken) {
-      localStorage.removeItem("client_user");
-      localStorage.removeItem("accessToken_user");
-      setUser(null);
-      return;
-    }
-
-    if (userStr) {
-      try {
-        setUser(JSON.parse(userStr));
-      } catch {
-        localStorage.removeItem("client_user");
-        localStorage.removeItem("accessToken_user");
-        setUser(null);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === "client_user" || e.key === "accessToken_user") {
-        const userStr = localStorage.getItem("client_user");
-        const accessToken = localStorage.getItem("accessToken_user");
-
-        if (!userStr || !accessToken) {
-          localStorage.removeItem("client_user");
-          localStorage.removeItem("accessToken_user");
-          setUser(null);
-          return;
-        }
-
-        if (userStr) {
-          try {
-            setUser(JSON.parse(userStr));
-          } catch {
-            localStorage.removeItem("client_user");
-            localStorage.removeItem("accessToken_user");
-            setUser(null);
-          }
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, []);
 
   return (
     <UserContext.Provider value={{ user, setUser }}>

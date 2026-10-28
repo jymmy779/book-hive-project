@@ -421,3 +421,23 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .eslintcache
+
+# Local AI coding assistant skills and prompt bundles
+/.agents/
+/.augment/
+/.claude/
+/.codebuddy/
+/.codewhale/
+/.continue/
+/.cursor/
+/.factory/
+/.gemini/
+/.github/prompts/
+/.kilocode/
+/.kiro/
+/.opencode/
+/.qoder/
+/.roo/
+/.trae/
+/.warp/
+/.windsurf/

@@ -22,7 +22,6 @@ export default function EditRole() {
   });
   const [loading, setLoading] = useState(false);
   const [isPageLoading, setIsPageLoading] = useState(true);
-  const accessToken = localStorage.getItem("accessToken_admin");
 
   const handleChange = (e: any) => {
     const { name, value, type } = e.target;
@@ -39,9 +38,8 @@ export default function EditRole() {
           `${API_URL}/api/v1/${ADMIN_PREFIX}/roles/detail/${slug}`,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
             },
-            withCredentials: true,
+            
           },
         );
         const role = res.data.role;
@@ -75,9 +73,8 @@ export default function EditRole() {
           data,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
             },
-            withCredentials: true,
+            
           },
         ),
         {
@@ -108,8 +105,8 @@ export default function EditRole() {
             <div className="text-xl text-gray-500">Đang tải...</div>
           </div>
         ) : (
-          <div className="max-w-2xl mx-auto mt-8 bg-white p-8 rounded-xl shadow relative">
-            <BackButton className="absolute -top-10 -left-60 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
+          <div className="max-w-2xl mx-auto mt-8 bg-white p-4 sm:p-8 rounded-xl shadow relative">
+            <BackButton className="absolute -top-10 left-0 lg:-left-60 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
 
             <h1 className="text-2xl font-bold mb-6 text-primary">
               Chỉnh sửa thể loại

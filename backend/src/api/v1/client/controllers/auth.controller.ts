@@ -5,6 +5,7 @@ const generate = require("../../../../helpers/generate");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../../models/user.model");
+const authCookie = require("../../../../helpers/authCookie");
 const { sendOTPEmail } = require("../../../../helpers/sendEmail");
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -96,32 +97,16 @@ exports.loginWithPassword = async (req, res) => {
 
     // tạo mới accessToken
     const accessToken = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: user._id, email: user.email, tokenType: "user" },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN },
     );
 
-    // Tạo mới refreshToken
-    const refreshToken = generate.generateRefreshToken();
 
-    // Lưu refreshToken mới vào DB
-    user.refreshToken = refreshToken;
-    user.refreshTokenExpiresAt = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
-
-    res.cookie("refreshToken_user", refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      expires: user.refreshTokenExpiresAt,
-    });
-
-    await user.save();
-
+    authCookie.setAuthCookie(res, "bh_user_session", accessToken);
     res.json({
       success: true,
       message: "Đăng nhập thành công",
-      accessToken,
-      refreshToken,
       user: {
         id: user._id,
         email: user.email,
@@ -141,22 +126,34 @@ exports.loginWithPassword = async (req, res) => {
 // [POST] /api/v1/auth/verify
 module.exports.verify = async (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ message: "Không có accessToken" });
-    }
-
-    const token = authHeader.split(" ")[1];
+    const token = req.cookies?.bh_user_session;
+    if (!token) return res.status(401).json({ message: 'Unauthenticated' });
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    if (!decoded) {
+    if (!decoded || decoded.tokenType !== "user") {
       return res.status(400).json({ message: "Token không hợp lệ!" });
     }
 
+    const user = await User.findOne({
+      _id: decoded.id,
+      deleted: false,
+      status: "active",
+    }).select("fullName email avatar");
+    if (!user) return res.status(401).json({ message: "Unauthenticated" });
+
     req.user = decoded;
-    return res.status(200).json({ message: "Token hợp lệ!" });
-  } catch (error) {
+    return res.status(200).json({
+      message: "Token hợp lệ!",
+      user: {
+        id: user._id,
+        email: user.email,
+        fullName: user.fullName,
+        avatar: user.avatar,
+        role: "user",
+        permissions: [],
+      },
+    });  } catch (error) {
     return res.status(400).json({
       message: "Xác thực không thành công",
     });
@@ -165,28 +162,8 @@ module.exports.verify = async (req, res) => {
 
 // [POST] /api/v1/auth/logout
 module.exports.logout = async (req, res) => {
-  try {
-    const refreshToken = req.cookies.refreshToken_user;
-
-    await User.findOneAndUpdate(
-      {
-        refreshToken: refreshToken,
-      },
-      { refreshToken: null, refreshTokenExpiresAt: null },
-    );
-
-    res.clearCookie("refreshToken_user", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-    });
-
-    return res.status(200).json({ message: "Đăng xuất thành công!" });
-  } catch (error) {
-    return res.status(400).json({
-      message: "Đăng xuất thất bại",
-    });
-  }
+  authCookie.clearAuthCookie(res, 'bh_user_session');
+  return res.status(200).json({ message: 'Logged out' });
 };
 
 // [POST] /api/v1/auth/google
@@ -246,29 +223,16 @@ module.exports.loginWithGoogle = async (req, res) => {
 
     // Tạo accessToken
     const accessToken = jwt.sign(
-      { id: user._id, email: user.email },
+      { id: user._id, email: user.email, tokenType: "user" },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES_IN },
     );
 
-    const refreshToken = generate.generateRefreshToken();
-    user.refreshToken = refreshToken;
-    user.refreshTokenExpiresAt = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
 
-    res.cookie("refreshToken_user", refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: "strict",
-      expires: user.refreshTokenExpiresAt,
-    });
-
-    await user.save();
-
+    authCookie.setAuthCookie(res, "bh_user_session", accessToken);
     return res.status(200).json({
       success: true,
       message: "Đăng nhập với Google thành công!",
-      accessToken,
-      refreshToken,
       user: {
         id: user._id,
         email: user.email,
@@ -431,6 +395,37 @@ module.exports.resetPassword = async (req, res) => {
       message: "Lỗi server",
       error: error.message,
     });
+  }
+};
+
+// [PATCH] /api/v1/auth/change-password
+module.exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword, confirmPassword } = req.body || {};
+    if (typeof currentPassword !== "string" || !currentPassword) {
+      return res.status(400).json({ message: "Vui lòng nhập mật khẩu hiện tại." });
+    }
+    if (typeof newPassword !== "string" || newPassword.length < 8) {
+      return res.status(400).json({ message: "Mật khẩu mới phải có ít nhất 8 ký tự." });
+    }
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ message: "Mật khẩu xác nhận không khớp." });
+    }
+    if (currentPassword === newPassword) {
+      return res.status(400).json({ message: "Mật khẩu mới phải khác mật khẩu hiện tại." });
+    }
+
+    const user = await User.findOne({ _id: req.user.userId, status: "active", deleted: false });
+    if (!user) return res.status(404).json({ message: "Không tìm thấy tài khoản." });
+    const matches = await bcrypt.compare(currentPassword, user.password);
+    if (!matches) return res.status(400).json({ message: "Mật khẩu hiện tại không đúng." });
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+    return res.status(200).json({ message: "Đổi mật khẩu thành công." });
+  } catch (error) {
+    console.error("Client change password error:", error);
+    return res.status(500).json({ message: "Không thể đổi mật khẩu lúc này." });
   }
 };
 

@@ -35,7 +35,6 @@ export default function Roles() {
   const [editedRoles, setEditedRoles] = useState<Role[]>([]);
   const [sort, setSort] = useState<{ key: string; value: 1 | -1 } | null>(null);
   const limit = 5;
-  const accessToken = localStorage.getItem("accessToken_admin");
   const [sortValue, setSortValue] = useState("");
   const sortOptions = [
     { value: "", label: "Sắp xếp" },
@@ -52,7 +51,6 @@ export default function Roles() {
     page,
     sort,
     limit,
-    accessToken,
     ADMIN_PREFIX,
     onSuccess: ({ items, total }) => {
       setRoles(items);
@@ -80,9 +78,8 @@ export default function Roles() {
     const res = await axios.get(`${API_URL}/api/v1/${ADMIN_PREFIX}/roles`, {
       params: { page: 1, limit: 10000 },
       headers: {
-        Authorization: `Bearer ${accessToken}`,
       },
-      withCredentials: true,
+      
     });
     return res.data.roles || [];
   };
@@ -120,9 +117,8 @@ export default function Roles() {
       {},
       {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
         },
-        withCredentials: true,
+        
       },
     );
 
@@ -152,20 +148,20 @@ export default function Roles() {
   return (
     <>
       <PrivateRoute permission="view_roles">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-[32px] font-bold m-0 text-primary flex items-center gap-2">
+        <div className="mb-6 flex w-full min-w-0 flex-col gap-4 sm:mb-8 lg:flex-row lg:items-center lg:justify-between">
+          <h1 className="m-0 flex min-w-0 items-center gap-2 text-2xl font-bold text-primary sm:text-[32px]">
             <FiShield className="text-primary" /> Nhóm quyền
           </h1>
           <ConditionalRender permission="create_role">
-            <NewAddButton label="Thêm vai trò mới" source="roles" />
+            <NewAddButton label="Thêm vai trò mới" source="roles" className="w-full justify-center whitespace-nowrap lg:w-auto" />
           </ConditionalRender>
         </div>
 
-        <div className="flex items-center justify-between mb-6">
+        <div className="mb-6 flex w-full min-w-0 flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <Search value={keyword} onChange={setKeyword} label="vai trò" />
         </div>
 
-        <div className="flex justify-between items-center">
+        <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <ConditionalRender permission="edit_role">
             <ChangeMulti
               options={[{ label: "Xóa tất cả", value: "delete_all" }]}
@@ -175,7 +171,7 @@ export default function Roles() {
               disabled={!bulkValue || selectedIds.length === 0}
             />
           </ConditionalRender>
-          <div className="mb-6">
+          <div className="w-full sm:w-auto">
             <SortSelect
               sortValue={sortValue}
               onChange={(e) => {

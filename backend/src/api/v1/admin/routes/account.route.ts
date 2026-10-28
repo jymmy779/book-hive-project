@@ -40,6 +40,8 @@ router.patch(
 
 router.get("/profile", controller.profile);
 
+router.patch("/profile", controller.updateProfile);
+
 module.exports = router;
 
 export {};

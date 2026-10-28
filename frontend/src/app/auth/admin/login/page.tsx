@@ -48,20 +48,12 @@ export default function Login() {
             email: data.email,
             password: data.password,
           },
-          { withCredentials: true },
+          {},
         ),
         {
           pending: "Đang đăng nhập...",
           success: {
             render({ data }) {
-              localStorage.setItem(
-                "accessToken_admin",
-                data?.data?.accessToken,
-              );
-              localStorage.setItem(
-                "admin_user",
-                JSON.stringify(data?.data?.user),
-              );
               reset();
               router.push("/admin/dashboard");
               return data?.data?.message;

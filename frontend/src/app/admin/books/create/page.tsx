@@ -17,6 +17,7 @@ export default function Create() {
     category_id: "",
     description: "",
     priceBuy: "",
+    inStock: 0,
     position: "",
     status: "active",
     featured: false,
@@ -25,7 +26,6 @@ export default function Create() {
   const [preview, setPreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [categories, setCategories] = useState<any[]>([]);
-  const accessToken = localStorage.getItem("accessToken_admin");
 
   const fileInputRef = useRef<any>(null);
 
@@ -33,9 +33,8 @@ export default function Create() {
     axios
       .get(`${API_URL}/api/v1/${ADMIN_PREFIX}/categories`, {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
         },
-        withCredentials: true,
+        
       })
       .then((res) => setCategories(res.data.categories || []))
       .catch(() => setCategories([]));
@@ -80,7 +79,7 @@ export default function Create() {
     setLoading(true);
     const formData = new FormData();
     Object.entries(form).forEach(([key, value]) => {
-      formData.append(key, typeof value === "boolean" ? String(value) : value);
+      formData.append(key, String(value));
     });
     if (imageFile) {
       formData.append("image", imageFile);
@@ -90,9 +89,8 @@ export default function Create() {
       .promise(
         axios.post(`${API_URL}/api/v1/${ADMIN_PREFIX}/books/create`, formData, {
           headers: {
-            Authorization: `Bearer ${accessToken}`,
           },
-          withCredentials: true,
+          
         }),
         {
           pending: "Đang tạo sách...",
@@ -118,10 +116,11 @@ export default function Create() {
           category_id: "",
           description: "",
           priceBuy: "",
+          inStock: 0,
           position: "",
           status: "active",
           featured: false,
-        });
+              });
         setPreview(null);
         setImageFile(null);
         if (fileInputRef.current) fileInputRef.current.value = "";
@@ -133,8 +132,8 @@ export default function Create() {
     <>
       <PrivateRoute permission="create_book">
         <div>
-          <div className="max-w-xl mx-auto mt-8 bg-white p-8 rounded-xl shadow relative">
-            <BackButton className="absolute -top-10 -left-70 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
+          <div className="max-w-xl mx-auto mt-8 bg-white p-4 sm:p-8 rounded-xl shadow relative">
+            <BackButton className="absolute -top-10 left-0 lg:-left-70 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
             <h1 className="text-2xl font-bold mb-6 text-primary">
               Tạo mới sách
             </h1>

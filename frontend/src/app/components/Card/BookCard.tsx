@@ -1,9 +1,14 @@
+"use client";
+
 import { Book } from "@/app/interfaces/book.interface";
 import Image from "next/image";
 import Link from "next/link";
 import { AiFillHeart, AiOutlineHeart } from "react-icons/ai";
 import { FaStar } from "react-icons/fa";
-import { FaArrowRightLong } from "react-icons/fa6";
+import { FiShoppingCart, FiEye } from "react-icons/fi";
+import { memo } from "react";
+import { useCart } from "@/contexts/CartContext";
+import { toast } from "react-toastify";
 
 interface BookCardProps {
   book: Book;
@@ -13,109 +18,179 @@ interface BookCardProps {
   bestSeller?: boolean;
   onToggleFavorite?: (bookId: string, next: boolean) => void;
   isLoggedIn: boolean;
+  discountPercent?: number;
 }
 
-export const BookCard = ({
-  book,
-  featured,
-  newest,
-  isFavorite = false,
-  bestSeller,
-  isLoggedIn,
-  onToggleFavorite,
-}: BookCardProps) => {
-  return (
-    <div className="relative group h-full">
-      <Link href={`/books/detail/${book.slug}`} className="block h-full">
-        <div className="bg-surface rounded-xl p-3 md:p-4 shadow-sm border border-border cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-md relative h-full flex flex-col">
-          {featured && (
-            <div className="absolute top-2 right-2 bg-warning text-white text-[10px] font-semibold px-2.5 py-1 rounded-md z-10 shadow-sm">
-              Nổi bật
-            </div>
-          )}
-          {newest && (
-            <div className="absolute top-2 right-2 bg-info text-white text-[10px] font-semibold px-2.5 py-1 rounded-md z-10 shadow-sm">
-              Mới nhất
-            </div>
-          )}
-          {bestSeller && (
-            <div className="absolute top-2 right-2 bg-error text-white text-[10px] font-semibold px-2.5 py-1 rounded-md z-10 shadow-sm">
-              Bán chạy
-            </div>
-          )}
-          <div className="mb-2 h-[140px] sm:h-[160px] md:h-[190px] shrink-0">
-            <Image
-              src={book.image || "/book-hive.jpg"}
-              className="w-full h-full object-cover rounded-lg"
-              alt={book.title}
-              loading="lazy"
-              width={400}
-              height={400}
-            />
-          </div>
+export const BookCard = memo(
+  ({
+    book,
+    featured,
+    newest,
+    isFavorite = false,
+    bestSeller,
+    isLoggedIn,
+    onToggleFavorite,
+    discountPercent,
+  }: BookCardProps) => {
+    const { addToCart } = useCart();
+    const salePrice = discountPercent && book.priceBuy
+      ? Math.round(book.priceBuy * (1 - discountPercent / 100))
+      : book.priceBuy;
 
-          <div className="flex flex-col flex-1">
-            <h3 className="text-left text-sm md:text-base line-clamp-1 font-bold mb-1 text-text-primary">
-              {book.title}
-            </h3>
-            <p className="text-xs md:text-sm text-text-secondary text-left mb-1 line-clamp-1">
-              {book.author}
-            </p>
-            <div className="flex justify-between items-center gap-2 mb-2">
-              <div className="flex items-center gap-1">
-                <span className={`text-sm ${book.rating ? "text-warning" : "text-gray-300"}`}>
-                  <FaStar />
+    const handleQuickAdd = (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+
+      addToCart({
+        bookId: book._id,
+        title: book.title,
+        price: salePrice,
+        quantity: 1,
+        image: book.image,
+        slug: book.slug,
+      });
+
+      toast.success(`Đã thêm "${book.title}" vào giỏ hàng!`, {
+        position: "bottom-right",
+        autoClose: 2000,
+      });
+    };
+
+    return (
+      <div className="relative group h-full">
+        <Link href={`/books/detail/${book.slug}`} className="block h-full">
+          <div className="relative flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-white p-2.5 shadow-sm transition-all duration-300 ease-out hover:-translate-y-1 hover:border-primary/30 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 sm:rounded-3xl sm:p-4 motion-reduce:transform-none motion-reduce:transition-none">
+            {/* Top Badges */}
+            <div className="absolute right-2.5 top-2.5 z-20 flex flex-col items-end gap-1">
+              {discountPercent && (
+                <span className="rounded-full bg-rose-700 px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
+                  -{discountPercent}%
                 </span>
-                <span className="text-xs font-semibold text-text-secondary">
-                  {book.rating || "Chưa có đánh giá"}
+              )}
+              {featured && (
+                <span className="rounded-full bg-amber-700 px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
+                  Nổi bật
                 </span>
-              </div>
-              <span className="text-[11px] text-text-muted bg-surface-secondary px-2 py-0.5 rounded-full">
-                Đã bán{" "}
-                {book.soldCount >= 1000
-                  ? (book.soldCount / 1000).toFixed(1) + "k"
-                  : book.soldCount}
-              </span>
+              )}
+              {newest && (
+                <span className="rounded-full bg-sky-800 px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
+                  Mới
+                </span>
+              )}
+              {bestSeller && (
+                <span className="rounded-full bg-rose-800 px-2.5 py-1 text-[10px] font-bold text-white shadow-sm">
+                  Hot
+                </span>
+              )}
             </div>
-            <div className="flex justify-between items-center mt-auto pt-2 border-t border-border-light">
-              <div>
-                <p className="text-sm md:text-base font-bold text-accent">
-                  {book.priceBuy
-                    ? book.priceBuy.toLocaleString("vi-VN") + "đ"
-                    : "Liên hệ"}
-                </p>
+
+            {/* Book Image with 3/4 aspect ratio */}
+            <div className="relative mb-3 aspect-[4/5] w-full overflow-hidden rounded-xl bg-surface-secondary shadow-sm transition-shadow duration-300 group-hover:shadow-md md:aspect-[3/4] sm:mb-4 sm:rounded-2xl">
+              <Image
+                src={book.image || "/book-hive.webp"}
+                className="h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-[1.04] motion-reduce:transform-none motion-reduce:transition-none"
+                alt={book.title}
+                loading="lazy"
+                width={360}
+                height={480}
+              />
+
+              {/* Quick Action Overlay on Desktop Hover */}
+              <div className="absolute bottom-2 right-2 z-20 flex items-center justify-center transition-all duration-200 sm:translate-y-1 sm:opacity-0 sm:group-hover:translate-y-0 sm:group-hover:opacity-100 sm:focus-within:translate-y-0 sm:focus-within:opacity-100">
+                <button
+                  type="button"
+                  onClick={handleQuickAdd}
+                  className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full bg-primary text-white shadow-lg transition-colors hover:bg-primary-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-primary active:scale-[0.98]"
+                  title="Thêm nhanh vào giỏ"
+                  aria-label={`Thêm ${book.title} vào giỏ hàng`}
+                >
+                  <FiShoppingCart size={17} aria-hidden="true" />
+                </button>
               </div>
-              <span className="text-text-muted group-hover:text-accent transition-colors duration-200">
-                <FaArrowRightLong />
+            </div>
+
+            {/* Book Meta Details */}
+            <div className="flex flex-col flex-1">
+              <span className="mb-1 truncate text-[10px] font-semibold uppercase tracking-wide text-accent-hover sm:text-[11px]">
+                {book.category_name || "Sách chọn lọc"}
               </span>
+
+              <h3 className="mb-1 min-h-8 line-clamp-2 text-xs font-semibold leading-4 text-text-primary transition-colors group-hover:text-primary sm:min-h-11 sm:text-base sm:leading-snug">
+                {book.title}
+              </h3>
+
+              <p className="mb-2 min-h-4 truncate text-[11px] text-text-secondary sm:mb-3 sm:min-h-5 sm:text-sm">
+                {book.author || "Nhiều tác giả"}
+              </p>
+
+              {/* Rating and Sold count */}
+              <div className="mb-2 flex items-center justify-between gap-1 text-[10px] sm:mb-3 sm:text-xs">
+                <div className="flex items-center gap-1 text-warning">
+                  <FaStar size={11} />
+                  <span className="font-bold text-text-primary">
+                    {book.reviews > 0 && book.rating > 0 ? Number(book.rating).toFixed(1) : "Chưa đánh giá"}
+                  </span>
+                </div>
+                <span className="shrink-0 whitespace-nowrap rounded-md bg-surface-secondary px-1.5 py-0.5 font-medium text-text-secondary sm:px-2 sm:py-1">
+                  Đã bán{" "}
+                  {book.soldCount >= 1000
+                    ? (book.soldCount / 1000).toFixed(1) + "k"
+                    : book.soldCount || 0}
+                </span>
+              </div>
+
+              {/* Price Row */}
+              <div className="mt-auto flex items-center justify-between gap-2 border-t border-border-light pt-2 sm:pt-3">
+                <div className="flex min-h-9 flex-col justify-end sm:min-h-10">
+                  {discountPercent && book.priceBuy ? (
+                    <>
+                      <p className="text-xs font-bold text-rose-700 sm:text-base">
+                        {salePrice.toLocaleString("vi-VN")} {"\u20ab"}
+                      </p>
+                      <p className="text-[10px] text-text-muted line-through sm:text-xs">
+                        {book.priceBuy.toLocaleString("vi-VN")} {"\u20ab"}
+                      </p>
+                    </>
+                  ) : (
+                    <p className="text-xs font-bold text-primary sm:text-base">
+                      {book.priceBuy
+                        ? book.priceBuy.toLocaleString("vi-VN") + "\u20ab"
+                        : "Li\u00ean h\u1ec7"}
+                    </p>
+                  )}
+                </div>
+
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary-light text-primary transition-colors group-hover:bg-primary group-hover:text-white sm:h-9 sm:w-9">
+                  <FiEye size={13} aria-hidden="true" />
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      </Link>
-      {isLoggedIn && (
-        <button
-          className="absolute cursor-pointer top-2 left-2 md:top-4 md:left-4 z-20 bg-white/90 backdrop-blur-sm rounded-full p-1.5 hover:scale-110 transition-all shadow-sm"
-          type="button"
-          onClick={(e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            onToggleFavorite?.(book._id, !isFavorite);
-          }}
-          aria-label="Yêu thích"
-        >
-          {isFavorite ? (
-            <AiFillHeart
-              size={18}
-              className="text-error transition-all duration-200"
-            />
-          ) : (
-            <AiOutlineHeart
-              size={18}
-              className="text-text-muted transition-all duration-200"
-            />
-          )}
-        </button>
-      )}
-    </div>
-  );
-};
+        </Link>
+
+        {/* Favorite Heart Button */}
+        {isLoggedIn && (
+          <button
+            className="absolute cursor-pointer left-2.5 top-2.5 z-20 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-white/95 shadow-sm backdrop-blur transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 active:scale-95"
+            type="button"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onToggleFavorite?.(book._id, !isFavorite);
+            }}
+            aria-label={isFavorite ? `Bỏ yêu thích ${book.title}` : `Yêu thích ${book.title}`}
+            aria-pressed={isFavorite}
+          >
+            {isFavorite ? (
+              <AiFillHeart size={16} className="text-error" />
+            ) : (
+              <AiOutlineHeart size={16} className="text-text-muted" />
+            )}
+          </button>
+        )}
+      </div>
+    );
+  },
+);
+
+BookCard.displayName = "BookCard";

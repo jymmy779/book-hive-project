@@ -2,33 +2,44 @@
 
 body {
   box-sizing: border-box;
+  background-color: #faf8f5;
+  color: #1c1917;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
 @theme {
-  /* Professional Color Palette */
-  --color-primary: #0c4a6e;
-  --color-primary-dark: #082f49;
-  --color-primary-light: #e0f2fe;
-  --color-accent: #7c3aed;
-  --color-accent-hover: #6d28d9;
-  --color-accent-light: #ede9fe;
-  --color-surface: #ffffff;
-  --color-surface-secondary: #f8fafc;
-  --color-border: #e2e8f0;
-  --color-border-light: #f1f5f9;
-  --color-text-primary: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #94a3b8;
-  --color-success: #10b981;
-  --color-warning: #f59e0b;
-  --color-error: #ef4444;
-  --color-info: #3b82f6;
-  /* Backward compatibility: map secondary1 to primary */
-  --color-secondary1: #0c4a6e;
-  /* Accent backgrounds */
-  --color-accent-blue: #eff6ff;
-  --color-accent-pink: #fdf2f8;
-  --color-accent-amber: #fffbeb;
+  /* Warm Editorial Color Palette (Emerald Green, Warm Amber & Paper Cream) */
+  --color-primary: #064e3b;          /* Deep Emerald / Forest Green */
+  --color-primary-dark: #022c22;     /* Dark Pine Green */
+  --color-primary-light: #ecfdf5;    /* Soft Mint Paper */
+  --color-primary-subtle: #d1fae5;   /* Mint Tint */
+
+  --color-accent: #d97706;           /* Warm Amber / Terracotta Gold */
+  --color-accent-hover: #b45309;     /* Deep Amber Ochre */
+  --color-accent-light: #fef3c7;     /* Soft Warm Cream Ochre */
+  --color-accent-warm: #ea580c;      /* Warm Rust Accent */
+
+  --color-surface: #ffffff;          /* Pure White Card */
+  --color-surface-secondary: #f5f0ea;/* Warm Oat Paper */
+  --color-surface-cream: #faf8f5;    /* Book Parchment Background */
+
+  --color-border: #e7e2d9;          /* Warm Paper Border */
+  --color-border-light: #f2ede4;    /* Subtle Separator */
+
+  --color-text-primary: #1c1917;    /* Warm Ink Charcoal */
+  --color-text-secondary: #57534e;  /* Stone Charcoal */
+  --color-text-muted: #a8a29e;      /* Muted Warm Stone */
+
+  --color-success: #059669;
+  --color-warning: #d97706;
+  --color-error: #dc2626;
+  --color-info: #0284c7;
+
+  /* Backward compatibility */
+  --color-secondary1: #064e3b;
+  --color-accent-blue: #f0fdf4;
+  --color-accent-pink: #fff1f2;
+  --color-accent-amber: #fef3c7;
 }
 
 .container {

@@ -9,6 +9,10 @@ import { FavoriteCardSkeleton } from "@/app/components/Skeleton/FavoriteCardSkel
 import { useSyncParams } from "@/app/utils/useSyncParams";
 import { usePageChange } from "@/app/utils/usePageChange";
 import { toast, ToastContainer } from "react-toastify";
+import { FiHeart, FiBookOpen } from "react-icons/fi";
+import Link from "next/link";
+import { ScrollReveal } from "@/app/components/Animation/ScrollReveal";
+import { useUser } from "@/contexts/UserContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -30,17 +34,16 @@ export default function FavoritesPage() {
   const [sort, setSort] = useState<{ key: string; value: 1 | -1 } | null>(null);
   const [sortValue, setSortValue] = useState("");
   const requestSeqRef = useRef<number>(0);
+  const { user } = useUser();
 
   const fetchFavorites = async () => {
     setLoading(true);
     const currentSeq = ++requestSeqRef.current;
     try {
-      const token = localStorage.getItem("accessToken_user");
       const res = await axios.get(
         `${API_URL}/api/v1/favorites?page=${page}&limit=${limit}`,
         {
           headers: {
-            Authorization: `Bearer ${token}`,
           },
         },
       );
@@ -60,19 +63,17 @@ export default function FavoritesPage() {
 
   useEffect(() => {
     fetchFavorites();
-  }, [page]);
+  }, [page, user]);
 
   useSyncParams(setPage, setSortValue, setSort);
   const handlePageChange = usePageChange("favorites", setPage, "client");
 
   const handleRemoveFavorite = async (bookId: string) => {
-    const token = localStorage.getItem("accessToken_user");
-    if (!token) return;
+    if (!user) return;
     try {
       await axios.post(
         `${API_URL}/api/v1/favorites/remove`,
         { bookId },
-        { headers: { Authorization: `Bearer ${token}` } },
       );
       toast.success("Đã xóa khỏi mục yêu thích");
       setTimeout(() => {
@@ -85,24 +86,71 @@ export default function FavoritesPage() {
 
   return (
     <>
-      <div className="min-h-[calc(100vh-64px-56px)] bg-[#f8fafc] py-6 md:py-8 flex flex-col">
-        <div className="container mx-auto px-4 flex-1 flex flex-col">
-          <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 text-slate-800 text-center md:text-left">
-            Sản phẩm yêu thích của bạn
-          </h2>
+      <div className="min-h-[calc(100vh-64px)] bg-[#faf8f5]">
+        {/* Page Header Banner */}
+        <ScrollReveal direction="down" distance={16} duration={0.4}>
+          <div className="bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#047857] py-10 px-4 relative overflow-hidden">
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 20% 50%, #d97706 0%, transparent 60%), radial-gradient(circle at 80% 20%, #10b981 0%, transparent 60%)",
+              }}
+            />
+            <div className="relative z-10 container mx-auto max-w-4xl flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm flex items-center justify-center border border-white/20">
+                <FiHeart className="text-amber-300" size={22} />
+              </div>
+              <div>
+                <p className="text-amber-300 text-xs font-semibold uppercase tracking-widest mb-0.5">
+                  Thư viện cá nhân
+                </p>
+                <h1 className="text-white text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  Sách Yêu Thích
+                </h1>
+              </div>
+              {total > 0 && (
+                <span className="ml-auto bg-white/15 backdrop-blur-sm text-white text-sm font-bold px-4 py-1.5 rounded-full border border-white/20">
+                  {total} cuốn
+                </span>
+              )}
+            </div>
+          </div>
+        </ScrollReveal>
+
+        <div className="container mx-auto max-w-4xl px-4 py-8 flex-1 flex flex-col">
           {loading ? (
-            <div className="space-y-3 md:space-y-4">
+            <div className="space-y-4">
               {Array.from({ length: limit }).map((_, i) => (
                 <FavoriteCardSkeleton key={i} />
               ))}
             </div>
           ) : favorites.length === 0 ? (
-            <div className="min-h-[300px] md:min-h-[400px] flex items-center justify-center text-gray-500 text-sm md:text-base">
-              Bạn chưa thêm sản phẩm nào vào mục yêu thích.
-            </div>
+            /* Empty State */
+            <ScrollReveal direction="up" distance={20} duration={0.4}>
+              <div className="flex-1 flex flex-col items-center justify-center py-20 text-center">
+                <div className="w-20 h-20 rounded-2xl bg-[#064e3b]/8 flex items-center justify-center mb-5">
+                  <FiBookOpen className="text-[#064e3b]/40" size={36} />
+                </div>
+                <h3 className="text-xl font-bold text-[#1f2937] mb-2">
+                  Chưa có sách yêu thích
+                </h3>
+                <p className="text-sm text-[#6b7280] max-w-xs mb-6">
+                  Hãy khám phá kho sách và thêm những cuốn sách bạn yêu thích vào
+                  đây để dễ dàng tìm lại sau.
+                </p>
+                <Link
+                  href="/books"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-[#064e3b] text-white text-sm font-semibold rounded-xl hover:bg-[#065f46] transition-all shadow-sm"
+                >
+                  <FiBookOpen size={16} />
+                  Khám phá sách ngay
+                </Link>
+              </div>
+            </ScrollReveal>
           ) : (
-            <>
-              <div className="space-y-3 md:space-y-4">
+            <ScrollReveal direction="up" distance={20} duration={0.4}>
+              <div className="space-y-4">
                 {favorites.map((fav) => (
                   <FavoriteCard
                     key={fav._id}
@@ -111,7 +159,7 @@ export default function FavoritesPage() {
                   />
                 ))}
               </div>
-              <div className="mt-6 md:mt-8">
+              <div className="mt-8">
                 <Pagination
                   page={page}
                   total={total}
@@ -119,7 +167,7 @@ export default function FavoritesPage() {
                   onPageChange={handlePageChange}
                 />
               </div>
-            </>
+            </ScrollReveal>
           )}
         </div>
       </div>

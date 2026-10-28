@@ -8,8 +8,6 @@ const clientRoutesApiVer1 = require("./api/v1/client/routes/index.route");
 const adminRoutesApiVer1 = require("./api/v1/admin/routes/index.route");
 const bodyParser = require("body-parser");
 
-database.connect();
-
 const app = express();
 const port = process.env.PORT;
 const FRONTEND_URL = process.env.FRONTEND_URL;
@@ -38,6 +36,16 @@ app.use((err: any, req: any, res: any, next: any) => {
   });
 });
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+const startServer = async () => {
+  try {
+    await database.connect();
+    app.listen(port, () => {
+      console.log(`Example app listening on port ${port}`);
+    });
+  } catch (error) {
+    console.error("Server startup aborted because MongoDB is unavailable.", error);
+    process.exit(1);
+  }
+};
+
+startServer();

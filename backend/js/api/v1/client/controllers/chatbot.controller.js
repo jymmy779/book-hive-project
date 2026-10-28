@@ -9,6 +9,7 @@ const User = require("../../models/user.model");
 const aiService = require("../services/ai.service");
 const jwt = require("jsonwebtoken");
 module.exports.query = async (req, res) => {
+    var _a, _b;
     try {
         const { question } = req.body;
         if (!question || question.trim() === "") {
@@ -17,19 +18,52 @@ module.exports.query = async (req, res) => {
                 message: "Vui lòng nhập câu hỏi",
             });
         }
-        const relatedBooks = await aiService.findRelatedBooks(Book, question, {
-            limit: 5,
-        });
+        const history = Array.isArray(req.body.history)
+            ? req.body.history
+                .slice(-10)
+                .filter((item) => item && ["user", "assistant"].includes(item.role))
+                .map((item) => ({
+                role: item.role,
+                content: String(item.content || "").slice(0, 1200),
+                bookIds: Array.isArray(item.bookIds)
+                    ? item.bookIds
+                        .filter((id) => /^[a-f\d]{24}$/i.test(String(id)))
+                        .slice(0, 8)
+                    : [],
+            }))
+            : [];
+        const normalizedQuestion = question
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/đ/g, "d");
+        const isContextualFollowUp = /(may sach|sach tren|nhung sach|nhung cuon|cuon tren|sach do|cuon do|vua goi y|goi y tren|noi ve gi|noi ve cuon|tac gia do|gia cuon do|review cuon do|chung la gi)/.test(normalizedQuestion);
+        let relatedBooks = [];
+        if (isContextualFollowUp) {
+            const previousBookIds = Array.from(new Set(history.flatMap((item) => item.role === "assistant" ? item.bookIds : []))).slice(-12);
+            if (previousBookIds.length > 0) {
+                relatedBooks = await Book.find({
+                    _id: { $in: previousBookIds },
+                    deleted: false,
+                    status: "active",
+                }).limit(8);
+            }
+        }
+        else {
+            relatedBooks = await aiService.findRelatedBooks(Book, question, { limit: 5 });
+        }
         let userData = {
             orders: [],
             cart: null,
             user: null,
         };
-        const authHeader = req.headers.authorization;
-        if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.bh_user_session;
+        if (token) {
             try {
-                const token = authHeader.split(" ")[1];
                 const decoded = jwt.verify(token, process.env.JWT_SECRET);
+                if (decoded.tokenType !== "user") {
+                    throw new Error("Invalid session type");
+                }
                 userData.orders = await Order.find({ "userInfo.email": decoded.email })
                     .sort({ createdAt: -1 })
                     .limit(3);
@@ -51,7 +85,7 @@ module.exports.query = async (req, res) => {
             reviews: relatedReviews,
             user: userData.user,
         });
-        const result = await aiService.queryAI(question, context, relatedBooks);
+        const result = await aiService.queryAI(question, context, relatedBooks, history);
         if (!result.success) {
             return res.status(500).json({
                 success: false,
@@ -65,9 +99,12 @@ module.exports.query = async (req, res) => {
             "order",
             "payment",
             "general_help",
+            "general_chat",
             "out_of_scope",
         ];
-        const relatedBooksPayload = result.ui && Array.isArray(result.ui.cards) && result.ui.cards.length > 0
+        const shouldShowBooks = !noBookIntents.includes((_b = result.ui) === null || _b === void 0 ? void 0 : _b.intent);
+        const relatedBooksPayload = shouldShowBooks &&
+            result.ui && Array.isArray(result.ui.cards) && result.ui.cards.length > 0
             ? result.ui.cards.map((card) => ({
                 id: card.id,
                 title: card.title,

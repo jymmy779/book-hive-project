@@ -1,15 +1,26 @@
 const jwt = require("jsonwebtoken");
 const Account = require("../api/v1/models/account.model");
 const User = require("../api/v1/models/user.model");
+const isTrustedMutation = (req) => {
+    if (["GET", "HEAD", "OPTIONS"].includes(req.method))
+        return true;
+    const frontendOrigin = process.env.FRONTEND_URL
+        ? new URL(process.env.FRONTEND_URL).origin
+        : "";
+    return Boolean(frontendOrigin && req.get("origin") === frontendOrigin);
+};
 module.exports.adminAuth = async (req, res, next) => {
-    var _a, _b;
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return res.status(401).json({ message: "Không có accessToken" });
-    }
-    const token = authHeader.split(" ")[1];
+    var _a, _b, _c;
+    const token = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.bh_admin_session;
+    if (!token)
+        return res.status(401).json({ message: "Unauthenticated" });
+    if (!isTrustedMutation(req))
+        return res.status(403).json({ message: "Untrusted request origin" });
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        if (decoded.tokenType !== "admin") {
+            return res.status(403).json({ message: "JWT không dành cho quản trị viên" });
+        }
         const account = await Account.findOne({
             _id: decoded.id,
             status: "active",
@@ -20,8 +31,8 @@ module.exports.adminAuth = async (req, res, next) => {
                 .status(403)
                 .json({ message: "Tài khoản không hợp lệ hoặc đã bị khóa" });
         }
-        const permissions = ((_a = account.role_id) === null || _a === void 0 ? void 0 : _a.permissions) || [];
-        req.user = Object.assign(Object.assign({}, decoded), { role: (_b = account.role_id) === null || _b === void 0 ? void 0 : _b.slug, permissions });
+        const permissions = ((_b = account.role_id) === null || _b === void 0 ? void 0 : _b.permissions) || [];
+        req.user = Object.assign(Object.assign({}, decoded), { role: (_c = account.role_id) === null || _c === void 0 ? void 0 : _c.slug, permissions });
         next();
     }
     catch (err) {
@@ -31,17 +42,21 @@ module.exports.adminAuth = async (req, res, next) => {
     }
 };
 module.exports.clientAuth = async (req, res, next) => {
+    var _a;
     try {
-        const authHeader = req.headers.authorization;
-        if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            return res.status(401).json({
-                success: false,
-                message: "Không có accessToken",
-            });
-        }
-        const token = authHeader.split(" ")[1];
+        const token = (_a = req.cookies) === null || _a === void 0 ? void 0 : _a.bh_user_session;
+        if (!token)
+            return res.status(401).json({ success: false, message: "Unauthenticated" });
+        if (!isTrustedMutation(req))
+            return res.status(403).json({ success: false, message: "Untrusted request origin" });
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            if (decoded.tokenType !== "user") {
+                return res.status(403).json({
+                    success: false,
+                    message: "JWT không dành cho tài khoản khách hàng",
+                });
+            }
             const user = await User.findOne({
                 _id: decoded.id,
                 deleted: false,

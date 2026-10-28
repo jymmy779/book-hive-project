@@ -1,191 +1,281 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 import { Book } from "@/app/interfaces/book.interface";
 import { BookCard } from "@/app/components/Card/BookCard";
-import { BookCardSkeleton } from "@/app/components/Skeleton/BookCardSkeleton";
 import Link from "next/link";
-import { Swiper, SwiperSlide } from "swiper/react";
-import { FreeMode, Pagination } from "swiper/modules";
-import { FiArrowRight } from "react-icons/fi";
-
-import "swiper/css";
-import "swiper/css/free-mode";
-import "swiper/css/pagination";
+import { FiArrowRight, FiBookOpen, FiAward } from "react-icons/fi";
 import { useUser } from "@/contexts/UserContext";
+import {
+  ScrollReveal,
+  ScrollRevealItem,
+} from "@/app/components/Animation/ScrollReveal";
+
+import { HeroBookSlider } from "@/app/components/Home/HeroBookSlider";
+import { ValueBadges } from "@/app/components/Home/ValueBadges";
+import { FlashSaleSection } from "@/app/components/Home/FlashSaleSection";
+import { BentoCategories } from "@/app/components/Home/BentoCategories";
+import { RankingPodium } from "@/app/components/Home/RankingPodium";
+import { SpotlightBook } from "@/app/components/Home/SpotlightBook";
+import { AISmartFinder } from "@/app/components/Home/AISmartFinder";
+import { ReaderCommunity } from "@/app/components/Home/ReaderCommunity";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function HomeClient({
   featuredBooks,
+  readerFavoriteBooks,
   newestBooks,
+  heroBooks,
+  editorRecommendedBook,
   bestSellerBooks,
+  flashSaleBooks,
+  categories,
 }: {
   featuredBooks: Book[];
+  readerFavoriteBooks: Book[];
   newestBooks: Book[];
+  heroBooks: Book[];
+  editorRecommendedBook?: Book | null;
   bestSellerBooks: Book[];
+  flashSaleBooks: Book[];
+  categories: { _id: string; title: string; slug: string; description?: string; bookCount: number }[];
 }) {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const { user } = useUser();
+  const favoriteIdsSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken_user");
-    setIsLoggedIn(!!token);
+    setIsLoggedIn(!!user);
 
-    if (!token || !user) {
+    if (!user) {
       setFavoriteIds([]);
-      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
     axios
       .get(`${API_URL}/api/v1/favorites`, {
-        headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
         const favorites = res.data.favorites || [];
         setFavoriteIds(favorites.map((fav: any) => fav.bookId?._id));
       })
-      .catch(() => setFavoriteIds([]))
-      .finally(() => setIsLoading(false));
+      .catch(() => setFavoriteIds([]));
   }, [user]);
 
-  const handleToggleFavorite = async (bookId: string, next: boolean) => {
-    const token = localStorage.getItem("accessToken_user");
-    if (!token) return;
-    try {
-      if (next) {
-        await axios.post(
-          `${API_URL}/api/v1/favorites/add`,
-          { bookId },
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
-        setFavoriteIds((prev) => [...prev, bookId]);
-      } else {
-        await axios.post(
-          `${API_URL}/api/v1/favorites/remove`,
-          { bookId },
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
-        setFavoriteIds((prev) => prev.filter((id) => id !== bookId));
-      }
-    } catch (err) {}
-  };
+  const handleToggleFavorite = useCallback(
+    async (bookId: string, next: boolean) => {
+      if (!user) return;
+      try {
+        if (next) {
+          await axios.post(
+            `${API_URL}/api/v1/favorites/add`,
+            { bookId },
+          );
+          setFavoriteIds((prev) => [...prev, bookId]);
+        } else {
+          await axios.post(
+            `${API_URL}/api/v1/favorites/remove`,
+            { bookId },
+          );
+          setFavoriteIds((prev) => prev.filter((id) => id !== bookId));
+        }
+      } catch (err) {}
+    },
+    [setFavoriteIds, user],
+  );
+
+  const spotlightBook =
+    featuredBooks.length > 0
+      ? featuredBooks[0]
+      : bestSellerBooks.length > 0
+        ? bestSellerBooks[0]
+        : undefined;
+
+  const editorialBook =
+    featuredBooks.length > 1
+      ? featuredBooks[1]
+      : bestSellerBooks.length > 1
+        ? bestSellerBooks[1]
+        : spotlightBook;
 
   return (
-    <>
-      <div className="py-4 px-4 md:py-[32px] md:px-[24px]">
-        <div className="container mx-auto">
-          <div className="mb-8 md:mb-12 rounded-2xl overflow-hidden shadow-lg relative">
-            <div className="absolute inset-0 bg-gradient-to-t from-primary/60 to-transparent z-10" />
-            <img
-              src="/book-hive-banner.jpg"
-              alt="Book Hive Banner"
-              className="w-full h-auto object-cover"
-            />
-            <div className="absolute inset-0 z-20 flex items-center justify-center">
+    <div className="py-4 px-3 sm:px-4 md:py-8 md:px-6">
+      <div className="container mx-auto">
+        {/* 1. Interactive Hero Slider (5-8 cuốn sách mới nhất - Kéo lướt thủ công & Auto slide) */}
+        <ScrollReveal direction="down" duration={0.6}>
+          <HeroBookSlider books={heroBooks.length ? heroBooks : newestBooks} />
+        </ScrollReveal>
+
+        {/* 2. Value Badges (4 Cam kết độc quyền) */}
+        <ScrollReveal staggerChildren={0.08} duration={0.4}>
+          <ValueBadges />
+        </ScrollReveal>
+
+        {/* 3. Flash Sale / Deal Chớp Nhoáng (Đồng hồ đếm ngược + Progress bar) */}
+        <ScrollReveal direction="up" delay={0.1}>
+          <FlashSaleSection
+            books={flashSaleBooks}
+            isLoggedIn={isLoggedIn}
+            favoriteIdsSet={favoriteIdsSet}
+            onToggleFavorite={handleToggleFavorite}
+          />
+        </ScrollReveal>
+
+        {/* 4. Bento Categories Grid (Khám phá theo thể loại) */}
+        <ScrollReveal direction="up" delay={0.1}>
+          <BentoCategories categories={categories} />
+        </ScrollReveal>
+
+        {/* 5. Sách Mới Nhất Lên Kệ */}
+        <div className="mb-14 md:mb-18">
+          <ScrollReveal direction="up" delay={0.05}>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-primary-light text-primary">
+                    <FiBookOpen size={20} />
+                  </span>
+                  Sách Mới Phát Hành
+                </h2>
+                <p className="text-xs sm:text-sm text-text-muted mt-0.5">
+                  Các ấn phẩm bản quyền vừa cập bến kho BookHive
+                </p>
+              </div>
               <Link
-                href="/books"
-                className="px-6 md:px-10 py-2.5 md:py-4 bg-white text-primary font-bold text-sm md:text-lg rounded-xl shadow-lg hover:shadow-xl hover:bg-accent-light transition-all duration-200 hover:-translate-y-0.5"
+                href="/books?sort=newest"
+                className="text-xs sm:text-sm font-semibold text-accent hover:text-accent-hover flex items-center gap-1 transition-colors group"
               >
-                Khám phá ngay
+                <span>Xem tất cả</span>
+                <FiArrowRight
+                  size={14}
+                  className="transition-transform group-hover:translate-x-1"
+                />
               </Link>
             </div>
-          </div>
-          <div>
-            <h2 className="text-2xl font-bold mb-4 text-primary">Sách mới</h2>
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-[24px] mb-10">
-              {newestBooks.slice(0, 8).map((book, index) => (
+          </ScrollReveal>
+
+          {/* Staggered Grid for Newest Books */}
+          <ScrollReveal
+            staggerChildren={0.06}
+            className="grid grid-cols-2 min-[768px]:grid-cols-3 min-[1032px]:grid-cols-4 gap-3 sm:gap-4 md:gap-6"
+          >
+            {newestBooks.slice(0, 8).map((book, index) => (
+              <ScrollRevealItem key={book._id || index}>
                 <BookCard
-                  key={index}
                   book={book}
                   featured={false}
                   newest={true}
-                  isFavorite={favoriteIds.includes(book._id)}
+                  isFavorite={favoriteIdsSet.has(book._id)}
                   onToggleFavorite={handleToggleFavorite}
                   isLoggedIn={isLoggedIn}
                 />
-              ))}
-            </div>
-          </div>
-          <div className="mb-10">
-            <h2 className="text-2xl font-bold text-primary">Bán chạy nhất</h2>
-            <Swiper
-              slidesPerView={2}
-              spaceBetween={16}
-              breakpoints={{
-                640: {
-                  slidesPerView: 2,
-                  spaceBetween: 16,
-                },
-                1024: {
-                  slidesPerView: 3,
-                  spaceBetween: 20,
-                },
-                1280: {
-                  slidesPerView: 4,
-                  spaceBetween: 30,
-                },
-              }}
-              freeMode={true}
-              pagination={{
-                clickable: true,
-              }}
-              modules={[FreeMode, Pagination]}
-              className="mySwiper !pt-[16px]"
-            >
-              {bestSellerBooks.map((book, index) => (
-                <SwiperSlide key={index}>
-                  <BookCard
-                    book={book}
-                    featured={false}
-                    newest={false}
-                    bestSeller={true}
-                    isFavorite={favoriteIds.includes(book._id)}
-                    onToggleFavorite={handleToggleFavorite}
-                    isLoggedIn={isLoggedIn}
-                  />
-                </SwiperSlide>
-              ))}
-              <SwiperSlide>
-                <div className="flex items-center justify-center h-full min-h-[300px]">
-                  <Link
-                    href="/books"
-                    className="flex gap-2 items-center justify-center px-6 py-4 bg-primary text-white rounded-lg hover:bg-primary/90 transition-all duration-300 shadow-lg hover:shadow-xl"
-                  >
-                    <span className="text-sm font-semibold">Xem thêm</span>
-                    <span className="text-xl"><FiArrowRight /></span>
-                  </Link>
-                </div>
-              </SwiperSlide>
-            </Swiper>
-          </div>
-
-          <div>
-            <h2 className="text-2xl font-bold mb-4 text-primary">
-              Sách nổi bật
-            </h2>
-            <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-[24px] mb-10">
-              {featuredBooks.slice(0, 8).map((book, index) => (
-                <BookCard
-                  key={index}
-                  book={book}
-                  featured={true}
-                  newest={false}
-                  isFavorite={favoriteIds.includes(book._id)}
-                  onToggleFavorite={handleToggleFavorite}
-                  isLoggedIn={isLoggedIn}
-                />
-              ))}
-            </div>
-          </div>
+              </ScrollRevealItem>
+            ))}
+          </ScrollReveal>
         </div>
+
+        {/* 6. Bảng Xếp Hạng Bestseller (Top Charts 1 - 2 - 3) */}
+        <ScrollReveal direction="up" delay={0.1}>
+          <RankingPodium books={bestSellerBooks} />
+        </ScrollReveal>
+
+        {/* 7. Spotlight Book of the Month (Phong cách Tạp chí Editorial) */}
+        <ScrollReveal direction="up" delay={0.1}>
+          <SpotlightBook
+            book={editorRecommendedBook || editorialBook}
+            showEditorBadge={Boolean(editorRecommendedBook)}
+          />
+        </ScrollReveal>
+
+        {/* 8. Sách Nổi Bật Dành Cho Bạn */}
+        <div className="mb-14 md:mb-18">
+          <ScrollReveal direction="up" delay={0.05}>
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h2 className="text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
+                  <span className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+                    <FiAward size={20} />
+                  </span>
+                  Được Bạn Đọc Yêu Thích Nhất
+                </h2>
+                <p className="text-xs sm:text-sm text-text-muted mt-0.5">
+                  Những cuốn sách nhận được nhiều đánh giá 5 sao từ cộng đồng
+                </p>
+              </div>
+              <Link
+                href="/books?featured=true"
+                className="text-xs sm:text-sm font-semibold text-accent hover:text-accent-hover flex items-center gap-1 transition-colors group"
+              >
+                <span>Xem tất cả</span>
+                <FiArrowRight
+                  size={14}
+                  className="transition-transform group-hover:translate-x-1"
+                />
+              </Link>
+            </div>
+          </ScrollReveal>
+
+          <ScrollReveal
+            staggerChildren={0.06}
+            className="grid grid-cols-2 min-[768px]:grid-cols-3 min-[1032px]:grid-cols-4 gap-3 sm:gap-4 md:gap-6"
+          >
+            {readerFavoriteBooks.slice(0, 8).map((book, index) => (
+              <ScrollRevealItem key={book._id || index}>
+                <BookCard
+                  book={book}
+                  featured={false}
+                  newest={false}
+                  isFavorite={favoriteIdsSet.has(book._id)}
+                  onToggleFavorite={handleToggleFavorite}
+                  isLoggedIn={isLoggedIn}
+                />
+              </ScrollRevealItem>
+            ))}
+          </ScrollReveal>
+        </div>
+
+        {/* 9. AI Smart Finder Studio (Chỉ 1 vị trí duy nhất, tương tác thực tế) */}
+        <div className="mb-14 md:mb-18">
+          <ScrollReveal direction="up" delay={0.05}>
+            <div className="mb-6">
+              <h2 className="text-xl font-bold text-primary sm:text-2xl">Sách nổi bật</h2>
+              <p className="mt-0.5 text-xs text-text-muted sm:text-sm">
+                Những tựa sách được BookHive tuyển chọn.
+              </p>
+            </div>
+          </ScrollReveal>
+          <ScrollReveal
+            staggerChildren={0.06}
+            className="grid grid-cols-2 min-[768px]:grid-cols-3 min-[1032px]:grid-cols-4 gap-3 sm:gap-4 md:gap-6"
+          >
+            {featuredBooks.slice(0, 8).map((book, index) => (
+              <ScrollRevealItem key={book._id || index}>
+                <BookCard
+                  book={book}
+                  featured
+                  newest={false}
+                  isFavorite={favoriteIdsSet.has(book._id)}
+                  onToggleFavorite={handleToggleFavorite}
+                  isLoggedIn={isLoggedIn}
+                />
+              </ScrollRevealItem>
+            ))}
+          </ScrollReveal>
+        </div>
+
+        <ScrollReveal direction="up" delay={0.1}>
+          <AISmartFinder />
+        </ScrollReveal>
+
+        {/* 10. Độc Giả Nói Gì & Câu Lạc Bộ BookHive (Reviews + Newsletter Voucher) */}
+        <ScrollReveal direction="up" delay={0.1}>
+          <ReaderCommunity />
+        </ScrollReveal>
       </div>
-    </>
+    </div>
   );
 }

@@ -18,7 +18,6 @@ export default function BookDetail() {
   const [book, setBook] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
-  const accessToken = localStorage.getItem("accessToken_admin");
 
   useEffect(() => {
     const fetchBook = async () => {
@@ -27,9 +26,8 @@ export default function BookDetail() {
           `${API_URL}/api/v1/${ADMIN_PREFIX}/books/detail/${slug}`,
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
             },
-            withCredentials: true,
+            
           },
         );
         setBook(res.data.book);
@@ -97,6 +95,12 @@ export default function BookDetail() {
                     {book.priceBuy
                       ? book.priceBuy.toLocaleString("vi-VN") + "đ"
                       : "Liên hệ"}
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-base text-slate-800">Số lượng tồn kho:</span>
+                  <span className="text-lg font-semibold text-primary">
+                    {book.inStock ?? 0}
                   </span>
                 </div>
               </div>

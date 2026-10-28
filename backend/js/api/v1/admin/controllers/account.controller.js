@@ -28,21 +28,23 @@ module.exports.index = async (req, res) => {
             find.status = status;
         }
         if (keyword) {
-            const regex = new RegExp(keyword, "i");
+            const regex = new RegExp(String(keyword).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
             find.$or = [{ title: regex }];
         }
         let sort = {};
         if (req.query.sortKey && req.query.sortValue) {
             sort[req.query.sortKey] = Number(req.query.sortValue);
         }
-        const accounts = await Account.find(find)
-            .skip(skip)
-            .limit(limit)
-            .sort(sort)
-            .populate("updatedBy", "fullName")
-            .populate("createdBy", "fullName")
-            .populate("deletedBy", "fullName");
-        const total = await Account.countDocuments(find);
+        const [accounts, total] = await Promise.all([
+            Account.find(find)
+                .skip(skip)
+                .limit(limit)
+                .sort(sort)
+                .populate("updatedBy", "fullName")
+                .populate("createdBy", "fullName")
+                .populate("deletedBy", "fullName"),
+            Account.countDocuments(find),
+        ]);
         if (accounts) {
             return res.status(200).json({
                 message: "Thành công!",
@@ -270,5 +272,25 @@ module.exports.profile = async (req, res) => {
         return res.status(400).json({
             message: "Lỗi khi lấy thông tin hồ sơ!",
         });
+    }
+};
+module.exports.updateProfile = async (req, res) => {
+    try {
+        const fullName = typeof req.body.fullName === "string" ? req.body.fullName.trim() : "";
+        const phone = typeof req.body.phone === "string" ? req.body.phone.trim() : "";
+        if (fullName.length < 2) {
+            return res.status(400).json({ message: "Họ tên cần có ít nhất 2 ký tự." });
+        }
+        if (phone && !/^[0-9+().\-\s]{8,20}$/.test(phone)) {
+            return res.status(400).json({ message: "Số điện thoại không hợp lệ." });
+        }
+        const account = await Account.findOneAndUpdate({ _id: req.user.id, status: "active", deleted: false }, { $set: { fullName, phone } }, { new: true, runValidators: true }).select("fullName email phone avatar role_id").populate("role_id", "title");
+        if (!account)
+            return res.status(404).json({ message: "Không tìm thấy hồ sơ cá nhân." });
+        return res.status(200).json({ message: "Cập nhật hồ sơ thành công.", account });
+    }
+    catch (error) {
+        console.error("Admin profile update error:", error);
+        return res.status(500).json({ message: "Không thể cập nhật hồ sơ lúc này." });
     }
 };

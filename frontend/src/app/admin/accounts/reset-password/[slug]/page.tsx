@@ -17,8 +17,6 @@ export default function AccountResetPassword() {
   const [checkedMatch, setCheckedMatch] = useState(true);
   const [loading, setLoading] = useState(false);
 
-  const accessToken = localStorage.getItem("accessToken_admin");
-
   const params = useParams();
   const slug = params.slug;
 
@@ -45,9 +43,8 @@ export default function AccountResetPassword() {
           { newPassword },
           {
             headers: {
-              Authorization: `Bearer ${accessToken}`,
             },
-            withCredentials: true,
+            
           },
         ),
         {
@@ -77,8 +74,8 @@ export default function AccountResetPassword() {
   return (
     <>
       <PrivateRoute permission="reset_password">
-        <div className="max-w-md mx-auto mt-16 bg-white p-8 rounded-xl shadow relative">
-          <BackButton className="absolute -top-10 -left-80 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
+        <div className="max-w-md mx-auto mt-16 bg-white p-4 sm:p-8 rounded-xl shadow relative">
+          <BackButton className="absolute -top-10 left-0 lg:-left-80 flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg shadow hover:bg-gray-100 transition cursor-pointer" />
 
           <h1 className="text-2xl font-bold mb-6 text-primary">
             Đặt lại mật khẩu tài khoản

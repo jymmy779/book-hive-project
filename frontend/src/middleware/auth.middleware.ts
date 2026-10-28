@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get("accessToken_user")?.value;
+  const token = request.cookies.get("bh_user_session")?.value;
   const { pathname } = request.nextUrl;
 
   const protectedRoutes = ["/orders"];
@@ -11,7 +11,7 @@ export function middleware(request: NextRequest) {
   );
 
   if (isProtectedRoute && !token) {
-    return NextResponse.redirect(new URL("/login", request.url));
+    return NextResponse.redirect(new URL("/auth/login", request.url));
   }
 
   return NextResponse.next();

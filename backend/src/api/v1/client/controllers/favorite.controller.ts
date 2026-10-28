@@ -7,12 +7,14 @@ module.exports.index = async (req, res) => {
     const limit = parseInt(req.query.limit) || 6;
     const skip = (page - 1) * limit;
     const userId = req.user.userId;
-    const favorites = await Favorite.find({ userId })
-      .skip(skip)
-      .limit(limit)
-      .populate("bookId")
-      .sort({ createdAt: -1 });
-    const total = await Favorite.countDocuments({ userId });
+    const [favorites, total] = await Promise.all([
+      Favorite.find({ userId })
+        .skip(skip)
+        .limit(limit)
+        .populate("bookId")
+        .sort({ createdAt: -1 }),
+      Favorite.countDocuments({ userId }),
+    ]);
 
     return res.status(200).json({ favorites, total, limit });
   } catch (error) {

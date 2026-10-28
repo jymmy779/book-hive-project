@@ -1,7 +1,7 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { Book } from "@/app/interfaces/book.interface";
 import { BookCard } from "@/app/components/Card/BookCard";
@@ -13,6 +13,10 @@ import { useSyncParams } from "@/app/utils/useSyncParams";
 import { useMemo, useRef } from "react";
 import SortSelect from "@/app/components/SortSelect/SortSelect";
 import { BookCardSkeleton } from "@/app/components/Skeleton/BookCardSkeleton";
+import { FiSearch, FiBookOpen, FiArrowLeft } from "react-icons/fi";
+import Link from "next/link";
+import { ScrollReveal } from "@/app/components/Animation/ScrollReveal";
+import { useUser } from "@/contexts/UserContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -29,6 +33,7 @@ export default function SearchPage() {
   const [isPaging, setIsPaging] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const { user } = useUser();
   const prevKeyword = useRef(keyword);
   const [sortValue, setSortValue] = useState("");
   const [sort, setSort] = useState<{ key: string; value: 1 | -1 } | null>(null);
@@ -48,13 +53,11 @@ export default function SearchPage() {
   );
 
   const resultsRef = useRef<any>(null);
-
   const favoriteIdsSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken_user");
-    setIsLoggedIn(!!token);
-  }, []);
+    setIsLoggedIn(Boolean(user));
+  }, [user]);
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -117,67 +120,105 @@ export default function SearchPage() {
   const handlePageChange = usePageChange("search", setPage, "client");
   const handleSortChange = useSortChange("search", "client");
 
+  const handleToggleFavorite = useCallback(
+    async (bookId: string, next: boolean) => {
+      if (!isLoggedIn) return;
+      try {
+        if (next) {
+          await axios.post(
+            `${API_URL}/api/v1/favorites/add`,
+            { bookId },
+          );
+          setFavoriteIds((prev) => [...prev, bookId]);
+        } else {
+          await axios.delete(`${API_URL}/api/v1/favorites/remove`, {
+            data: { bookId },
+          });
+          setFavoriteIds((prev) => prev.filter((id) => id !== bookId));
+        }
+      } catch (err) {}
+    },
+    [setFavoriteIds, isLoggedIn],
+  );
+
   if (isLoading) {
     return <Loading fullScreen={true} size="lg" text="Đang tìm kiếm..." />;
   }
 
-  const handleToggleFavorite = async (bookId: string, next: boolean) => {
-    const token = localStorage.getItem("accessToken_user");
-    if (!token) return;
-    try {
-      if (next) {
-        await axios.post(
-          `${API_URL}/api/v1/favorites/add`,
-          { bookId },
-          { headers: { Authorization: `Bearer ${token}` } },
-        );
-        setFavoriteIds((prev) => [...prev, bookId]);
-      } else {
-        await axios.delete(`${API_URL}/api/v1/favorites/remove`, {
-          data: { bookId },
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setFavoriteIds((prev) => prev.filter((id) => id !== bookId));
-      }
-    } catch (err) {}
-  };
+  // Empty state - no keyword
+  if (!keyword.trim()) {
+    return (
+      <div className="min-h-[70vh] flex items-center justify-center py-12 px-4">
+        <div className="text-center max-w-md">
+          <div className="w-24 h-24 rounded-full bg-primary-light flex items-center justify-center mx-auto mb-6 shadow-inner">
+            <FiSearch size={40} className="text-primary" />
+          </div>
+          <h1 className="text-2xl font-bold text-primary mb-3">Tìm kiếm sách</h1>
+          <p className="text-text-muted text-base mb-8">
+            Nhập từ khóa vào thanh tìm kiếm để khám phá kho sách phong phú của BookHive
+          </p>
+          <Link
+            href="/books"
+            className="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-colors shadow-md"
+          >
+            <FiBookOpen size={18} />
+            Xem tất cả sách
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="py-6 px-4 md:py-8 md:px-6">
       <div className="container mx-auto">
-        <div className="mb-6 md:mb-8">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-primary mb-2">
-                Kết quả tìm kiếm
-              </h1>
-              <p className="text-sm md:text-base text-gray-600">
-                {keyword && `Từ khóa: "${keyword}"`}
-                {total > 0
-                  ? ` - Tìm thấy ${total} sách`
-                  : " - Không tìm thấy sách nào"}
-              </p>
-            </div>
-            {total > 0 && (
-              <div className="w-full md:w-auto">
-                <SortSelect
-                  options={sortOptions}
-                  sortValue={sortValue}
-                  onChange={(e) => {
-                    setSortValue(e.target.value);
-                    handleSortChange(e, setSort);
-                  }}
-                />
+        {/* Header */}
+        <ScrollReveal direction="down" distance={16} duration={0.4}>
+          <div className="mb-6 md:mb-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="p-1.5 bg-primary-light rounded-lg">
+                    <FiSearch size={16} className="text-primary" />
+                  </div>
+                  <h1 className="text-xl md:text-2xl font-bold text-primary">
+                    Kết quả tìm kiếm
+                  </h1>
+                </div>
+                <p className="text-sm text-text-secondary ml-0.5">
+                  {keyword && (
+                    <>
+                      Từ khóa: <span className="font-semibold text-accent">&quot;{keyword}&quot;</span>
+                    </>
+                  )}
+                  {total > 0 ? (
+                    <span className="ml-1 text-text-muted">· Tìm thấy <strong className="text-primary">{total}</strong> sách</span>
+                  ) : (
+                    <span className="ml-1 text-text-muted">· Không tìm thấy kết quả nào</span>
+                  )}
+                </p>
               </div>
-            )}
+              {total > 0 && (
+                <div className="w-full md:w-auto">
+                  <SortSelect
+                    options={sortOptions}
+                    sortValue={sortValue}
+                    onChange={(e) => {
+                      setSortValue(e.target.value);
+                      handleSortChange(e, setSort);
+                    }}
+                  />
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </ScrollReveal>
 
         {books.length > 0 ? (
-          <>
+          <ScrollReveal direction="up" distance={20} duration={0.4} delay={0.05}>
             <div
               ref={resultsRef}
-              className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-[24px] mb-8"
+              className="grid grid-cols-2 min-[768px]:grid-cols-3 min-[1032px]:grid-cols-4 gap-4 md:gap-6 mb-8"
             >
               {isPaging
                 ? Array.from({ length: 12 }).map((_, i) => (
@@ -204,13 +245,36 @@ export default function SearchPage() {
                 onPageChange={handlePageChange}
               />
             </div>
-          </>
+          </ScrollReveal>
         ) : (
-          <div className="text-center py-12 md:py-16">
-            <p className="sm:text-lg md:text-xl text-gray-500">
-              Không tìm thấy sách nào phù hợp với từ khóa "{keyword}"
+          /* No results state */
+          <div className="py-16 md:py-20 flex flex-col items-center justify-center text-center">
+            <div className="w-24 h-24 rounded-full bg-surface-secondary border border-border flex items-center justify-center mx-auto mb-6">
+              <FiBookOpen size={38} className="text-text-muted" />
+            </div>
+            <h2 className="text-xl md:text-2xl font-bold text-primary mb-2">
+              Không tìm thấy kết quả
+            </h2>
+            <p className="text-text-muted text-sm md:text-base max-w-sm mb-8">
+              Không có sách nào phù hợp với từ khóa &quot;<strong className="text-primary">{keyword}</strong>&quot;. Hãy thử từ khóa khác nhé!
             </p>
-            <div className="min-h-[300px] md:min-h-[400px]"></div>
+            <div className="flex flex-wrap gap-3 justify-center">
+              <Link
+                href="/books"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-xl font-semibold hover:bg-primary-dark transition-colors text-sm"
+              >
+                <FiBookOpen size={16} />
+                Xem tất cả sách
+              </Link>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-surface border border-border text-text-secondary rounded-xl font-semibold hover:bg-surface-secondary transition-colors text-sm"
+              >
+                <FiArrowLeft size={16} />
+                Về trang chủ
+              </Link>
+            </div>
+            <div className="min-h-[200px]" />
           </div>
         )}
       </div>

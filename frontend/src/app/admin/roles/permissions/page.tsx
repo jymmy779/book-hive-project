@@ -19,7 +19,7 @@ const ADMIN_PREFIX = process.env.NEXT_PUBLIC_ADMIN_PREFIX;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Permission() {
-  const { setAdmin } = useAdmin();
+  const { admin, setAdmin } = useAdmin();
 
   const router = useRouter();
   const [roles, setRoles] = useState<Role[]>([]);
@@ -36,7 +36,6 @@ export default function Permission() {
     axios
       .get(`${API_URL}/api/v1/${ADMIN_PREFIX}/roles`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken_admin")}`,
         },
       })
       .then((res) => {
@@ -54,7 +53,6 @@ export default function Permission() {
     axios
       .get(`${API_URL}/api/v1/${ADMIN_PREFIX}/roles/permissions`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem("accessToken_admin")}`,
         },
       })
       .then((res) => setPermissionGroups(res.data.permissionGroups || []))
@@ -102,7 +100,6 @@ export default function Permission() {
         { roles },
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken_admin")}`,
           },
         },
       );
@@ -116,18 +113,9 @@ export default function Permission() {
       setHidden(true);
 
       // Update admin user permissions
-      const adminUserStr = localStorage.getItem("admin_user");
-      if (adminUserStr) {
-        const adminUser = JSON.parse(adminUserStr);
-        const currentRole = roles.find((r) => r.slug === adminUser.role);
-        if (currentRole) {
-          const updatedAdmin = {
-            ...adminUser,
-            permissions: currentRole.permissions,
-          };
-          localStorage.setItem("admin_user", JSON.stringify(updatedAdmin));
-          setAdmin(updatedAdmin);
-        }
+      const currentRole = roles.find((r) => r.slug === admin?.role);
+      if (currentRole && admin) {
+        setAdmin({ ...admin, permissions: currentRole.permissions });
       }
 
       toast.success("Cập nhật quyền thành công!");
@@ -148,7 +136,6 @@ export default function Permission() {
         `${API_URL}/api/v1/${ADMIN_PREFIX}/roles/permissions/delete/${selectedPerm._id}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem("accessToken_admin")}`,
           },
         },
       );

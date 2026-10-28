@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const ReviewSchema: Schema = new Schema(
   {
@@ -28,6 +28,9 @@ const ReviewSchema: Schema = new Schema(
     timestamps: true,
   },
 );
+
+ReviewSchema.index({ book: 1, createdAt: -1 });
+ReviewSchema.index({ book: 1, user: 1 }, { unique: true });
 
 const Review = mongoose.model("Review", ReviewSchema, "reviews");
 

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import React from "react";
+import AxiosCredentials from "./AxiosCredentials";
 
 export const metadata: Metadata = {
   title: {
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
     siteName: "Book Hive",
     images: [
       {
-        url: "https://book-hive-project.vercel.app/book-hive-banner.jpg",
+        url: "https://book-hive-project.vercel.app/book-hive-banner.webp",
         width: 1200,
         height: 630,
       },
@@ -37,6 +38,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-surface-secondary">
+        <AxiosCredentials />
         <main>{children}</main>
       </body>
     </html>

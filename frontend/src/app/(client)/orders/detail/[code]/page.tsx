@@ -8,37 +8,66 @@ import Image from "next/image";
 import { toast } from "react-toastify";
 import { Order } from "@/app/interfaces/order.interface";
 import OrderDetailSkeleton from "@/app/components/Skeleton/OrderDetailSkeleton";
-import { FiClock, FiCheckCircle, FiXCircle, FiTruck, FiInfo, FiRefreshCw, FiArrowLeft } from "react-icons/fi";
+import {
+  FiClock,
+  FiCheckCircle,
+  FiXCircle,
+  FiTruck,
+  FiInfo,
+  FiRefreshCw,
+  FiArrowLeft,
+  FiUser,
+  FiMail,
+  FiPhone,
+  FiMapPin,
+  FiCreditCard,
+} from "react-icons/fi";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const statusMap: Record<
   string,
-  { label: string; color: string; icon: React.ComponentType<{ className?: string }> }
+  {
+    label: string;
+    bg: string;
+    text: string;
+    border: string;
+    icon: React.ComponentType<{ className?: string }>;
+  }
 > = {
   pending: {
     label: "Chờ xác nhận",
-    color: "bg-yellow-50 text-yellow-700 border border-yellow-200",
+    bg: "bg-amber-50",
+    text: "text-amber-700",
+    border: "border-amber-200",
     icon: FiClock,
   },
   processing: {
     label: "Đang xử lý",
-    color: "bg-blue-50 text-blue-700 border border-blue-200",
+    bg: "bg-blue-50",
+    text: "text-blue-700",
+    border: "border-blue-200",
     icon: FiRefreshCw,
   },
   shipped: {
     label: "Đã gửi",
-    color: "bg-purple-50 text-purple-700 border border-purple-200",
+    bg: "bg-purple-50",
+    text: "text-purple-700",
+    border: "border-purple-200",
     icon: FiTruck,
   },
   delivered: {
     label: "Đã giao",
-    color: "bg-green-50 text-green-700 border border-green-200",
+    bg: "bg-emerald-50",
+    text: "text-emerald-700",
+    border: "border-emerald-200",
     icon: FiCheckCircle,
   },
   cancelled: {
     label: "Đã hủy",
-    color: "bg-red-50 text-red-700 border border-red-200",
+    bg: "bg-red-50",
+    text: "text-red-700",
+    border: "border-red-200",
     icon: FiXCircle,
   },
 };
@@ -46,16 +75,18 @@ const statusMap: Record<
 function StatusBadge({ status }: { status: string }) {
   const s = statusMap[status] || {
     label: status,
-    color: "bg-gray-100 text-gray-700 border border-gray-200",
+    bg: "bg-gray-100",
+    text: "text-gray-700",
+    border: "border-gray-200",
     icon: FiInfo,
   };
   const IconComponent = s.icon;
   return (
     <span
-      className={`inline-flex items-center gap-1 px-2 py-0.5 sm:px-3 sm:py-1 rounded-full text-xs sm:text-sm font-semibold ${s.color}`}
+      className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs sm:text-sm font-semibold border ${s.bg} ${s.text} ${s.border}`}
     >
       <IconComponent className="text-sm" />
-      <span>{s.label}</span>
+      {s.label}
     </span>
   );
 }
@@ -71,7 +102,10 @@ export default function OrderDetailPage() {
     const fetchOrder = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${API_URL}/api/v1/orders/detail/${code}`);
+        const res = await axios.get(`${API_URL}/api/v1/orders/detail/${code}`, {
+          headers: {
+          },
+        });
         setOrder(res.data.order);
       } catch (error: any) {
         toast.error(
@@ -91,14 +125,23 @@ export default function OrderDetailPage() {
 
   if (!order) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow p-6 sm:p-8 text-center">
-          <div className="text-lg font-bold mb-2">Không tìm thấy đơn hàng</div>
+      <div className="min-h-[calc(100vh-64px)] flex items-center justify-center bg-[#faf8f5] px-4">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-sm border border-[#e5e7eb] p-8 text-center">
+          <div className="w-16 h-16 rounded-2xl bg-[#064e3b]/10 flex items-center justify-center mx-auto mb-4">
+            <FiInfo className="text-[#064e3b]" size={28} />
+          </div>
+          <div className="text-lg font-bold text-[#1f2937] mb-1">
+            Không tìm thấy đơn hàng
+          </div>
+          <p className="text-sm text-[#6b7280] mb-6">
+            Đơn hàng không tồn tại hoặc đã bị xóa.
+          </p>
           <Link
             href="/orders"
-            className="inline-block mt-4 px-6 py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#064e3b] text-white text-sm font-semibold hover:bg-[#065f46] transition-all"
           >
-            <FiArrowLeft className="inline mr-1" /> Quay lại danh sách
+            <FiArrowLeft size={15} />
+            Quay lại danh sách
           </Link>
         </div>
       </div>
@@ -106,127 +149,162 @@ export default function OrderDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-6 md:py-12">
-      <div className="container mx-auto px-2 sm:px-4 max-w-2xl">
-        <div className="bg-white rounded-2xl shadow p-4 sm:p-6 md:p-10">
-          <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-slate-900">
-              Chi tiết đơn hàng
-            </h1>
-            <span className="text-xs sm:text-sm text-gray-500">
-              Mã đơn:{" "}
-              <span className="font-semibold break-all">{order.orderCode}</span>
-            </span>
+    <div className="min-h-[calc(100vh-64px)] bg-[#faf8f5]">
+      {/* Header Banner */}
+      <div className="bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#047857] py-8 px-4 relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 20% 50%, #d97706 0%, transparent 60%), radial-gradient(circle at 80% 20%, #10b981 0%, transparent 60%)",
+          }}
+        />
+        <div className="relative z-10 container mx-auto max-w-2xl">
+          <Link
+            href="/orders"
+            className="inline-flex items-center gap-2 text-white/80 hover:text-white text-sm font-medium transition-colors mb-4"
+          >
+            <FiArrowLeft size={15} />
+            Quay lại danh sách đơn hàng
+          </Link>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div>
+              <h1 className="text-xl sm:text-2xl font-extrabold text-white">
+                Chi tiết đơn hàng
+              </h1>
+              <p className="text-white/70 text-sm mt-0.5">
+                Mã đơn:{" "}
+                <span className="font-semibold text-amber-300 break-all">
+                  {order.orderCode}
+                </span>
+              </p>
+            </div>
+            <StatusBadge status={order.status} />
           </div>
+        </div>
+      </div>
 
-          <div className="mb-6">
-            <h2 className="text-base sm:text-lg font-semibold mb-2">
+      {/* Content */}
+      <div className="container mx-auto max-w-2xl px-4 py-8 space-y-4">
+        {/* Recipient Info */}
+        <div className="bg-white rounded-2xl border border-[#e5e7eb] shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#f3f4f6]">
+            <h2 className="text-sm font-bold text-[#374151] uppercase tracking-wider">
               Thông tin người nhận
             </h2>
-            <div className="text-xs sm:text-sm text-gray-700 space-y-1 bg-gray-50 p-3 rounded-lg border border-gray-100">
-              <div className="flex flex-col sm:flex-row sm:gap-2">
-                <span className="font-medium min-w-[80px]">Họ tên:</span>
-                <span>{order.userInfo.fullName}</span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:gap-2">
-                <span className="font-medium min-w-[80px]">Email:</span>
-                <span className="break-all">{order.userInfo.email}</span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:gap-2">
-                <span className="font-medium min-w-[80px]">Điện thoại:</span>
-                <span>{order.userInfo.phone}</span>
-              </div>
-              <div className="flex flex-col sm:flex-row sm:gap-2">
-                <span className="font-medium min-w-[80px]">Địa chỉ:</span>
-                <span>{order.userInfo.address}</span>
-              </div>
-            </div>
           </div>
+          <div className="p-5 space-y-3">
+            {[
+              { icon: FiUser, label: "Họ tên", value: order.userInfo.fullName },
+              { icon: FiMail, label: "Email", value: order.userInfo.email },
+              { icon: FiPhone, label: "Điện thoại", value: order.userInfo.phone },
+              { icon: FiMapPin, label: "Địa chỉ", value: order.userInfo.address },
+            ].map(({ icon: Icon, label, value }) => (
+              <div key={label} className="flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-[#064e3b]/8 flex items-center justify-center shrink-0 mt-0.5">
+                  <Icon className="text-[#064e3b]" size={14} />
+                </div>
+                <div>
+                  <p className="text-xs text-[#9ca3af] font-medium">{label}</p>
+                  <p className="text-sm text-[#1f2937] font-medium break-all">
+                    {value || "—"}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          <div className="mb-6">
-            <h2 className="text-base sm:text-lg font-semibold mb-2">
+        {/* Products */}
+        <div className="bg-white rounded-2xl border border-[#e5e7eb] shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#f3f4f6] flex items-center justify-between">
+            <h2 className="text-sm font-bold text-[#374151] uppercase tracking-wider">
               Sản phẩm
             </h2>
-            <div className="divide-y border-t border-b">
-              {order.items.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex flex-col sm:flex-row gap-3 sm:gap-4 py-4 items-start sm:items-center"
-                >
-                  <div className="flex gap-3 w-full sm:w-auto">
-                    <div className="flex-shrink-0">
-                      <Image
-                        src={item.image}
-                        alt={item.title}
-                        width={80}
-                        height={120}
-                        className="w-16 h-24 object-cover rounded border border-gray-100"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0 sm:hidden">
-                      <div className="font-semibold text-sm truncate">
-                        {item.title}
-                      </div>
-                      <div className="text-xs text-gray-500 mt-1">
-                        x{item.quantity}
-                      </div>
-                      <div className="text-sm font-bold text-primary mt-1">
-                        {(item.price * item.quantity).toLocaleString()}₫
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="hidden sm:block flex-1 min-w-0">
-                    <div className="font-semibold text-sm sm:text-base truncate">
-                      {item.title}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-500">
-                      Số lượng: {item.quantity}
-                    </div>
-                    <div className="text-xs sm:text-sm text-gray-500">
-                      Đơn giá: {item.price.toLocaleString()}₫
-                    </div>
-                  </div>
-                  <div className="hidden sm:block font-bold text-primary text-right min-w-[100px] text-sm sm:text-base">
-                    {(item.price * item.quantity).toLocaleString()}₫
-                  </div>
-                </div>
-              ))}
-            </div>
+            <span className="text-xs text-[#6b7280]">
+              {order.items.length} cuốn
+            </span>
           </div>
+          <div className="divide-y divide-[#f3f4f6]">
+            {order.items.map((item, idx) => (
+              <div key={idx} className="flex gap-4 p-4 sm:p-5 items-start">
+                <div className="shrink-0 rounded-xl overflow-hidden border border-[#e5e7eb] bg-[#f9fafb]">
+                  <Image
+                    src={item.image}
+                    alt={item.title}
+                    width={80}
+                    height={112}
+                    className="w-16 h-[88px] sm:w-20 sm:h-[112px] object-cover"
+                  />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-sm text-[#1f2937] line-clamp-2 mb-1">
+                    {item.title}
+                  </p>
+                  <p className="text-xs text-[#9ca3af]">
+                    Đơn giá:{" "}
+                    <span className="text-[#6b7280]">
+                      {item.price.toLocaleString("vi-VN")}₫
+                    </span>
+                  </p>
+                  <p className="text-xs text-[#9ca3af]">
+                    Số lượng:{" "}
+                    <span className="text-[#6b7280]">x{item.quantity}</span>
+                  </p>
+                </div>
+                <div className="shrink-0 text-right">
+                  <p className="text-sm font-bold text-[#064e3b]">
+                    {(item.price * item.quantity).toLocaleString("vi-VN")}₫
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-gray-50 p-4 rounded-lg">
-            <div className="w-full sm:w-auto flex justify-between sm:block">
-              <div className="text-xs sm:text-sm text-gray-500 mb-1">
-                Phương thức thanh toán
+        {/* Payment & Total */}
+        <div className="bg-white rounded-2xl border border-[#e5e7eb] shadow-sm overflow-hidden">
+          <div className="px-5 py-4 border-b border-[#f3f4f6]">
+            <h2 className="text-sm font-bold text-[#374151] uppercase tracking-wider">
+              Thanh toán
+            </h2>
+          </div>
+          <div className="p-5 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm text-[#6b7280]">
+                <FiCreditCard size={15} />
+                Phương thức
               </div>
-              <div className="font-semibold text-sm sm:text-base">
-                {order.paymentMethod === "transfer" ? "Chuyển khoản" : "COD"}
-              </div>
+              <span className="text-sm font-semibold text-[#1f2937]">
+                {order.paymentMethod === "transfer"
+                  ? "Chuyển khoản"
+                  : "Thanh toán khi nhận hàng (COD)"}
+              </span>
             </div>
-            <div className="w-full sm:w-auto flex justify-between sm:block text-right sm:text-left">
-              <div className="text-xs sm:text-sm text-gray-500 mb-1">
-                Trạng thái
-              </div>
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-[#6b7280]">Trạng thái đơn</span>
               <StatusBadge status={order.status} />
             </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row justify-between items-center border-t pt-6 gap-3">
-            <div className="text-base sm:text-lg font-bold">Tổng cộng</div>
-            <div className="text-xl sm:text-2xl font-bold text-primary">
-              {order.totalAmount.toLocaleString()}₫
+            <div className="pt-3 border-t border-[#f3f4f6] flex items-center justify-between">
+              <span className="text-base font-bold text-[#1f2937]">
+                Tổng cộng
+              </span>
+              <span className="text-xl font-extrabold text-[#064e3b]">
+                {order.totalAmount.toLocaleString("vi-VN")}₫
+              </span>
             </div>
           </div>
+        </div>
 
-          <div className="mt-8 flex justify-end">
-            <Link
-              href="/orders"
-              className="w-full sm:w-auto text-center px-4 py-3 sm:py-2 rounded-lg bg-primary text-white font-semibold hover:bg-blue-700 transition text-sm sm:text-base"
-            >
-              <FiArrowLeft className="inline mr-1" /> Quay lại danh sách
-            </Link>
-          </div>
+        {/* Back button */}
+        <div className="flex justify-end pb-4">
+          <Link
+            href="/orders"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#064e3b] text-white text-sm font-semibold hover:bg-[#065f46] transition-all shadow-sm"
+          >
+            <FiArrowLeft size={15} />
+            Quay lại danh sách
+          </Link>
         </div>
       </div>
     </div>

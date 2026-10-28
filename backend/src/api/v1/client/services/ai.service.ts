@@ -86,25 +86,16 @@ function safeJsonParse<T>(input: string): T | null {
 }
 
 function detectIntent(questionRaw: string): AiStructuredResponse["intent"] {
-  const q = (questionRaw || "").toLowerCase();
-  if (/(đăng\s*nhập|login|log\s*in)/i.test(q)) return "auth_login";
-  if (/(đăng\s*ký|register|sign\s*up)/i.test(q)) return "auth_register";
-  if (
-    /(giỏ\s*hàng|cart|thêm\s*vào\s*giỏ|xóa\s*khỏi\s*giỏ|trong\s*giỏ)/i.test(q)
-  )
-    return "cart";
-  if (
-    /(đơn\s*hàng|order|trạng\s*thái\s*đơn|hủy\s*đơn|mua\s*gì|đã\s*mua)/i.test(q)
-  )
-    return "order";
-  if (/(thanh\s*toán|payment|vnpay|momo|cod|chuyển\s*khoản)/i.test(q))
-    return "payment";
-  if (/(đánh\s*giá|review|nhận\s*xét|khen|chê|mọi\s*người\s*nói|sao)/i.test(q))
-    return "general_help"; // Will handle via multi-context
-  if (/(gợi\s*ý|recommend|đề\s*xuất)/i.test(q)) return "books_recommend";
-  if (/(tìm|search|kiếm|sách|book)/i.test(q)) return "books_search";
-  if (/(chào|hi|hello|tạm biệt|bye|cảm ơn|thanks|ok|vâng|đúng|sai)/i.test(q))
-    return "general_chat";
+  const q = normalizeForSearch(questionRaw);
+  if (/(dang nhap|login|log in)/.test(q)) return "auth_login";
+  if (/(dang ky|register|sign up)/.test(q)) return "auth_register";
+  if (/(gio hang|cart|them vao gio|xoa khoi gio|trong gio)/.test(q)) return "cart";
+  if (/(don hang|order|trang thai don|huy don|mua gi|da mua)/.test(q)) return "order";
+  if (/(thanh toan|payment|vnpay|momo|cod|chuyen khoan)/.test(q)) return "payment";
+  if (/(danh gia|review|nhan xet|khen|che|moi nguoi noi|sao)/.test(q)) return "general_help";
+  if (/(goi y|recommend|de xuat|nen doc|co sach nao ve|sach nao ve)/.test(q)) return "books_recommend";
+  if (/(tim|search|kiem|sach|book)/.test(q)) return "books_search";
+  if (/^(hi|hello|hey|xin chao|chao|chao ban|tam biet|bye|cam on|thanks|thank you|ok|okay|vang|da|dung|sai)$/.test(q)) return "general_chat";
   return "general_help";
 }
 
@@ -143,9 +134,10 @@ function buildDefaultActions(
         { type: "link", label: "Đăng ký", href: "/auth/register" },
         { type: "link", label: "Đăng nhập", href: "/auth/login" },
       ];
-    case "general_chat":
     case "general_help":
       return [{ type: "link", label: "Khám phá tủ sách", href: "/books" }];
+    case "general_chat":
+      return [];
     default:
       return [{ type: "link", label: "Xem sách", href: "/books" }];
   }
@@ -185,159 +177,7 @@ function filterToRelatedBookCards(
   });
 }
 
-function extractKeywords(raw: string) {
-  const q = (raw || "").trim();
-  const lower = q.toLowerCase();
-  const stop = new Set([
-    "mình",
-    "tôi",
-    "bạn",
-    "cho",
-    "xin",
-    "nhờ",
-    "giúp",
-    "với",
-    "là",
-    "về",
-    "có",
-    "không",
-    "nào",
-    "đó",
-    "được",
-    "một",
-    "các",
-    "những",
-    "sách",
-    "book",
-    "find",
-    "search",
-    "tìm",
-    "kiếm",
-    "gợi",
-    "ý",
-    "recommend",
-    "của",
-    "được",
-    "mọi",
-    "người",
-    "đánh",
-    "giá",
-    "như",
-    "nào",
-    "thế",
-    "nào",
-    "gì",
-    "đâu",
-    "ai",
-    "tại",
-    "sao",
-    "nhỉ",
-    "vậy",
-    "biết",
-    "cho",
-    "biết",
-    "với",
-    "thử",
-    "xem",
-    "nói",
-    "về",
-    "văn",
-    "học",
-    "tác",
-    "giả",
-  ]);
-
-  const words = lower
-    .split(
-      /[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ]+/i,
-    )
-    .map((w) => w.trim())
-    .filter((w) => w.length >= 2 && !stop.has(w));
-
-  const synonyms: Record<string, string[]> = {
-    code: ["code", "coding", "lập trình", "programming", "developer", "dev"],
-    lập: ["lập trình", "programming", "coding"],
-    trình: ["lập trình", "programming", "coding"],
-    javascript: [
-      "javascript",
-      "js",
-      "node",
-      "nodejs",
-      "react",
-      "typescript",
-      "ts",
-    ],
-    python: ["python", "django", "flask"],
-    java: ["java", "spring"],
-    sql: ["sql", "database", "cơ sở dữ liệu", "mysql", "postgres", "mongodb"],
-    cook: [
-      "nấu ăn",
-      "món ăn",
-      "ẩm thực",
-      "cooking",
-      "recipe",
-      "cookbook",
-      "vào bếp",
-      "công thức",
-    ],
-    children: [
-      "thiếu nhi",
-      "trẻ em",
-      "ehon",
-      "truyện tranh",
-      "manga",
-      "comic",
-      "kids",
-      "cổ tích",
-    ],
-    business: [
-      "kinh doanh",
-      "marketing",
-      "khởi nghiệp",
-      "quản trị",
-      "lãnh đạo",
-      "startup",
-      "finance",
-      "tài chính",
-    ],
-    history: [
-      "lịch sử",
-      "sử việt",
-      "triều đại",
-      "chiến tranh",
-      "nhan vat lich su",
-      "history",
-    ],
-    education: [
-      "giáo khoa",
-      "tham khảo",
-      "ngoại ngữ",
-      "tiếng anh",
-      "ielts",
-      "toeic",
-      "học tập",
-      "sgk",
-    ],
-    novel: ["tiểu thuyết", "truyện ngắn", "văn học", "tác phẩm", "novel"],
-  };
-
-  const expanded = new Set<string>();
-  for (const w of words) {
-    expanded.add(w);
-    for (const vals of Object.values(synonyms)) {
-      if (vals.includes(w)) vals.forEach((v) => expanded.add(v));
-    }
-    if (synonyms[w]) synonyms[w].forEach((v) => expanded.add(v));
-  }
-
-  return {
-    keywords: Array.from(expanded).slice(0, 12),
-    searchQuery: words.slice(0, 6).join(" "),
-  };
-}
-
 function normalizeForSearch(input: string) {
-  // Lowercase + remove Vietnamese diacritics (works for most Latin-based languages)
   return (input || "")
     .toLowerCase()
     .normalize("NFD")
@@ -346,6 +186,28 @@ function normalizeForSearch(input: string) {
     .replace(/[^a-z0-9\s-]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function extractKeywords(raw: string) {
+  const stopWords = new Set([
+    "a", "an", "the", "of", "is", "are", "do", "does", "there", "any", "have",
+    "co", "khong", "ko", "nao", "gi", "ve", "minh", "toi", "ban", "cho", "xin", "voi",
+    "la", "hay", "can", "muon", "mot", "nhung", "cac", "duoc", "giup", "nhe",
+    "nhi", "vay", "sao", "tai", "de", "lam", "hoc", "hoi", "tim", "kiem", "sach",
+    "book", "books", "goi", "y", "recommend", "de", "xuat", "tu", "cua", "nguoi",
+    "nay", "kia", "cho", "biet", "xem", "voi", "about", "for", "to", "and", "what",
+    "which", "who", "can", "you", "me", "please", "find", "looking", "some",
+  ]);
+  const words = (raw || "")
+    .toLowerCase()
+    .split(/[^\p{L}\p{N}]+/u)
+    .map((word) => word.trim())
+    .filter((word) => word.length >= 2 && !stopWords.has(normalizeForSearch(word)));
+
+  return {
+    keywords: Array.from(new Set(words)).slice(0, 6),
+    searchQuery: words.slice(0, 6).join(" "),
+  };
 }
 
 function buildSlugRegexFromQuery(query: string) {
@@ -377,25 +239,15 @@ function parseMoneyVnd(raw: string) {
 }
 
 function parseBookFilters(query: string) {
-  const q = (query || "").toLowerCase();
+  const q = normalizeForSearch(query);
+  const featured = /(noi bat|featured)/.test(q) ? true : undefined;
+  const bestSeller = /(ban chay|best seller|hot)/.test(q) ? true : undefined;
+  const newest = /(moi nhat|newest|moi ra)/.test(q) ? true : undefined;
+  const highRating = /(danh gia cao|rating cao|review tot|5 sao|4\.5)/.test(q) ? true : undefined;
 
-  const featured = /(nổi\s*bật|featured)/i.test(q) ? true : undefined;
-  const bestSeller = /(bán\s*chạy|best\s*-?\s*seller|hot)/i.test(q)
-    ? true
-    : undefined;
-  const newest = /(mới\s*nhất|newest|mới\s*ra)/i.test(q) ? true : undefined;
-  const highRating =
-    /(đánh\s*giá\s*cao|rating\s*cao|review\s*tốt|5\s*sao|4\.5)/i.test(q)
-      ? true
-      : undefined;
-
-  // price filters: "dưới 200k", "trên 100k", "từ 100k đến 300k"
   let priceMin: number | undefined;
   let priceMax: number | undefined;
-
-  const between = q.match(
-    /từ\s+([^ ]+(?:\s*(?:k|nghìn|ngan|tr|triệu|trieu)?)?)\s+đến\s+([^ ]+(?:\s*(?:k|nghìn|ngan|tr|triệu|trieu)?)?)/i,
-  );
+  const between = q.match(/tu\s+([^ ]+)\s+den\s+([^ ]+)/);
   if (between) {
     const a = parseMoneyVnd(between[1]);
     const b = parseMoneyVnd(between[2]);
@@ -404,25 +256,11 @@ function parseBookFilters(query: string) {
       priceMax = Math.max(a, b);
     }
   }
-
-  const under = q.match(
-    /(dưới|<)\s*([^ ]+(?:\s*(?:k|nghìn|ngan|tr|triệu|trieu)?)?)/i,
-  );
-  if (!priceMax && under) {
-    const v = parseMoneyVnd(under[2]);
-    if (v != null) priceMax = v;
-  }
-
-  const over = q.match(
-    /(trên|>=|>)\s*([^ ]+(?:\s*(?:k|nghìn|ngan|tr|triệu|trieu)?)?)/i,
-  );
-  if (!priceMin && over) {
-    const v = parseMoneyVnd(over[2]);
-    if (v != null) priceMin = v;
-  }
-
-  // "giá rẻ" heuristic
-  if (/(giá\s*rẻ|rẻ)/i.test(q) && !priceMax) priceMax = 150_000;
+  const under = q.match(/(duoi|<)\s*([^ ]+)/);
+  if (!priceMax && under) priceMax = parseMoneyVnd(under[2]) ?? undefined;
+  const over = q.match(/(tren|>=|>)\s*([^ ]+)/);
+  if (!priceMin && over) priceMin = parseMoneyVnd(over[2]) ?? undefined;
+  if (/(gia re|re)/.test(q) && !priceMax) priceMax = 150_000;
 
   return { featured, bestSeller, newest, highRating, priceMin, priceMax };
 }
@@ -430,101 +268,35 @@ function parseBookFilters(query: string) {
 function guessCategorySlugsFromQuery(query: string) {
   const q = normalizeForSearch(query);
   const slugs = new Set<string>();
-
-  // Technology / programming
-  if (
-    /(lap trinh|programming|coding|code|developer|dev|javascript|typescript|node|react|python|java|sql|it|phan mem)/i.test(
-      q,
-    )
-  ) {
-    slugs.add("cong-nghe");
-  }
-
-  // Cooking
-  if (
-    /(nau an|mon an|am thuc|cook|cooking|recipe|bep|cong thuc|noi tro)/i.test(q)
-  ) {
-    slugs.add("nau-an");
-  }
-
-  // Mystery / Detective
-  if (
-    /(trinh tham|bi an|detective|mystery|pha an|toi pham|trinh sat)/i.test(q)
-  ) {
-    slugs.add("trinh-tham");
-  }
-
-  // Psychology
-  if (/(tam ly|psychology|hanh vi|tu duy|cam xuc|thau cam)/i.test(q)) {
+  if (/(lap trinh|programming|coding|developer|javascript|typescript|node|react|python|java|sql|phan mem)/.test(q)) slugs.add("cong-nghe");
+  if (/(nau an|mon an|am thuc|cook|recipe|bep|cong thuc|noi tro)/.test(q)) slugs.add("nau-an");
+  if (/(trinh tham|bi an|detective|mystery|pha an|toi pham)/.test(q)) slugs.add("trinh-tham");
+  if (/(tam ly|psychology|hanh vi|tu duy|cam xuc|thau cam)/.test(q)) slugs.add("tam-ly-hoc");
+  if (/(chua lanh|healing|self help|self-help|phat trien ban than|yeu thuong ban than)/.test(q)) {
     slugs.add("tam-ly-hoc");
-  }
-
-  // History
-  if (/(lich su|su viet|history|trieu dai|co dai|chien tranh)/i.test(q)) {
-    slugs.add("lich-su");
-  }
-
-  // Life skills
-  if (
-    /(ky nang song|growth|phat trien|giao tiep|ung xu|thoi quen|atomic|habits|dac nhan tam)/i.test(
-      q,
-    )
-  ) {
     slugs.add("ky-nang-song");
   }
-
-  // Novels / Literature
-  if (/(tieu thuyết|van hoc|truyen ngan|novel|kinh dien|tác phẩm)/i.test(q)) {
+  if (/(lich su|su viet|history|trieu dai|co dai|chien tranh)/.test(q)) slugs.add("lich-su");
+  if (/(ky nang song|growth|phat trien|giao tiep|ung xu|thoi quen|atomic|habits|dac nhan tam)/.test(q)) slugs.add("ky-nang-song");
+  if (/(tieu thuyet|van hoc|truyen ngan|novel|kinh dien|tac pham)/.test(q)) {
     slugs.add("tieu-thuyet");
-    if (/(viet nam|trong nuoc)/i.test(q)) slugs.add("van-hoc-viet-nam");
-    if (/(nuoc ngoai|quoc te|dich)/i.test(q)) slugs.add("van-hoc-nuoc-ngoai");
+    if (/(viet nam|trong nuoc)/.test(q)) slugs.add("van-hoc-viet-nam");
+    if (/(nuoc ngoai|quoc te|dich)/.test(q)) slugs.add("van-hoc-nuoc-ngoai");
   }
-
-  // Business / Marketing
-  if (
-    /(kinh doanh|marketing|khoi nghiep|quan tri|tai chinh|money|business|startup)/i.test(
-      q,
-    )
-  ) {
+  if (/(kinh te|kinh doanh|marketing|khoi nghiep|quan tri|tai chinh|money|business|startup|ceo|chief executive|leadership|lanh dao|manager|management|entrepreneur|finance)/.test(q)) {
+    slugs.add("kinh-te");
     slugs.add("kinh-doanh");
   }
-
-  // Children
-  if (/(thieu nhi|tre em|ehon|co tich|kids|hoc sinh)/i.test(q)) {
-    slugs.add("thieu-nhi");
-  }
-
-  // Sci-Fi
-  if (/(khoa hoc vien tuong|sci-fi|vu tru|thien van|tuong lai)/i.test(q)) {
-    slugs.add("khoa-hoc-vien-tuong");
-  }
-
-  // Comics
-  if (/(truyen tranh|manga|comic|anime)/i.test(q)) {
-    slugs.add("truyen-tranh");
-  }
-
-  // Education / Textbook
-  if (/(giao khoa|tham khao|sgk|luyen thi|on thi)/i.test(q)) {
+  if (/(thieu nhi|tre em|ehon|co tich|kids|hoc sinh)/.test(q)) slugs.add("thieu-nhi");
+  if (/(khoa hoc vien tuong|sci fi|vu tru|thien van|tuong lai)/.test(q)) slugs.add("khoa-hoc-vien-tuong");
+  if (/(truyen tranh|manga|comic|anime)/.test(q)) slugs.add("truyen-tranh");
+  if (/(giao khoa|tham khao|sgk|luyen thi|on thi)/.test(q)) {
     slugs.add("sach-giao-khoa");
     slugs.add("sach-tham-khao");
   }
-
-  // Languages
-  if (/(ngoai ngu|tieng anh|english|tieng nhat|tieng han|hoc tieng)/i.test(q)) {
-    slugs.add("sach-hoc-ngoai-ngu");
-  }
-
-  // Arts
-  if (/(nghe thuat|hoi hoa|am nhac|nhiep anh|thiet ke|art)/i.test(q)) {
-    slugs.add("nghe-thuat");
-  }
-
-  // Law / Politics
-  if (/(chinh tri|phap luat|luat|hien phap|phap quy)/i.test(q)) {
-    slugs.add("chinh-tri-phap-luat");
-  }
-
+  if (/(ngoai ngu|tieng anh|english|tieng nhat|tieng han|hoc tieng)/.test(q)) slugs.add("sach-hoc-ngoai-ngu");
+  if (/(nghe thuat|hoi hoa|am nhac|nhiep anh|thiet ke|art)/.test(q)) slugs.add("nghe-thuat");
+  if (/(chinh tri|phap luat|luat|hien phap|phap quy)/.test(q)) slugs.add("chinh-tri-phap-luat");
   return Array.from(slugs);
 }
 
@@ -535,9 +307,18 @@ module.exports.queryAI = async (
   question: string,
   context?: string,
   relatedBooks?: any[],
+  history: { role: "user" | "assistant"; content: string; bookIds?: string[] }[] = [],
 ) => {
-  const fallbackIntent = detectIntent(question);
   const hasBooks = Array.isArray(relatedBooks) && relatedBooks.length > 0;
+  const normalizedQuestion = normalizeForSearch(question);
+  const hasBookFollowUp =
+    hasBooks &&
+    /(may sach|sach tren|nhung sach|nhung cuon|cuon tren|sach do|cuon do|vua goi y|goi y tren|noi ve gi|noi ve cuon|tac gia do|gia cuon do|review cuon do)/.test(
+      normalizedQuestion,
+    );
+  const fallbackIntent: AiStructuredResponse["intent"] = hasBookFollowUp
+    ? "book_detail"
+    : detectIntent(question);
 
   try {
     const apiKey = process.env.GROQ_API_KEY;
@@ -545,35 +326,42 @@ module.exports.queryAI = async (
       throw new Error("GROQ_API_KEY không được cấu hình");
     }
 
-    const systemPrompt = `Bạn là BOOK STYLIST - Chuyên gia trợ lý Omni-Assistant cao cấp của BookHive.
-Bạn không chỉ tư vấn sách, mà còn là người quản gia tận tâm nắm rõ mọi trạng thái của cửa hàng và khách hàng.
+    const systemPrompt = `You are BookHive's conversational assistant. Answer general questions naturally and help customers with books, their cart, orders, payments, and store policies.
 
-1. KIẾN THỨC TOÀN DIỆN (OMNI-CONTEXT):
-- Kiểm tra mục ## TÀI KHOẢN CỦA BẠN: Để biết khách đã mua gì, đơn hàng đang ở tình trạng nào (pending, shipping, delivered) hoặc giỏ hàng có sách gì chưa thanh toán.
-- Kiểm tra mục ## ĐÁNH GIÁ CỘNG ĐỒNG: Sử dụng các nhận xét thực tế để tư vấn khách quan. Ví dụ: "Nhiều độc giả khác đánh giá cuốn này 5 sao vì cốt truyện rất lôi cuốn...".
-- Kiểm tra mục ## KHO SÁCH: Cung cấp thông tin sản phẩm chính xác.
+LANGUAGE AND TONE
+- Reply in the same language as the customer's latest message. Use natural, concise Vietnamese when they write Vietnamese; use natural English when they write English.
+- Answer the actual question directly and conversationally. Do not force a book recommendation into greetings or unrelated questions.
+- Use the conversation history to understand references such as "those books", "the one you mentioned", "mấy cuốn trên", or "cuốn đó". Treat the latest message as a follow-up when it refers to earlier turns.
+- For general knowledge questions, answer from your general knowledge. Use the supplied store context as the source of truth for BookHive's catalog, prices, stock, orders, cart, reviews, and policies.
 
-2. CHIẾN LƯỢC PHẢN HỒI (V7):
-- Tra cứu đơn hàng: Nếu khách hỏi về đơn hàng, hãy chủ động tra cứu mã đơn và trạng thái trong context. Nếu chưa có đơn nào, hãy hướng dẫn khách cách mua hàng.
-- Giỏ hàng: Nhắc nhở tinh tế nếu khách có món đồ bỏ quên trong giỏ hàng.
-- Đánh giá: Ưu tiên dùng các từ ngữ của khách hàng cũ (trong mục Reviews) để tăng sự thuyết phục.
-- Persona: Luôn thấu cảm (Empathy), lịch thiệp và mang phong thái một chuyên gia "biết tuốt" về BookHive.
+GROUNDING AND RECOMMENDATIONS
+- Treat the supplied REAL BOOK CATALOG as the only source of truth for inventory, titles, authors, prices, ratings, availability, and book descriptions. Never invent or substitute titles.
+- Recommend only catalog books whose title, author, category, or description clearly matches the requested subject. Popularity alone is not relevance.
+- If the customer asks whether a specific title exists and it is absent from the catalog, say that the exact title was not found. Offer alternatives only if the catalog shows they match the same subject.
+- If no catalog result matches the request, say so clearly. Do not fill the answer or cards with unrelated books.
+- Do not claim personal purchases, stock, delivery, discounts, policies, or review details unless those facts appear in the context.
+- Never expose private account information beyond what is needed to answer that customer's question.
 
-3. QUY TẮC CỐT LÕI:
-- ĐỒNG BỘ: Chỉ nhắc tên sách có trong Context. Hệ thống tự hiển thị Card.
-- TUYỆT ĐỐI không tự viết danh sách liệt kê sách bằng dấu gạch đầu dòng nếu đã có cards.
-- Nếu không tìm thấy thông tin đơn hàng/sách cụ thể, hãy tư vấn dựa trên kiến thức chung của bạn nhưng khéo léo lái về website.
-
-4. FORMAT JSON (BẮT BUỘC):
+RESPONSE FORMAT
+Return one valid JSON object only, with this shape:
 {
-  "message": "Lời thoại của bạn. (Cá nhân hóa + Thấu cảm + Trả lời trực diện câu hỏi)",
-  "intent": "books_search | books_recommend | cart | order | payment | general_chat",
+  "message": "A direct, helpful answer in the customer's language",
+  "intent": "books_search | books_recommend | book_detail | cart | order | payment | auth_login | auth_register | general_help | general_chat | out_of_scope",
   "actions": []
-}`;
+}
+Use only supported action objects with type, label, and a local href when useful. Do not include markdown fences or extra text outside the JSON object.`;
 
-    const userContent = context
-      ? `Câu hỏi: ${question}\n\nThông tin liên quan:\n${context}`
-      : `Câu hỏi: ${question}`;
+    const conversation = history
+      .slice(-10)
+      .map((turn) => `${turn.role === "user" ? "Customer" : "Assistant"}: ${turn.content}`)
+      .join("\n");
+    const userContent = [
+      conversation ? `Lịch sử hội thoại gần đây:\n${conversation}` : "",
+      `Câu hỏi mới nhất của khách: ${question}`,
+      context ? `Thông tin cửa hàng và dữ liệu liên quan:\n${context}` : "",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
 
     const models = [
       "llama-3.3-70b-versatile",
@@ -597,7 +385,7 @@ Bạn không chỉ tư vấn sách, mà còn là người quản gia tận tâm 
               { role: "user", content: userContent },
             ],
             max_tokens: 800,
-            temperature: 0.7,
+            temperature: 0.25,
           },
           {
             headers: {
@@ -645,6 +433,21 @@ Bạn không chỉ tư vấn sách, mà còn là người quản gia tận tâm 
       intent = fallbackIntent;
       actions = buildDefaultActions(fallbackIntent, hasBooks);
     }
+
+    // Keep clear greetings and references to earlier recommendations in their
+    // conversational intent even if the model guesses another intent.
+    if (hasBookFollowUp) {
+      intent = "book_detail";
+    } else if (fallbackIntent === "general_chat") {
+      intent = "general_chat";
+      actions = [];
+      relatedBooks = [];
+    }
+
+    // Only show catalog cards for book-related questions; never attach unrelated
+    // recommendations to account, order, payment, or general conversation replies.
+    const bookIntents = new Set(["books_search", "books_recommend", "book_detail"]);
+    if (!bookIntents.has(intent)) relatedBooks = [];
 
     // Sync cards with message content
     const msgLower = message.toLowerCase();
@@ -697,17 +500,33 @@ Bạn không chỉ tư vấn sách, mà còn là người quản gia tận tâm 
     console.error("AI Service Error:", error.response?.data || error.message);
 
     // Fallback response when AI provider is completely unavailable
-    let fallbackMessage =
-      "Xin chào! Book Hive sẵn sàng hỗ trợ bạn tìm kiếm và lựa chọn những cuốn sách hay nhất.";
-    if (hasBooks) {
+    let fallbackMessage = "Chào bạn! Book Hive sẵn sàng hỗ trợ bạn tìm sách và giải đáp thắc mắc.";
+    const isBookIntent = ["books_search", "books_recommend", "book_detail"].includes(fallbackIntent);
+    if (hasBookFollowUp) {
+      const summaries = (relatedBooks || [])
+        .slice(0, 4)
+        .map((book: any) => {
+          const description = String(book.description || "")
+            .replace(/<[^>]*>/g, " ")
+            .replace(/\s+/g, " ")
+            .trim()
+            .slice(0, 320);
+          return description ? `“${book.title}”: ${description}` : `“${book.title}” (chưa có mô tả trong kho sách)`;
+        })
+        .join("\n\n");
+      fallbackMessage = `Các cuốn sách bạn vừa hỏi nói về:\n\n${summaries}`;
+    } else if (fallbackIntent === "general_chat") {
+      fallbackMessage = "Chào bạn! Mình có thể trò chuyện cùng bạn, tìm sách theo chủ đề hoặc giúp tra cứu thông tin cửa hàng. Bạn cần gì nè?";
+    } else if (isBookIntent && hasBooks) {
       const bookNames = (relatedBooks || [])
         .slice(0, 3)
-        .map((b: any) => `"${b.title}"`)
+        .map((book: any) => `"${book.title}"`)
         .join(", ");
-      fallbackMessage = `Book Hive gợi ý cho bạn một số cuốn sách hay phù hợp với nhu cầu: ${bookNames}. Bạn có thể xem chi tiết bên dưới nhé!`;
+      fallbackMessage = `Mình tìm được một vài cuốn phù hợp trong kho: ${bookNames}. Bạn có thể xem thông tin bên dưới.`;
+    } else if (isBookIntent) {
+      fallbackMessage = "Mình chưa tìm thấy sách khớp với chủ đề hoặc tựa sách này trong kho hiện tại. Bạn thử từ khóa khác hoặc duyệt danh mục sách nhé.";
     }
-
-    const fallbackCards: UiCard[] = (relatedBooks || []).map((book: any) => ({
+    const fallbackCards: UiCard[] = (isBookIntent ? relatedBooks || [] : []).map((book: any) => ({
       type: "book",
       id: String(book._id ?? book.id ?? ""),
       title: book.title,
@@ -744,15 +563,14 @@ module.exports.findRelatedBooks = async (
   options: QueryContextOptions = {},
 ) => {
   try {
+    if (detectIntent(query) === "general_chat") return [];
+
     const limit = options.limit || 5;
     const { keywords } = extractKeywords(query);
     const filters = parseBookFilters(query);
-
-    let books: any[] = [];
-    const slugRegex = buildSlugRegexFromQuery(query);
     const guessedCategorySlugs = guessCategorySlugsFromQuery(query);
-
     const baseFind: any = { deleted: false, status: "active" };
+
     if (filters.featured) baseFind.featured = true;
     if (filters.newest) baseFind.newest = true;
     if (filters.priceMin != null || filters.priceMax != null) {
@@ -760,216 +578,139 @@ module.exports.findRelatedBooks = async (
       if (filters.priceMin != null) baseFind.priceBuy.$gte = filters.priceMin;
       if (filters.priceMax != null) baseFind.priceBuy.$lte = filters.priceMax;
     }
-    if (filters.highRating) {
-      baseFind.rating = { $gte: 4.5 };
-    }
+    if (filters.highRating) baseFind.rating = { $gte: 4.5 };
 
-    let sort: any = {};
+    const sort: any = {};
     if (filters.bestSeller) sort.soldCount = -1;
     if (filters.featured) sort.featured = -1;
     if (filters.newest) sort.createdAt = -1;
     if (filters.highRating) sort.rating = -1;
     if (Object.keys(sort).length === 0) {
-      sort = { soldCount: -1, featured: -1, createdAt: -1 };
+      sort.soldCount = -1;
+      sort.featured = -1;
+      sort.createdAt = -1;
     }
 
-    const buildTextOr = (regex: RegExp) => [
-      { title: regex },
-      { author: regex },
-      { description: regex },
-      ...(slugRegex ? [{ slug: slugRegex }] : []),
-    ];
-
-    // ← THÊM: Pass đặc biệt - nếu detect filter pattern, chỉ apply filter + sort
-    if (
-      filters.bestSeller ||
-      filters.featured ||
-      filters.newest ||
-      filters.highRating
-    ) {
-      books = await Book.find(baseFind).sort(sort).limit(limit);
-      if (books && books.length > 0) {
-        return books;
-      }
+    // Explicit catalog filters such as best sellers should not be mixed with keyword matches.
+    if (filters.bestSeller || filters.featured || filters.newest || filters.highRating) {
+      const filteredBooks = await Book.find(baseFind).sort(sort).limit(limit);
+      return filteredBooks;
     }
 
-    // Pass 0: if query strongly implies a category, fetch books by that category first
+    // Prefer a title or author containing every meaningful query term.
+    const meaningfulTerms = keywords.filter((word: string) => word.length >= 2).slice(0, 4);
+    if (meaningfulTerms.length > 0) {
+      const exactTerms = meaningfulTerms.map((word: string) => {
+        const regex = new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+        return { $or: [{ title: regex }, { author: regex }] };
+      });
+      const titleMatches = await Book.find({ ...baseFind, $and: exactTerms })
+        .sort(sort)
+        .limit(limit);
+      if (titleMatches.length > 0) return titleMatches;
+    }
+
+    // If the user asks about a subject, only recommend books in its matching category.
     if (guessedCategorySlugs.length > 0) {
-      const cats = await Category.find({
+      const categories = await Category.find({
         deleted: false,
         status: "active",
         slug: { $in: guessedCategorySlugs },
       }).select("_id slug");
+      const categoryIds = categories
+        .map((category: any) => String(category._id ?? ""))
+        .filter(Boolean);
 
-      const catIds = (cats || [])
-        .map((c: any) => String(c._id ?? ""))
-        .filter((id: string) => id);
-
-      if (catIds.length > 0) {
-        books = await Book.find({ ...baseFind, category_id: { $in: catIds } })
-          .sort(sort)
-          .limit(limit);
-      }
-    }
-
-    // Pass 1.5: Thử tìm kiếm chính xác theo cụm từ (Phrase match) cho cả Tên sách và Tác giả
-    if (keywords.length >= 2) {
-      const cleanedPhrase = query
-        .replace(
-          /(sách|book|của|được|tìm|kiếm|đánh giá|nhận xét|review|mọi người|như thế nào|thế nào)/gi,
-          "",
-        )
-        .trim();
-      if (cleanedPhrase.length >= 3) {
-        const phraseRegex = new RegExp(cleanedPhrase, "i");
-        const phraseBooks = await Book.find({
+      if (categoryIds.length > 0) {
+        const categoryBooks = await Book.find({
           ...baseFind,
-          $or: [{ title: phraseRegex }, { author: phraseRegex }],
+          category_id: { $in: categoryIds },
         })
           .sort(sort)
           .limit(limit);
-        if (phraseBooks.length > 0) return phraseBooks;
+        if (categoryBooks.length > 0) return categoryBooks;
       }
     }
 
-    if (keywords.length > 0) {
-      const pattern = keywords
-        .map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-        .join("|");
-      const regex = new RegExp(pattern, "i");
-
-      if (!books || books.length === 0) {
-        // Search: title, author, description
-        books = await Book.find({
-          ...baseFind,
+    // For a general keyword search, require every meaningful term to match somewhere
+    // in the book metadata. A single common word must not pull unrelated books in.
+    if (meaningfulTerms.length > 0) {
+      const termConditions = meaningfulTerms.map((word: string) => {
+        const regex = new RegExp(word.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+        return {
           $or: [
             { title: regex },
             { author: regex },
             { description: regex },
-            ...(slugRegex ? [{ slug: slugRegex }] : []),
+            { slug: regex },
           ],
-        })
-          .sort(sort)
-          .limit(limit);
-      }
-    } else {
-      const regex = new RegExp(query, "i");
-      if (!books || books.length === 0) {
-        books = await Book.find({
-          ...baseFind,
-          $or: [
-            { title: regex },
-            { author: regex },
-            { description: regex },
-            ...(slugRegex ? [{ slug: slugRegex }] : []),
-          ],
-        })
-          .sort(sort)
-          .limit(limit);
-      }
+        };
+      });
+      const matchingBooks = await Book.find({ ...baseFind, $and: termConditions })
+        .sort(sort)
+        .limit(limit);
+      if (matchingBooks.length > 0) return matchingBooks;
     }
 
-    // Pass 2: nếu không ra kết quả do filter quá chặt, thử bỏ filter nhưng giữ từ khóa
-    if ((!books || books.length === 0) && keywords.length > 0) {
-      const pattern = keywords
-        .map((k) => k.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-        .join("|");
-      const regex = new RegExp(pattern, "i");
-      books = await Book.find({
-        deleted: false,
-        status: "active",
-        $or: [{ title: regex }, { author: regex }, { description: regex }],
-      })
+    // Only use popular books for genuinely broad requests, never as a fallback
+    // for a specific topic or title that was not found.
+    if (meaningfulTerms.length === 0) {
+      return Book.find({ deleted: false, status: "active" })
         .sort({ soldCount: -1, featured: -1, createdAt: -1 })
         .limit(limit);
     }
 
-    // Fallback: chỉ return sách ngẫu nhiên nếu user hỏi chung chung về "sách"
-    // Nếu có từ khóa cụ thể mà không tìm thấy -> trả về rỗng để AI biết là shop không có
-    if (!books || books.length === 0) {
-      const isGeneral =
-        !query ||
-        keywords.length === 0 ||
-        /(sách|book|gợi ý|recommend|truyện)/i.test(query);
-      if (isGeneral) {
-        books = await Book.find({ deleted: false, status: "active" })
-          .sort(sort)
-          .limit(limit);
-      }
-    }
-
-    return books || [];
+    return [];
   } catch (error: any) {
     console.error("Error finding related books:", error.message);
     return [];
   }
 };
-
 /**
  * Build context string đa tầng (Version 7)
  */
 module.exports.buildContext = (books: any[], options: any = {}) => {
   const { orders = [], reviews = [], cart = null, user = null } = options;
+  const sections: string[] = [];
 
-  let context = `## THUẬN TIỆN & CHÍNH SÁCH:
-- Giao hàng: Miễn phí nội thành TP.HCM (>300k), 1-3 ngày toàn quốc.
-- Thanh toán: COD, Chuyển khoản, MoMo, VNPAY. Đổi trả 7 ngày lỗi SX.
-`;
+  sections.push(`STORE POLICIES:\n- Delivery: free within Ho Chi Minh City for orders above 300,000 VND; nationwide delivery is usually 1-3 days.\n- Payment methods: COD, bank transfer, MoMo, and VNPAY. Returns are accepted within 7 days for manufacturing defects.`);
 
   if (user) {
-    context += `\n## CHÀO BẠN:
-- Tên khách hàng: ${user.fullName}
-- Email: ${user.email}
-`;
+    sections.push(`SIGNED-IN CUSTOMER:\n- Name: ${user.fullName || "Not provided"}\n- Email: ${user.email || "Not provided"}`);
   }
 
-  if (cart && cart.items && cart.items.length > 0) {
-    context += `\n## GIỎ HÀNG CỦA BẠN (Chưa thanh toán):
-${cart.items.map((p: any) => `- ${p.title} (SL: ${p.quantity}, Giá: ${p.price}đ)`).join("\n")}
-`;
+  if (cart?.items?.length) {
+    sections.push(`CURRENT CART (not yet purchased):\n${cart.items
+      .map((item: any) => `- ${item.title} (quantity: ${item.quantity}, price: ${item.price} VND)`)
+      .join("\n")}`);
   }
 
-  if (orders && orders.length > 0) {
-    context += `\n## TRẠNG THÁI ĐƠN HÀNG GẦN ĐÂY:
-${orders
-  .map(
-    (o: any) =>
-      `- Mã: ${o.orderCode}, Trạng thái: ${o.status}, Tổng: ${o.totalAmount}đ (Ngày mua: ${o.createdAt})`,
-  )
-  .join("\n")}
-`;
+  if (orders.length) {
+    sections.push(`RECENT ORDERS:\n${orders
+      .map((order: any) => `- Order ${order.orderCode}: status ${order.status}, total ${order.totalAmount} VND, date ${order.createdAt}`)
+      .join("\n")}`);
   }
 
-  if (reviews && reviews.length > 0) {
-    context += `\n## ĐÁNH GIÁ CỦA CỘNG ĐỒNG:
-${reviews
-  .map(
-    (r: any) =>
-      `- Sách: ${r.book?.title || "Sách"}, Rating: ${r.rating}/5, Nhận xét: "${r.comment}" (Bởi: ${r.user?.fullName || "Khách"})`,
-  )
-  .join("\n")}
-`;
+  if (reviews.length) {
+    sections.push(`CUSTOMER REVIEWS:\n${reviews
+      .map((review: any) => `- Book: ${review.book?.title || "Unknown"}; rating: ${review.rating}/5; review: "${review.comment || "No written comment"}"`)
+      .join("\n")}`);
   }
 
-  if (books && books.length > 0) {
-    const booksData = books
-      .map(
-        (book, idx) =>
-          `SÁCH #${idx + 1}:
-         - Tiêu đề: "${book.title}"
-         - Tác giả: ${book.author}
-         - Giá: ${book.priceBuy}đ
-         - Đánh giá: ${book.rating}/5 sao
-         - Đã bán: ${book.soldCount || 0}
-         - Mô tả: ${book.description?.slice(0, 150) || "Đang cập nhật..."}`,
-      )
-      .join("\n\n");
-    context += `\n## KHO SÁCH (Dữ liệu thật):\n${booksData}`;
+  if (books?.length) {
+    const catalog = books.map((book: any, index: number) => {
+      const description = String(book.description || "")
+        .replace(/<[^>]*>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 220);
+      return `BOOK ${index + 1}:\n- ID: ${book._id}\n- Title: ${book.title}\n- Author: ${book.author || "Unknown"}\n- Category: ${book.category_name || book.category || "Not specified"}\n- Price: ${book.priceBuy ?? "Not specified"} VND\n- Rating: ${book.rating ?? "Not rated"}/5\n- Sold: ${book.soldCount ?? 0}\n- Description: ${description || "No description"}`;
+    });
+    sections.push(`REAL BOOK CATALOG (database matches for this request):\n${catalog.join("\n\n")}`);
   } else {
-    context += `\n## KHO SÁCH: Hiện không có kết quả trực tiếp. Hãy tư vấn linh hoạt.`;
+    sections.push("REAL BOOK CATALOG: No matching books were found in the store database. Do not invent titles or suggest unrelated books.");
   }
 
-  return context;
+  return sections.join("\n\n");
 };
-
 export {};

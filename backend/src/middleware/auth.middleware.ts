@@ -2,15 +2,23 @@ const jwt = require("jsonwebtoken");
 const Account = require("../api/v1/models/account.model");
 const User = require("../api/v1/models/user.model");
 
-module.exports.adminAuth = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ message: "Không có accessToken" });
-  }
+const isTrustedMutation = (req: any) => {
+  if (["GET", "HEAD", "OPTIONS"].includes(req.method)) return true;
+  const frontendOrigin = process.env.FRONTEND_URL
+    ? new URL(process.env.FRONTEND_URL).origin
+    : "";
+  return Boolean(frontendOrigin && req.get("origin") === frontendOrigin);
+};
 
-  const token = authHeader.split(" ")[1];
+module.exports.adminAuth = async (req, res, next) => {
+  const token = req.cookies?.bh_admin_session;
+  if (!token) return res.status(401).json({ message: "Unauthenticated" });
+  if (!isTrustedMutation(req)) return res.status(403).json({ message: "Untrusted request origin" });
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (decoded.tokenType !== "admin") {
+      return res.status(403).json({ message: "JWT không dành cho quản trị viên" });
+    }
     const account = await Account.findOne({
       _id: decoded.id,
       status: "active",
@@ -38,19 +46,17 @@ module.exports.adminAuth = async (req, res, next) => {
 
 module.exports.clientAuth = async (req, res, next) => {
   try {
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        success: false,
-        message: "Không có accessToken",
-      });
-    }
-
-    const token = authHeader.split(" ")[1];
-
+    const token = req.cookies?.bh_user_session;
+    if (!token) return res.status(401).json({ success: false, message: "Unauthenticated" });
+    if (!isTrustedMutation(req)) return res.status(403).json({ success: false, message: "Untrusted request origin" });
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      if (decoded.tokenType !== "user") {
+        return res.status(403).json({
+          success: false,
+          message: "JWT không dành cho tài khoản khách hàng",
+        });
+      }
 
       const user = await User.findOne({
         _id: decoded.id,

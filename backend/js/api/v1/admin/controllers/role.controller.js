@@ -24,21 +24,23 @@ module.exports.index = async (req, res) => {
             deleted: false,
         };
         if (keyword) {
-            const regex = new RegExp(keyword, "i");
+            const regex = new RegExp(String(keyword).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
             find.$or = [{ title: regex }];
         }
         let sort = {};
         if (req.query.sortKey && req.query.sortValue) {
             sort[req.query.sortKey] = Number(req.query.sortValue);
         }
-        const roles = await Role.find(find)
-            .skip(skip)
-            .limit(limit)
-            .sort(sort)
-            .populate("updatedBy", "fullName")
-            .populate("createdBy", "fullName")
-            .populate("deletedBy", "fullName");
-        const total = await Role.countDocuments(find);
+        const [roles, total] = await Promise.all([
+            Role.find(find)
+                .skip(skip)
+                .limit(limit)
+                .sort(sort)
+                .populate("updatedBy", "fullName")
+                .populate("createdBy", "fullName")
+                .populate("deletedBy", "fullName"),
+            Role.countDocuments(find),
+        ]);
         if (roles) {
             return res.status(200).json({
                 message: "Thành công!",
@@ -128,6 +130,15 @@ module.exports.edit = async (req, res) => {
 };
 module.exports.permissions = async (req, res) => {
     try {
+        await Permission.updateOne({ key: "view_transactions" }, {
+            $setOnInsert: {
+                key: "view_transactions",
+                label: "Xem giao dịch",
+                group: "Giao dịch",
+                slug: "view-transactions",
+                deleted: false,
+            },
+        }, { upsert: true });
         const permissions = await Permission.find({
             deleted: false,
         });
