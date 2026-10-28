@@ -18,7 +18,7 @@ export const Loading = ({
   const spinner = (
     <div className="flex flex-col items-center justify-center gap-4">
       <div
-        className={`${sizeClasses[size]} border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin`}
+        className={`${sizeClasses[size]} border-4 border-border border-t-primary rounded-full animate-spin`}
       />
       {text && <p className="text-gray-600 text-sm">{text}</p>}
     </div>
@@ -26,7 +26,7 @@ export const Loading = ({
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 bg-[#F0F9FF] bg-opacity-30 flex items-center justify-center z-50">
+      <div className="fixed inset-0 bg-surface-cream flex items-center justify-center z-50">
         {spinner}
       </div>
     );

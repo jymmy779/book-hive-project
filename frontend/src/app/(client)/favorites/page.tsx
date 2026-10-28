@@ -12,6 +12,7 @@ import { toast, ToastContainer } from "react-toastify";
 import { FiHeart, FiBookOpen } from "react-icons/fi";
 import Link from "next/link";
 import { ScrollReveal } from "@/app/components/Animation/ScrollReveal";
+import { BackButton } from "@/app/components/Button/BackButton/BackButton";
 import { useUser } from "@/contexts/UserContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -87,6 +88,9 @@ export default function FavoritesPage() {
   return (
     <>
       <div className="min-h-[calc(100vh-64px)] bg-[#faf8f5]">
+        <div className="container mx-auto max-w-4xl px-4 pt-4">
+          <BackButton className="rounded-lg px-1 py-1" />
+        </div>
         {/* Page Header Banner */}
         <ScrollReveal direction="down" distance={16} duration={0.4}>
           <div className="bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#047857] py-10 px-4 relative overflow-hidden">

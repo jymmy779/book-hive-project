@@ -9,7 +9,11 @@ export const BackButton = ({ className = "" }: BackButtonProps) => {
 
   return (
     <>
-      <button type="button" className={className} onClick={() => router.back()}>
+      <button
+        type="button"
+        className={`inline-flex items-center gap-1.5 transition-colors hover:text-primary-dark ${className}`}
+        onClick={() => router.back()}
+      >
         <svg
           xmlns="http://www.w3.org/2000/svg"
           className="w-5 h-5 text-primary"

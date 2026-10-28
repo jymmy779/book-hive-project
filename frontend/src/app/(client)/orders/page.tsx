@@ -13,6 +13,7 @@ import OrderCardSkeleton from "@/app/components/Skeleton/OrderCardSkeleton";
 import { Order } from "@/app/interfaces/order.interface";
 import { FiPackage, FiSearch, FiArrowLeft, FiMail } from "react-icons/fi";
 import { ScrollReveal } from "@/app/components/Animation/ScrollReveal";
+import { BackButton } from "@/app/components/Button/BackButton/BackButton";
 import { useUser } from "@/contexts/UserContext";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -126,6 +127,7 @@ export default function OrdersPage() {
     return (
       <div className="min-h-screen bg-surface-cream py-8 md:py-16 px-4">
         <div className="container mx-auto max-w-lg">
+          <BackButton className="mb-4 rounded-lg px-1 py-1" />
           {/* Header card */}
           <div className="bg-surface rounded-2xl border border-border shadow-sm p-6 md:p-8 mb-6">
             <div className="flex items-center gap-3 mb-4">
@@ -222,6 +224,7 @@ export default function OrdersPage() {
   return (
     <div className="min-h-screen bg-surface-cream py-6 md:py-10 px-4">
       <div className="container mx-auto">
+        <BackButton className="mb-4 rounded-lg px-1 py-1" />
         {/* Tab switcher */}
         <ScrollReveal direction="down" distance={16} duration={0.4}>
           <div className="mb-6 md:mb-8 flex flex-col sm:flex-row gap-3">

@@ -97,7 +97,7 @@ export default function CheckoutPage() {
         try {
           await axios.delete(`${API_URL}/api/v1/cart/delete-all`);
         } catch (error) {
-          console.error("Lỗi xóa cart:", error);
+          console.error("Lỗi xóa giỏ hàng:", error);
         }
 
         clearCart();
@@ -127,15 +127,28 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen py-6 md:py-12 bg-gray-50">
+    <div className="min-h-screen py-6 md:py-12 bg-surface-cream">
       <div className="container mx-auto px-4">
-        <h1 className="text-2xl md:text-4xl font-bold text-slate-800 mb-6 md:mb-8">
-          Thanh toán
-        </h1>
+        <div className="mb-6 md:mb-8 flex items-center gap-3">
+          <div className="rounded-xl bg-primary-light p-2.5 text-primary"><FiCreditCard size={20} /></div>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold text-primary">Thanh toán</h1>
+            <p className="mt-1 text-sm text-text-muted">Hoàn tất thông tin để đặt sách</p>
+          </div>
+        </div>
+
+        <div className="mb-6 grid grid-cols-3 gap-2 md:mb-8 md:gap-4">
+          {["Giỏ hàng", "Giao hàng", "Thanh toán"].map((step, index) => (
+            <div key={step} className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-xs font-semibold md:px-4 md:text-sm ${index === 1 ? "border-primary/20 bg-primary-light text-primary" : "border-border bg-surface text-text-muted"}`}>
+              <span className={`flex h-6 w-6 items-center justify-center rounded-full ${index === 1 ? "bg-primary text-white" : "bg-surface-secondary"}`}>{index + 1}</span>
+              {step}
+            </div>
+          ))}
+        </div>
 
         {items.length === 0 ? (
-          <div className="bg-white rounded-2xl p-6 md:p-12 shadow text-center">
-            <h1 className="text-2xl md:text-3xl font-bold text-slate-800 mb-4">
+          <div className="bg-surface rounded-2xl border border-border p-6 md:p-12 shadow-sm text-center">
+            <h1 className="text-2xl md:text-3xl font-bold text-text-primary mb-4">
               Không có sản phẩm
             </h1>
           </div>
@@ -143,21 +156,21 @@ export default function CheckoutPage() {
           <form onSubmit={handleSubmit(handleContinue)}>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8">
               <div className="lg:col-span-2 space-y-6 md:space-y-8">
-                <div className="bg-white rounded-lg shadow p-4 md:p-6">
-                  <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-4 md:mb-6">
+                <div className="bg-surface rounded-2xl border border-border shadow-sm p-4 md:p-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-text-primary mb-4 md:mb-6">
                     Thông tin giao hàng
                   </h2>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      <label className="block text-sm font-semibold text-text-primary mb-2">
                         Họ và tên
                       </label>
                       <input
                         type="text"
                         {...register("fullName")}
                         placeholder="Nhập họ tên"
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm md:text-base"
+                        className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-sm md:text-base"
                         disabled={isProcessing}
                       />
                       {errors.fullName && (
@@ -169,14 +182,14 @@ export default function CheckoutPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        <label className="block text-sm font-semibold text-text-primary mb-2">
                           Email
                         </label>
                         <input
                           type="email"
                           {...register("email")}
-                          placeholder="Nhập email"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm md:text-base"
+                          placeholder="Nháº­p email"
+                          className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-sm md:text-base"
                           disabled={isProcessing}
                         />
                         {errors.email && (
@@ -187,14 +200,14 @@ export default function CheckoutPage() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        <label className="block text-sm font-semibold text-text-primary mb-2">
                           Số điện thoại
                         </label>
                         <input
                           type="tel"
                           {...register("phone")}
                           placeholder="Nhập số điện thoại"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm md:text-base"
+                          className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-sm md:text-base"
                           disabled={isProcessing}
                         />
                         {errors.phone && (
@@ -206,14 +219,14 @@ export default function CheckoutPage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      <label className="block text-sm font-semibold text-text-primary mb-2">
                         Địa chỉ giao hàng
                       </label>
                       <textarea
                         {...register("address")}
                         placeholder="Nhập địa chỉ nhận hàng"
                         rows={3}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none text-sm md:text-base"
+                        className="w-full px-4 py-2 border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary resize-none text-sm md:text-base"
                         disabled={isProcessing}
                       />
                       {errors.address && (
@@ -225,21 +238,13 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-4 md:p-6">
-                  <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-4 md:mb-6">
+                <div className="bg-surface rounded-2xl border border-border shadow-sm p-4 md:p-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-text-primary mb-4 md:mb-6">
                     Phương thức thanh toán
                   </h2>
 
                   <div className="space-y-4">
-                    <label
-                      className="flex items-center p-3 md:p-4 border-2 rounded-lg cursor-pointer transition-all duration-200"
-                      style={{
-                        borderColor:
-                          paymentMethod === "transfer" ? "#3b82f6" : "#e5e7eb",
-                        backgroundColor:
-                          paymentMethod === "transfer" ? "#eff6ff" : "white",
-                      }}
-                    >
+                    <label className={`flex items-center p-3 md:p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${paymentMethod === "transfer" ? "border-primary bg-primary-light" : "border-border bg-surface"}`}>
                       <input
                         type="radio"
                         name="payment"
@@ -251,24 +256,16 @@ export default function CheckoutPage() {
                         className="w-4 h-4 text-primary shrink-0"
                       />
                       <div className="ml-3 md:ml-4">
-                        <p className="font-semibold text-slate-800 text-sm md:text-base">
+                        <p className="font-semibold text-text-primary text-sm md:text-base">
                           <FiCreditCard className="inline mr-2" /> Chuyển khoản ngân hàng
                         </p>
-                        <p className="text-xs md:text-sm text-slate-500">
+                        <p className="text-xs md:text-sm text-text-muted">
                           Quét mã QR hoặc chuyển khoản thủ công
                         </p>
                       </div>
                     </label>
 
-                    <label
-                      className="flex items-center p-3 md:p-4 border-2 rounded-lg cursor-pointer transition-all duration-200"
-                      style={{
-                        borderColor:
-                          paymentMethod === "cod" ? "#3b82f6" : "#e5e7eb",
-                        backgroundColor:
-                          paymentMethod === "cod" ? "#eff6ff" : "white",
-                      }}
-                    >
+                    <label className={`flex items-center p-3 md:p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 ${paymentMethod === "cod" ? "border-primary bg-primary-light" : "border-border bg-surface"}`}>
                       <input
                         type="radio"
                         name="payment"
@@ -280,10 +277,10 @@ export default function CheckoutPage() {
                         className="w-4 h-4 text-primary shrink-0"
                       />
                       <div className="ml-3 md:ml-4">
-                        <p className="font-semibold text-slate-800 text-sm md:text-base">
+                        <p className="font-semibold text-text-primary text-sm md:text-base">
                           <FiTruck className="inline mr-2" /> Thanh toán khi nhận hàng
                         </p>
-                        <p className="text-xs md:text-sm text-slate-500">
+                        <p className="text-xs md:text-sm text-text-muted">
                           Thanh toán tiền mặt khi nhận sách
                         </p>
                       </div>
@@ -291,8 +288,8 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-lg shadow p-4 md:p-6">
-                  <h2 className="text-xl md:text-2xl font-bold text-slate-800 mb-4 md:mb-6">
+                <div className="bg-surface rounded-2xl border border-border shadow-sm p-4 md:p-6">
+                  <h2 className="text-xl md:text-2xl font-bold text-text-primary mb-4 md:mb-6">
                     Chi tiết đơn hàng
                   </h2>
 
@@ -300,13 +297,13 @@ export default function CheckoutPage() {
                     {items.map((item, index) => (
                       <div
                         key={index}
-                        className="flex justify-between items-start pb-3 border-b border-gray-200"
+                        className="flex justify-between items-start pb-3 border-b border-border"
                       >
                         <div className="flex-1 pr-4">
-                          <p className="font-semibold text-slate-800 text-sm md:text-base">
+                          <p className="font-semibold text-text-primary text-sm md:text-base">
                             {item.title}
                           </p>
-                          <p className="text-xs md:text-sm text-slate-500">
+                          <p className="text-xs md:text-sm text-text-muted">
                             x{item.quantity}
                           </p>
                         </div>
@@ -318,7 +315,7 @@ export default function CheckoutPage() {
                     ))}
 
                     <div className="flex justify-between pt-3">
-                      <span className="font-bold text-base md:text-lg text-slate-800">
+                      <span className="font-bold text-base md:text-lg text-text-primary">
                         Tổng cộng:
                       </span>
                       <span className="text-xl md:text-2xl font-bold text-primary">
@@ -330,28 +327,28 @@ export default function CheckoutPage() {
               </div>
 
               <div className="lg:col-span-1">
-                <div className="bg-white rounded-lg shadow p-4 md:p-6 sticky top-[80px] md:top-40">
-                  <h3 className="text-lg md:text-xl font-bold text-slate-800 mb-4 md:mb-6">
+                <div className="bg-surface rounded-2xl border border-border shadow-sm p-4 md:p-6 sticky top-[80px] md:top-40">
+                  <h3 className="text-lg md:text-xl font-bold text-text-primary mb-4 md:mb-6">
                     Tóm tắt
                   </h3>
 
-                  <div className="space-y-2 md:space-y-3 mb-4 md:mb-6 pb-4 md:pb-6 border-b border-gray-200 text-sm md:text-base">
-                    <div className="flex justify-between text-slate-600">
+                  <div className="space-y-2 md:space-y-3 mb-4 md:mb-6 pb-4 md:pb-6 border-b border-border text-sm md:text-base">
+                    <div className="flex justify-between text-text-secondary">
                       <span>Tạm tính:</span>
                       <span className="font-semibold">
                         {totalAmount.toLocaleString("vi-VN")} đ
                       </span>
                     </div>
-                    <div className="flex justify-between text-slate-600">
+                    <div className="flex justify-between text-text-secondary">
                       <span>Phí vận chuyển:</span>
-                      <span className="font-semibold text-green-600">
+                      <span className="font-semibold text-success">
                         Miễn phí
                       </span>
                     </div>
                   </div>
 
                   <div className="flex justify-between mb-4 md:mb-6">
-                    <span className="text-base md:text-lg font-bold text-slate-800">
+                    <span className="text-base md:text-lg font-bold text-text-primary">
                       Tổng:
                     </span>
                     <span className="text-xl md:text-2xl font-bold text-primary">
@@ -362,19 +359,19 @@ export default function CheckoutPage() {
                   <button
                     type="submit"
                     disabled={isProcessing}
-                    className="w-full py-3 cursor-pointer bg-primary text-white font-bold rounded-lg hover:bg-blue-700 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-sm md:text-base"
+                    className="w-full py-3 cursor-pointer bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 text-sm md:text-base"
                   >
                     {isProcessing ? "Đang xử lý..." : <><FiCheck className="inline mr-2" /> Tiếp tục</>}
                   </button>
 
                   <Link
                     href="/cart"
-                    className="block w-full py-3 bg-gray-100 text-slate-800 font-bold rounded-lg hover:bg-gray-200 transition-colors duration-200 text-center mt-3 text-sm md:text-base"
+                    className="block w-full py-3 bg-surface-secondary text-text-primary font-bold rounded-xl hover:bg-surface-secondary transition-colors duration-200 text-center mt-3 text-sm md:text-base"
                   >
                     <FiArrowLeft className="inline mr-2" /> Quay lại giỏ hàng
                   </Link>
 
-                  <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-200 text-xs md:text-sm text-slate-500 space-y-2">
+                  <div className="mt-4 md:mt-6 pt-4 md:pt-6 border-t border-border text-xs md:text-sm text-text-muted space-y-2">
                     <p><FiCheck className="inline mr-1" /> Giao hàng toàn quốc</p>
                     <p><FiCheck className="inline mr-1" /> Đổi trả trong 30 ngày</p>
                     <p><FiCheck className="inline mr-1" /> Thanh toán an toàn</p>

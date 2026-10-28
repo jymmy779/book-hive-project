@@ -52,7 +52,6 @@ export default function SearchPage() {
     [],
   );
 
-  const resultsRef = useRef<any>(null);
   const favoriteIdsSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
 
   useEffect(() => {
@@ -106,18 +105,13 @@ export default function SearchPage() {
     fetchBooks();
   }, [keyword, page, limit, sort]);
 
-  useEffect(() => {
-    if (!isLoading) {
-      resultsRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
-  }, [page, sortValue, isLoading]);
-
   useSyncParams(setPage, setSortValue, setSort);
 
-  const handlePageChange = usePageChange("search", setPage, "client");
+  const changeSearchPage = usePageChange("search", setPage, "client");
+  const handlePageChange = (newPage: number) => {
+    changeSearchPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const handleSortChange = useSortChange("search", "client");
 
   const handleToggleFavorite = useCallback(
@@ -216,10 +210,7 @@ export default function SearchPage() {
 
         {books.length > 0 ? (
           <ScrollReveal direction="up" distance={20} duration={0.4} delay={0.05}>
-            <div
-              ref={resultsRef}
-              className="grid grid-cols-2 min-[768px]:grid-cols-3 min-[1032px]:grid-cols-4 gap-4 md:gap-6 mb-8"
-            >
+            <div className="grid grid-cols-2 min-[768px]:grid-cols-3 min-[1032px]:grid-cols-4 gap-4 md:gap-6 mb-8">
               {isPaging
                 ? Array.from({ length: 12 }).map((_, i) => (
                     <BookCardSkeleton key={i} />

@@ -89,7 +89,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       axios.post(`${API_URL}/api/v1/cart/add-item`, newItem);
     }
     toast.success(`Đã thêm "${newItem.title}" vào giỏ hàng!`, {
-      position: "bottom-right",
+      containerId: "cart-actions",
+      position: "top-right",
       autoClose: 2000,
       hideProgressBar: true,
       pauseOnHover: false,

@@ -32,12 +32,14 @@ module.exports.index = async (req, res) => {
     }
 
     if (keyword) {
-      const escapedKeyword = keyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      const regex = new RegExp(escapedKeyword, "i");
+      const textSearch = keyword.split(/\s+/).filter(Boolean).slice(0, 10).join(" ");
 
       // TÃ¬m categories match
       const matchingCategories = await Category.find({
-        $or: [{ title: regex }, { slug: regex }],
+        $or: [
+          { $text: { $search: textSearch } },
+          { slug: new RegExp(textSearch.replace(/\s+/g, "-"), "i") },
+        ],
         deleted: false,
         status: "active",
       })
@@ -46,14 +48,10 @@ module.exports.index = async (req, res) => {
 
       const categoryIds = matchingCategories.map((cat: any) => cat._id);
 
-      // Search books theo title, author, description, category_id
+      // Search indexed book metadata and include books from matching categories.
       find.$or = [
-        { title: regex },
-        { author: regex },
-        { description: regex },
-        ...(categoryIds.length > 0
-          ? [{ category_id: { $in: categoryIds } }]
-          : []),
+        { $text: { $search: textSearch } },
+        ...(categoryIds.length > 0 ? [{ category_id: { $in: categoryIds } }] : []),
       ];
     }
 
@@ -65,8 +63,14 @@ module.exports.index = async (req, res) => {
       sort.position = "desc";
     }
 
+    const bookQuery = Book.find(find);
+    if (keyword) bookQuery.select({ score: { $meta: "textScore" } });
     const [books, total] = await Promise.all([
-      Book.find(find).skip(skip).limit(limit).sort(sort).lean(),
+      bookQuery
+        .skip(skip)
+        .limit(limit)
+        .sort(keyword ? { score: { $meta: "textScore" }, ...sort } : sort)
+        .lean(),
       Book.countDocuments(find),
     ]);
 
