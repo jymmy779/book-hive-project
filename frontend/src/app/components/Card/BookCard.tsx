@@ -8,7 +8,6 @@ import { FaStar } from "react-icons/fa";
 import { FiShoppingCart, FiEye } from "react-icons/fi";
 import { memo } from "react";
 import { useCart } from "@/contexts/CartContext";
-import { toast } from "react-toastify";
 
 interface BookCardProps {
   book: Book;
@@ -50,10 +49,6 @@ export const BookCard = memo(
         slug: book.slug,
       });
 
-      toast.success(`Đã thêm "${book.title}" vào giỏ hàng!`, {
-        position: "bottom-right",
-        autoClose: 2000,
-      });
     };
 
     return (

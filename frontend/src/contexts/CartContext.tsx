@@ -88,6 +88,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     if (isAuthenticated) {
       axios.post(`${API_URL}/api/v1/cart/add-item`, newItem);
     }
+    toast.success(`Đã thêm "${newItem.title}" vào giỏ hàng!`, {
+      position: "bottom-right",
+      autoClose: 2000,
+      hideProgressBar: true,
+      pauseOnHover: false,
+    });
   };
 
   const removeFromCart = async (id: string) => {

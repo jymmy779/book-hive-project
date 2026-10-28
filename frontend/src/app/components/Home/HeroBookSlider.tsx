@@ -15,7 +15,6 @@ import {
 } from "react-icons/fi";
 import { HiSparkles } from "react-icons/hi2";
 import { useCart } from "@/contexts/CartContext";
-import { toast } from "react-toastify";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -153,9 +152,6 @@ export const HeroBookSlider = ({ books }: { books: Book[] }) => {
       quantity: 1,
       image: book.image,
       slug: book.slug,
-    });
-    toast.success(`Đã thêm "${book.title}" vào giỏ hàng!`, {
-      autoClose: 2000,
     });
   };
 

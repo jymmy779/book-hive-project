@@ -43,21 +43,21 @@ export const RankingPodium = ({
   return (
     <div className="mb-14 md:mb-18">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl sm:text-2xl font-bold text-primary flex items-center gap-2">
-            <span className="p-1.5 rounded-lg bg-amber-50 text-amber-600">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="flex items-center gap-2 text-lg font-bold leading-tight text-primary sm:text-2xl">
+            <span className="shrink-0 rounded-lg bg-amber-50 p-1.5 text-amber-600">
               <FiAward size={20} />
             </span>
             Bảng Xếp Hạng Độc Giả (Top Charts)
           </h2>
-          <p className="text-xs sm:text-sm text-text-muted mt-0.5">
+          <p className="mt-1 text-xs leading-relaxed text-text-muted sm:mt-0.5 sm:text-sm">
             Những tựa sách được tìm đọc và đặt mua nhiều nhất tuần này
           </p>
         </div>
         <Link
           href="/books?sort=best-seller"
-          className="text-xs sm:text-sm font-semibold text-accent hover:text-accent-hover flex items-center gap-1 transition-colors group"
+          className="group inline-flex w-fit items-center gap-1 text-xs font-semibold text-accent transition-colors hover:text-accent-hover sm:shrink-0 sm:text-sm"
         >
           <span>Xem trọn BXH</span>
           <FiArrowRight

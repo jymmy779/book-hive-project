@@ -32,21 +32,21 @@ export const BentoCategories = ({ categories }: { categories: HomeCategory[] }) 
 
   return (
     <div className="mb-14 md:mb-18">
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h2 className="flex items-center gap-2 text-xl font-bold text-primary sm:text-2xl">
-            <span className="rounded-lg bg-primary-light p-1.5 text-primary">
+      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="min-w-0">
+          <h2 className="flex items-center gap-2 text-lg font-bold leading-tight text-primary sm:text-2xl">
+            <span className="shrink-0 rounded-lg bg-primary-light p-1.5 text-primary">
               <FiGrid size={20} />
             </span>
             Khám Phá Theo Chủ Đề
           </h2>
-          <p className="mt-0.5 text-xs text-text-muted sm:text-sm">
+          <p className="mt-1 text-xs leading-relaxed text-text-muted sm:mt-0.5 sm:text-sm">
             Khám phá các danh mục sách đang có tại BookHive.
           </p>
         </div>
         <Link
           href="/books"
-          className="group flex items-center gap-1 text-xs font-semibold text-accent transition-colors hover:text-accent-hover sm:text-sm"
+          className="group inline-flex w-fit items-center gap-1 text-xs font-semibold text-accent transition-colors hover:text-accent-hover sm:shrink-0 sm:text-sm"
         >
           <span>Xem tất cả thể loại</span>
           <FiArrowRight size={14} className="transition-transform group-hover:translate-x-1" />

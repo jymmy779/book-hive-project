@@ -224,6 +224,7 @@ export const Header = ({ initialCategories = [] }: HeaderProps) => {
                     {/* Lựa chọn "Tất cả sách" */}
                     <Link
                       href="/books"
+                      onClick={(event) => event.currentTarget.blur()}
                       className="flex items-center gap-2 px-3 py-2.5 text-xs sm:text-sm font-semibold text-primary bg-primary-light hover:bg-primary hover:text-white rounded-xl transition-all duration-200"
                     >
                       <FiBookOpen size={16} />
@@ -237,6 +238,7 @@ export const Header = ({ initialCategories = [] }: HeaderProps) => {
                         <Link
                           key={cat.slug}
                           href={`/books?category=${cat.slug}&page=1`}
+                          onClick={(event) => event.currentTarget.blur()}
                           className="flex items-center gap-2 px-3 py-2 text-xs sm:text-sm font-medium text-text-secondary hover:text-primary bg-white hover:bg-surface-secondary rounded-xl transition-all duration-200 border border-border/70 hover:border-primary/30"
                         >
                           <span

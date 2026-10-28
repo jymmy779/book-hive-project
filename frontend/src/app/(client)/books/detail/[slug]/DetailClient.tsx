@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import DOMPurify from "dompurify";
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import { Book } from "@/app/interfaces/book.interface";
 import { useCart } from "@/contexts/CartContext";
 import { useUser } from "@/contexts/UserContext";
@@ -113,9 +113,6 @@ export default function DetailClient({ book }: DetailClientProps) {
       quantity,
       image: book.image,
       slug: book.slug,
-    });
-    toast.success(`Đã thêm ${quantity} cuốn vào giỏ hàng!`, {
-      autoClose: 2000,
     });
   };
 
@@ -443,7 +440,6 @@ export default function DetailClient({ book }: DetailClientProps) {
         </ScrollReveal>
       </div>
 
-      <ToastContainer autoClose={2000} hideProgressBar={true} />
     </div>
   );
 }

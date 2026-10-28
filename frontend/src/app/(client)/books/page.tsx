@@ -22,6 +22,8 @@ import "swiper/css/free-mode";
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Books() {
+  const [activeBanner, setActiveBanner] = useState(0);
+  const bannerDragStartX = useRef<number | null>(null);
   const searchParams = useSearchParams();
   const initialPage = Number(searchParams.get("page")) || 1;
   const initialCategory = searchParams.get("category") || "";
@@ -33,6 +35,19 @@ export default function Books() {
   const [categories, setCategories] = useState<
     { title: string; slug: string }[]
   >([]);
+
+  const catalogBanners = [
+    "/book-hive-banner-2.webp",
+    "/book-hive-banner-3.webp",
+    "/book-hive-banner-4.webp",
+  ];
+
+  useEffect(() => {
+    const bannerTimer = window.setInterval(() => {
+      setActiveBanner((current) => (current + 1) % catalogBanners.length);
+    }, 5000);
+    return () => window.clearInterval(bannerTimer);
+  }, []);
   const [selectedCategory, setSelectedCategory] =
     useState<string>(initialCategory);
   const [total, setTotal] = useState(0);
@@ -52,20 +67,10 @@ export default function Books() {
     [],
   );
 
-  const resultsRef = useRef<any>(null);
   const requestSeqRef = useRef<number>(0);
   const { favoriteIds, setFavoriteIds, isLoggedIn } = useFetchFavorites();
 
   const favoriteIdsSet = useMemo(() => new Set(favoriteIds), [favoriteIds]);
-
-  useEffect(() => {
-    if (!loading) {
-      resultsRef.current?.scrollIntoView({
-        behavior: "smooth",
-        block: "start",
-      });
-    }
-  }, [page, sortValue, loading]);
 
   const handleToggleFavorite = useCallback(
     async (bookId: string, next: boolean) => {
@@ -153,7 +158,11 @@ export default function Books() {
   }, [fetchData]);
 
   useSyncParams(setPage, setSortValue, setSort);
-  const handlePageChange = usePageChange("books", setPage, "client");
+  const changeBooksPage = usePageChange("books", setPage, "client");
+  const handlePageChange = (newPage: number) => {
+    changeBooksPage(newPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
   const handleSortChange = useSortChange("books", "client");
 
   return (
@@ -162,7 +171,36 @@ export default function Books() {
         <div className="container mx-auto">
           {/* Editorial Catalog Header */}
           <ScrollReveal direction="down" distance={16} duration={0.4}>
-            <div className="relative rounded-3xl p-6 sm:p-10 bg-gradient-to-br from-[#064e3b] via-[#065f46] to-[#047857] text-white mb-6 shadow-md overflow-hidden border border-white/10">
+            <div
+              className="relative mb-6 cursor-grab touch-pan-y select-none overflow-hidden rounded-3xl border border-white/10 bg-[#064e3b] p-6 text-white shadow-md active:cursor-grabbing sm:p-10"
+              onPointerDown={(event) => {
+                bannerDragStartX.current = event.clientX;
+              }}
+              onPointerUp={(event) => {
+                if (bannerDragStartX.current === null) return;
+                const dragDistance = event.clientX - bannerDragStartX.current;
+                bannerDragStartX.current = null;
+                if (Math.abs(dragDistance) < 45) return;
+                setActiveBanner((current) =>
+                  (current + (dragDistance < 0 ? 1 : catalogBanners.length - 1)) %
+                  catalogBanners.length,
+                );
+              }}
+              onPointerCancel={() => {
+                bannerDragStartX.current = null;
+              }}
+            >
+              {catalogBanners.map((banner, index) => (
+                <div
+                  key={banner}
+                  aria-hidden="true"
+                  className={`absolute inset-0 bg-cover bg-center transition-opacity duration-1000 motion-reduce:transition-none ${
+                    activeBanner === index ? "opacity-100" : "opacity-0"
+                  }`}
+                  style={{ backgroundImage: `url('${banner}')` }}
+                />
+              ))}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#022c22]/85 via-[#064e3b]/65 to-[#064e3b]/35" />
               <div
                 className="absolute inset-0 opacity-10"
                 style={{
@@ -269,10 +307,7 @@ export default function Books() {
           </ScrollReveal>
 
           <ScrollReveal direction="up" distance={20} duration={0.4} delay={0.1}>
-            <div
-              ref={resultsRef}
-              className="grid grid-cols-2 min-[768px]:grid-cols-3 min-[1032px]:grid-cols-4 gap-4 md:gap-[24px] mb-8"
-            >
+            <div className="grid grid-cols-2 min-[768px]:grid-cols-3 min-[1032px]:grid-cols-4 gap-4 md:gap-[24px] mb-8">
             {loading ? (
               Array.from({ length: 12 }).map((_, i) => (
                 <BookCardSkeleton key={i} />

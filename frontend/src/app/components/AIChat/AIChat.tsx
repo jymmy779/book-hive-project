@@ -10,6 +10,7 @@ import {
   FiTrash2,
   FiZap,
   FiMinimize2,
+  FiArrowUp,
 } from "react-icons/fi";
 import axios from "axios";
 
@@ -51,6 +52,7 @@ export default function AIChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +62,13 @@ export default function AIChat() {
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
+
+  useEffect(() => {
+    const updateScrollTopVisibility = () => setShowScrollTop(window.scrollY > 240);
+    updateScrollTopVisibility();
+    window.addEventListener("scroll", updateScrollTopVisibility, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrollTopVisibility);
+  }, []);
 
   // Restore chat from localStorage
   useEffect(() => {
@@ -210,35 +219,44 @@ export default function AIChat() {
             setIsMinimized(false);
           }
         }}
-        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 bg-primary hover:bg-primary-dark text-white rounded-2xl px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 z-40 flex items-center gap-2.5 group"
+        className="fixed bottom-[5.25rem] right-5 sm:bottom-[5.5rem] sm:right-6 bg-sky-600 hover:bg-sky-700 text-white rounded-2xl px-4 py-3 shadow-lg hover:shadow-xl transition-all duration-300 z-40 flex items-center gap-2.5 group"
         aria-label="Open AI Chat"
         title="Hỏi AI về sách"
       >
         <div className="relative">
           {isOpen ? <FiX size={20} /> : <FiMessageCircle size={20} />}
-          {!isOpen && messages.length === 0 && (
-            <span className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 bg-accent rounded-full animate-pulse" />
-          )}
         </div>
-        <span className="text-sm font-semibold hidden sm:inline">AI Tư Vấn</span>
+        <span className="text-sm font-semibold hidden sm:inline">Hỗ trợ</span>
+      </button>
+
+      <button
+        type="button"
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        aria-hidden={!showScrollTop}
+        tabIndex={showScrollTop ? 0 : -1}
+        className={`fixed bottom-5 right-5 z-40 flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-600 shadow-lg transition-[opacity,transform,visibility] duration-300 ease-out hover:-translate-y-0.5 hover:bg-slate-50 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-400 focus-visible:ring-offset-2 motion-reduce:transition-none sm:bottom-6 sm:right-6 ${showScrollTop ? "visible translate-y-0 opacity-100" : "invisible pointer-events-none translate-y-3 opacity-0"}`}
+        aria-label="Cuộn lên đầu trang"
+        title="Lên đầu trang"
+      >
+        <FiArrowUp size={20} aria-hidden="true" />
       </button>
 
       {/* Chat Panel */}
-      {isOpen && (
-        <div
-          className={`fixed z-50 bg-surface border border-border shadow-2xl flex flex-col overflow-hidden transition-all duration-300 rounded-2xl
-            bottom-20 right-4 w-[calc(100vw-2rem)] max-w-[360px] sm:right-6
-            ${isMinimized ? "h-14" : "h-[520px] sm:h-[580px] lg:h-[600px]"}`}
-        >
+      <div
+        aria-hidden={!isOpen}
+        className={`fixed bottom-20 right-4 z-50 flex w-[calc(100vw-2rem)] max-w-[360px] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-2xl transition-[opacity,transform,height,visibility] duration-300 ease-out motion-reduce:transition-none sm:right-6
+          ${isOpen ? "visible translate-y-0 scale-100 opacity-100" : "invisible pointer-events-none translate-y-3 scale-[0.97] opacity-0"}
+          ${isMinimized ? "h-14" : "h-[520px] sm:h-[580px] lg:h-[600px]"}`}
+      >
           {/* Header */}
-          <div className="bg-primary px-4 py-3 shrink-0 flex items-center justify-between">
+          <div className="bg-sky-600 px-4 py-3 shrink-0 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <div className="w-8 h-8 bg-white/15 border border-white/20 rounded-xl flex items-center justify-center">
                 <FiZap size={15} className="text-white" />
               </div>
               <div>
                 <h2 className="font-bold text-white text-sm leading-tight">AI BookHive</h2>
-                <p className="text-primary-light/70 text-[10px]">Trợ lý sách thông minh</p>
+                <p className="text-slate-300/80 text-[10px]">Trợ lý sách thông minh</p>
               </div>
             </div>
             <div className="flex items-center gap-1">
@@ -274,10 +292,10 @@ export default function AIChat() {
               <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-surface-cream">
                 {messages.length === 0 ? (
                   <div className="h-full flex flex-col items-center justify-center">
-                    <div className="w-16 h-16 bg-primary-light rounded-2xl flex items-center justify-center mb-4">
-                      <FiZap size={28} className="text-primary" />
+                    <div className="w-16 h-16 bg-sky-50 rounded-2xl flex items-center justify-center mb-4">
+                      <FiZap size={28} className="text-sky-700" />
                     </div>
-                    <h3 className="font-bold text-primary text-base mb-1">Xin chào! 👋</h3>
+                    <h3 className="font-bold text-sky-800 text-base mb-1">Xin chào! 👋</h3>
                     <p className="text-text-muted text-xs text-center mb-5 px-4 leading-relaxed">
                       Tôi là AI BookHive, sẵn sàng giúp bạn tìm sách phù hợp nhất!
                     </p>
@@ -286,7 +304,7 @@ export default function AIChat() {
                         <button
                           key={prompt}
                           onClick={(e) => handleSubmit(e as any, prompt)}
-                          className="w-full text-left px-3 py-2 bg-surface border border-border rounded-xl text-xs text-text-secondary hover:bg-primary-light hover:text-primary hover:border-primary/30 transition-all font-medium"
+                          className="w-full text-left px-3 py-2 bg-surface border border-border rounded-xl text-xs text-text-secondary hover:bg-sky-50 hover:text-sky-800 hover:border-sky-300 transition-all font-medium"
                         >
                           💬 {prompt}
                         </button>
@@ -304,7 +322,7 @@ export default function AIChat() {
                         <div
                           className={`max-w-[88%] px-3.5 py-2.5 rounded-2xl text-sm leading-relaxed ${
                             msg.type === "user"
-                              ? "bg-primary text-white rounded-br-sm"
+                              ? "bg-sky-600 text-white rounded-br-sm"
                               : "bg-surface border border-border text-text-primary rounded-bl-sm shadow-sm"
                           }`}
                         >
@@ -333,9 +351,9 @@ export default function AIChat() {
                                 href={`/books/detail/${book.slug}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                className="block p-2.5 bg-surface border border-border rounded-xl hover:border-primary/30 hover:bg-primary-light/40 transition-all shadow-xs"
+                                className="block p-2.5 bg-surface border border-border rounded-xl hover:border-sky-300 hover:bg-sky-50/60 transition-all shadow-xs"
                               >
-                                <p className="text-xs font-semibold text-primary truncate">{book.title}</p>
+                                <p className="text-xs font-semibold text-sky-800 truncate">{book.title}</p>
                                 <p className="text-[10px] text-text-muted mt-0.5">{book.author}</p>
                                 <div className="flex items-center justify-between mt-1.5">
                                   <span className="text-[11px] font-bold text-accent">
@@ -361,7 +379,7 @@ export default function AIChat() {
                                   href={action.href || "#"}
                                   target={action.href?.startsWith("http") ? "_blank" : undefined}
                                   rel={action.href?.startsWith("http") ? "noopener noreferrer" : undefined}
-                                  className="px-3 py-2 bg-primary hover:bg-primary-dark text-white text-xs rounded-xl font-semibold transition-all text-center"
+                                  className="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white text-xs rounded-xl font-semibold transition-all text-center"
                                 >
                                   {action.label}
                                 </a>
@@ -394,9 +412,9 @@ export default function AIChat() {
                       <div className="flex justify-start">
                         <div className="bg-surface border border-border px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm">
                           <div className="flex gap-1 items-center">
-                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" />
-                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.15s]" />
-                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.3s]" />
+                            <div className="w-1.5 h-1.5 bg-sky-600 rounded-full animate-bounce" />
+                            <div className="w-1.5 h-1.5 bg-sky-600 rounded-full animate-bounce [animation-delay:0.15s]" />
+                            <div className="w-1.5 h-1.5 bg-sky-600 rounded-full animate-bounce [animation-delay:0.3s]" />
                           </div>
                         </div>
                       </div>
@@ -419,12 +437,12 @@ export default function AIChat() {
                     onChange={(e) => setInput(e.target.value)}
                     placeholder="Hỏi về sách, thể loại..."
                     disabled={loading}
-                    className="flex-1 px-4 py-2 bg-surface-secondary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/25 focus:border-primary focus:bg-surface transition-all text-sm disabled:opacity-60 min-w-0"
+                    className="flex-1 px-4 py-2 bg-surface-secondary border border-border rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500/25 focus:border-sky-500 focus:bg-surface transition-all text-sm disabled:opacity-60 min-w-0"
                   />
                   <button
                     type="submit"
                     disabled={loading || !input.trim()}
-                    className="bg-primary hover:bg-primary-dark disabled:bg-border disabled:text-text-muted text-white h-9 w-9 flex items-center justify-center rounded-xl transition-all shadow-sm shrink-0"
+                    className="bg-sky-600 hover:bg-sky-700 disabled:bg-border disabled:text-text-muted text-white h-9 w-9 flex items-center justify-center rounded-xl transition-all shadow-sm shrink-0"
                   >
                     <FiSend size={15} />
                   </button>
@@ -432,8 +450,7 @@ export default function AIChat() {
               </form>
             </>
           )}
-        </div>
-      )}
+      </div>
     </>
   );
 }

@@ -29,21 +29,21 @@ export const AISmartFinder = () => {
   };
 
   return (
-    <div className="mb-14 md:mb-18 rounded-3xl bg-gradient-to-br from-[#022c22] via-primary to-emerald-950 text-white p-6 sm:p-10 md:p-12 shadow-xl border border-white/10 relative overflow-hidden">
+    <div className="relative mb-14 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#022c22] via-primary to-emerald-950 p-5 text-white shadow-xl sm:mb-18 sm:p-10 md:p-12">
       {/* Background Glow */}
       <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 max-w-3xl mx-auto text-center">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-white/15 backdrop-blur-md text-accent-light border border-white/20 mb-3">
+      <div className="relative z-10 mx-auto max-w-3xl text-center">
+        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[10px] font-semibold text-accent-light backdrop-blur-md sm:text-xs">
           <HiSparkles className="text-amber-300" />
           <span>Công Nghệ AI Gợi Ý Độc Quyền</span>
         </div>
 
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-white mb-3 tracking-tight">
+        <h2 className="mb-3 text-xl font-extrabold leading-tight tracking-tight text-white sm:text-3xl md:text-4xl">
           Chưa Biết Đọc Gì? Trợ Lý AI Sẽ Gợi Ý Chuẩn Gu
         </h2>
 
-        <p className="text-xs sm:text-sm md:text-base text-slate-300 mb-6 max-w-xl mx-auto leading-relaxed">
+        <p className="mx-auto mb-5 max-w-xl text-xs leading-relaxed text-slate-300 sm:mb-6 sm:text-sm md:text-base">
           Chia sẻ tâm trạng, mục tiêu hoặc cuốn sách bạn từng yêu thích — AI BookHive sẽ gợi ý tác phẩm hoàn hảo nhất dành riêng cho bạn.
         </p>
 
@@ -53,9 +53,9 @@ export const AISmartFinder = () => {
             e.preventDefault();
             handleTriggerAI();
           }}
-          className="flex items-center gap-2 bg-white rounded-2xl p-2 shadow-2xl max-w-2xl mx-auto mb-4 text-text-primary border-2 border-white/20 focus-within:border-accent transition-colors"
+          className="mx-auto mb-5 flex max-w-2xl flex-wrap items-center gap-2 rounded-2xl border-2 border-white/20 bg-white p-2 text-text-primary shadow-2xl transition-colors focus-within:border-accent sm:mb-6 sm:flex-nowrap"
         >
-          <div className="pl-3 text-accent">
+          <div className="hidden pl-3 text-accent sm:block">
             <FiCpu size={20} />
           </div>
           <input
@@ -63,11 +63,11 @@ export const AISmartFinder = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Ví dụ: Gợi ý cho mình sách giúp giảm stress và cân bằng công việc..."
-            className="w-full bg-transparent outline-none text-xs sm:text-sm px-2 text-text-primary placeholder:text-text-muted"
+            className="min-w-0 flex-1 bg-transparent px-2 py-2 text-xs text-text-primary outline-none placeholder:text-text-muted sm:py-1 sm:text-sm"
           />
           <button
             type="submit"
-            className="px-5 py-2.5 sm:py-3 bg-accent hover:bg-accent-hover text-white text-xs sm:text-sm font-bold rounded-xl shadow-md transition-all flex items-center gap-1.5 shrink-0 cursor-pointer"
+            className="ml-auto inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-accent px-3 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:bg-accent-hover sm:px-5 sm:py-3 sm:text-sm"
           >
             <span>Hỏi AI ngay</span>
             <FiSend size={13} />
@@ -75,18 +75,20 @@ export const AISmartFinder = () => {
         </form>
 
         {/* Quick prompt pills */}
-        <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
-          <span className="text-slate-400 font-medium">Gợi ý câu hỏi:</span>
+        <div className="space-y-2 text-xs">
+          <p className="font-medium text-left text-slate-400">Gợi ý câu hỏi:</p>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {QUICK_TAGS.map((tag, idx) => (
             <button
               key={idx}
               type="button"
               onClick={() => handleTriggerAI(tag)}
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg text-slate-200 hover:text-white transition-all text-[11px] sm:text-xs cursor-pointer border border-white/10"
+              className="min-h-10 w-full cursor-pointer rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-left text-[11px] leading-snug text-slate-200 transition-all hover:bg-white/20 hover:text-white sm:text-xs"
             >
-              &ldquo;{tag}&rdquo;
+              {tag}
             </button>
           ))}
+          </div>
         </div>
       </div>
     </div>
