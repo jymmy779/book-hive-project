@@ -105,7 +105,11 @@ export default function DetailClient({ book }: DetailClientProps) {
   };
 
   const handleAddToCart = () => {
-    if (!book) return;
+    if (!book || book.inStock === 0) return;
+    if (book.inStock !== undefined && quantity > book.inStock) {
+      toast.info(`Chỉ còn ${book.inStock} cuốn trong kho.`);
+      return;
+    }
     addToCart({
       bookId: book._id,
       title: book.title,
@@ -237,7 +241,7 @@ export default function DetailClient({ book }: DetailClientProps) {
                 <p>
                   Tác giả: <span className="font-bold text-text-primary">{book.author || "Nhiều tác giả"}</span>
                 </p>
-                <span>â€¢</span>
+                <span></span>
                 <div className="flex items-center gap-1.5">
                   <div className="flex items-center text-amber-500">
                     {[...Array(5)].map((_, i) => {
@@ -252,7 +256,11 @@ export default function DetailClient({ book }: DetailClientProps) {
                   </span>
                   <span className="text-text-muted">({book.reviews ?? 0} đánh giá)</span>
                 </div>
-                <span>â€¢</span>
+                <span></span>
+                <span className={`inline-flex items-center gap-1.5 font-semibold ${book.inStock === 0 ? "text-rose-600" : "text-emerald-700"}`}>
+                  <span className={`h-2 w-2 rounded-full ${book.inStock === 0 ? "bg-rose-500" : "bg-emerald-500"}`} />
+                  {book.inStock === 0 ? "Tạm hết hàng" : book.inStock !== undefined ? `Còn ${book.inStock.toLocaleString("vi-VN")} cuốn` : "Còn hàng"}
+                </span>
                 <span className="text-text-muted">
                   Đã bán {(book.soldCount || 0).toLocaleString("vi-VN")} cuốn
                 </span>
@@ -290,8 +298,9 @@ export default function DetailClient({ book }: DetailClientProps) {
                   </span>
                   <button
                     type="button"
-                    onClick={() => setQuantity((q) => q + 1)}
-                    className="w-9 h-9 flex items-center justify-center text-text-secondary hover:bg-surface-secondary active:scale-95 transition-all cursor-pointer"
+                    onClick={() => setQuantity((q) => Math.min(book.inStock ?? q + 1, q + 1))}
+                    disabled={book.inStock === 0 || (book.inStock !== undefined && quantity >= book.inStock)}
+                    className="w-9 h-9 flex items-center justify-center text-text-secondary hover:bg-surface-secondary active:scale-95 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-40"
                     aria-label="Tăng"
                   >
                     <FiPlus size={14} />
@@ -304,7 +313,8 @@ export default function DetailClient({ book }: DetailClientProps) {
                 <button
                   type="button"
                   onClick={handleAddToCart}
-                  className="py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm bg-accent hover:bg-accent-hover text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  disabled={book.inStock === 0}
+                  className="py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm bg-accent hover:bg-accent-hover text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <FiShoppingCart size={18} />
                   <span>Thêm vào giỏ hàng</span>
@@ -313,7 +323,8 @@ export default function DetailClient({ book }: DetailClientProps) {
                 <button
                   type="button"
                   onClick={handleBuyNow}
-                  className="py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm bg-primary hover:bg-primary-dark text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98"
+                  disabled={book.inStock === 0}
+                  className="py-3.5 px-6 rounded-xl font-bold text-xs sm:text-sm bg-primary hover:bg-primary-dark text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer active:scale-98 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <span>Mua ngay</span>
                 </button>

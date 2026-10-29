@@ -176,7 +176,7 @@ export const HeroBookSlider = ({ books }: { books: Book[] }) => {
                           </span>
                           <span className="min-w-0 flex-1">
                             <span className="block text-[9px] font-bold uppercase tracking-wide text-amber-800">{itemIndex === 0 ? "Sách nổi bật" : item.category_name || `Gợi ý #${itemIndex + 1}`}</span>
-                            <span className="mt-1 line-clamp-2 block text-xs font-semibold leading-snug text-slate-900 sm:text-sm">{item.title}</span>
+                            <span className="mt-1 line-clamp-1 block text-xs font-semibold leading-snug text-slate-900 sm:text-sm">{item.title}</span>
                             <span className="mt-1 block text-xs font-bold text-amber-800">{item.priceBuy ? `${item.priceBuy.toLocaleString("vi-VN")}đ` : "Liên hệ"}</span>
                           </span>
                         </button>
@@ -189,22 +189,21 @@ export const HeroBookSlider = ({ books }: { books: Book[] }) => {
                     <div className="relative z-10 grid flex-1 grid-cols-1 items-center gap-4 sm:grid-cols-[minmax(0,1fr)_190px] sm:gap-6 md:grid-cols-[minmax(0,1fr)_220px] lg:grid-cols-[minmax(0,1fr)_260px] lg:gap-8">
                       <div className="order-2 min-w-0 text-left sm:order-1">
                         <div className="mb-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] sm:text-xs">
-                          <span className="inline-flex items-center gap-1 font-bold text-amber-700"><FiStar className="fill-amber-500 text-amber-500" /> {book.reviews > 0 && book.rating > 0 ? Number(book.rating).toFixed(1) : "5.0"}</span>
-                          <span className="text-slate-400">({book.reviews ?? 0} đánh giá độc giả)</span>
+                          <span className="inline-flex items-center gap-1 font-bold text-amber-700"><FiStar className="fill-amber-500 text-amber-500" /> {book.reviews > 0 && book.rating > 0 ? Number(book.rating).toFixed(1) : "5.0"} Đánh giá</span>
                           {book.category_name && <><span className="text-amber-800/40">•</span><span className="font-medium text-amber-800">{book.category_name}</span></>}
                         </div>
                         <span className="mb-2 inline-flex items-center gap-1 rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-800 ring-1 ring-amber-200/70">
                           <HiSparkles size={12} /> Được BookHive tuyển chọn
                         </span>
                         <h2 className="mb-1 line-clamp-2 text-2xl font-black leading-tight tracking-tight text-slate-950 sm:text-3xl md:text-4xl lg:text-5xl">{book.title}</h2>
-                        <p className="mb-4 text-sm font-semibold text-slate-700 sm:text-base">Tác giả: {book.author || "Nhiều tác giả"}</p>
-                        <p className="mb-5 line-clamp-3 max-w-2xl text-xs leading-relaxed text-slate-600 sm:text-sm">
+                        <p className="mb-4 line-clamp-1 text-sm font-semibold text-slate-700 sm:text-base">Tác giả: {book.author || "Nhiều tác giả"}</p>
+                        <p className="mb-5 line-clamp-2 max-w-2xl text-xs leading-relaxed text-slate-600 sm:text-sm">
                           {book.description ? book.description.replace(/<[^>]*>?/gm, "").slice(0, 190) + "..." : "Khám phá tác phẩm được độc giả yêu thích và tuyển chọn dành riêng cho bạn."}
                         </p>
 
                         <div className="mb-4 flex flex-wrap items-end gap-x-3 gap-y-1">
                           <span className="text-2xl font-black text-amber-800 sm:text-3xl">{book.priceBuy ? `${book.priceBuy.toLocaleString("vi-VN")}đ` : "Liên hệ"}</span>
-                          {book.inStock !== undefined && <span className="mb-1 text-xs text-slate-500">{book.inStock > 0 ? `Còn ${book.inStock} cuốn` : "Tạm hết hàng"}</span>}
+                          <span className="mb-1 text-xs text-slate-500">Đã bán {(book.soldCount || 0).toLocaleString("vi-VN")} cuốn</span>
                         </div>
 
                         <div className="flex flex-wrap items-center gap-2.5">
