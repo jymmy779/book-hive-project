@@ -220,7 +220,7 @@ export default function ProfilePage() {
               <div className="grid grid-cols-3 gap-3 pt-4 border-t border-[#f2ede4]">
                 <Link
                   href="/orders"
-                  className="bg-[#faf8f5] hover:bg-[#f5f0ea] border border-[#e7e2d9]/60 p-3.5 rounded-2xl text-center transition-all group"
+                  className="bg-[#faf8f5] hover:bg-[#f5f0ea] border border-[#e7e2d9]/60 p-2.5 sm:p-3.5 rounded-2xl text-center transition-all group"
                 >
                   <p className="text-2xl font-extrabold text-[#064e3b] group-hover:scale-105 transition-transform">
                     {orderCount}
@@ -232,7 +232,7 @@ export default function ProfilePage() {
 
                 <Link
                   href="/favorites"
-                  className="bg-[#faf8f5] hover:bg-[#f5f0ea] border border-[#e7e2d9]/60 p-3.5 rounded-2xl text-center transition-all group"
+                  className="bg-[#faf8f5] hover:bg-[#f5f0ea] border border-[#e7e2d9]/60 p-2.5 sm:p-3.5 rounded-2xl text-center transition-all group"
                 >
                   <p className="text-2xl font-extrabold text-[#d97706] group-hover:scale-105 transition-transform">
                     {favCount}
@@ -242,14 +242,14 @@ export default function ProfilePage() {
                   </p>
                 </Link>
 
-                <div className="bg-[#faf8f5] border border-[#e7e2d9]/60 p-3.5 rounded-2xl text-center">
-                  <div className="flex items-center justify-center gap-1 text-emerald-600 font-bold text-base mt-1">
+                <div className="bg-[#faf8f5] border border-[#e7e2d9]/60 p-2.5 sm:p-3.5 rounded-2xl text-center">
+                  <p className="text-xs font-medium text-[#78716c] mb-1">
+                    Trạng thái
+                  </p>
+                  <div className="flex items-center justify-center gap-1 text-sm font-bold text-emerald-600 mt-1 sm:text-base">
                     <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     Hoạt động
                   </div>
-                  <p className="text-xs font-medium text-[#78716c] mt-1">
-                    Trạng thái
-                  </p>
                 </div>
               </div>
             </div>
@@ -295,19 +295,17 @@ export default function ProfilePage() {
               </div>
 
               {/* Email */}
-              <div className="p-4 rounded-2xl bg-[#faf8f5] border border-[#e7e2d9]/60 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-white border border-[#e7e2d9] flex items-center justify-center text-[#064e3b]">
+              <div className="grid min-w-0 grid-cols-[2.5rem_minmax(0,1fr)] items-center gap-x-3 gap-y-2 rounded-2xl border border-[#e7e2d9]/60 bg-[#faf8f5] p-3 sm:grid-cols-[2.5rem_minmax(0,1fr)_auto] sm:gap-3 sm:p-4">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-[#e7e2d9] bg-white text-[#064e3b]">
                     <FiMail size={16} />
                   </div>
-                  <div>
-                    <p className="text-xs text-[#78716c] font-medium">Email đăng nhập</p>
-                    <p className="text-sm font-semibold text-[#1c1917] truncate max-w-[180px] sm:max-w-none">
+                  <div className="min-w-0">
+                    <p className="text-xs font-medium text-[#78716c]">Email đăng nhập</p>
+                    <p className="break-words text-sm font-semibold text-[#1c1917]">
                       {user.email}
                     </p>
                   </div>
-                </div>
-                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
+                <span className="col-start-2 row-start-2 w-fit shrink-0 whitespace-nowrap rounded-md border border-emerald-200 bg-emerald-50 px-2 py-1 text-[11px] font-semibold text-emerald-700 sm:col-auto sm:row-auto">
                   Đã xác thực
                 </span>
               </div>

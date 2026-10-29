@@ -139,6 +139,26 @@ module.exports.permissions = async (req, res) => {
                 deleted: false,
             },
         }, { upsert: true });
+        await Promise.all([
+            Permission.updateOne({ key: "view_orders" }, {
+                $set: {
+                    label: "Xem đơn hàng",
+                    group: "Đơn hàng",
+                    slug: "view-orders",
+                    deleted: false,
+                },
+                $setOnInsert: { key: "view_orders" },
+            }, { upsert: true }),
+            Permission.updateOne({ key: "edit_orders" }, {
+                $set: {
+                    label: "Cập nhật trạng thái đơn hàng",
+                    group: "Đơn hàng",
+                    slug: "edit-orders",
+                    deleted: false,
+                },
+                $setOnInsert: { key: "edit_orders" },
+            }, { upsert: true }),
+        ]);
         const permissions = await Permission.find({
             deleted: false,
         });

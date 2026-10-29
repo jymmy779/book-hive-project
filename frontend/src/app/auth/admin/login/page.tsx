@@ -136,13 +136,13 @@ export default function Login() {
           </div>
           <button
             type="submit"
-            className="w-full transition-colors duration-200 bg-primary cursor-pointer hover:bg-primary-dark text-white py-2 rounded font-semibold mt-4"
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-semibold text-white transition-colors duration-200 hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-70"
             disabled={loading}
           >
             {loading ? (
-              <><FiLoader className="animate-spin" size={18} /> Đang xử lý...</>
+              <><FiLoader className="animate-spin" size={18} aria-hidden="true" /> Đang xử lý...</>
             ) : (
-              <><FiLock size={16} /> Đăng nhập</>
+              <><FiLock size={16} aria-hidden="true" /> Đăng nhập</>
             )}
           </button>
         </form>

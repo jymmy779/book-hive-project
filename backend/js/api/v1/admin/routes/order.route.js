@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express = require("express");
+const router = express.Router();
+const controller = require("../controllers/order.controller");
+const { checkPermission } = require("../../../../middleware/permission.middleware");
+router.get("/", controller.index);
+router.get("/:code", controller.detail);
+router.patch("/:code/status", checkPermission("edit_orders"), controller.updateStatus);
+module.exports = router;

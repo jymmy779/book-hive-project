@@ -16,6 +16,7 @@ import {
   FiLogOut,
   FiSettings,
   FiCreditCard,
+  FiShoppingBag,
   FiMenu,
   FiX,
 } from "react-icons/fi";
@@ -66,6 +67,7 @@ const menu = [
     permission: "view_accounts",
   },
   { label: "Giao dịch", icon: FiCreditCard, key: "transactions", href: "/admin/transactions", permission: "view_transactions" },
+  { label: "Đơn hàng", icon: FiShoppingBag, key: "orders", href: "/admin/orders", permission: "view_orders" },
   { label: "Thông tin cá nhân", icon: FiUserCheck, key: "profile", href: "/admin/profile" },
 ];
 
