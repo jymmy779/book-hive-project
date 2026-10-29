@@ -29,13 +29,13 @@ export const AISmartFinder = () => {
   };
 
   return (
-    <div className="relative mb-14 overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#022c22] via-primary to-emerald-950 p-5 text-white shadow-xl sm:mb-18 sm:p-10 md:p-12">
+    <div className="relative mb-14 overflow-hidden rounded-3xl border border-white/10 bg-[#1E293B] p-5 text-white shadow-xl sm:mb-18 sm:p-10 md:p-12">
       {/* Background Glow */}
-      <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-accent/20 blur-3xl pointer-events-none" />
+      <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-sky-500/20 blur-3xl pointer-events-none" />
 
       <div className="relative z-10 mx-auto max-w-3xl text-center">
-        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[10px] font-semibold text-accent-light backdrop-blur-md sm:text-xs">
-          <HiSparkles className="text-amber-300" />
+        <div className="mb-3 inline-flex items-center gap-1.5 rounded-full border border-sky-300/30 bg-sky-500/15 px-3 py-1 text-[10px] font-semibold text-sky-200 backdrop-blur-md sm:text-xs">
+          <HiSparkles className="text-sky-300" />
           <span>Công Nghệ AI Gợi Ý Độc Quyền</span>
         </div>
 
@@ -53,9 +53,9 @@ export const AISmartFinder = () => {
             e.preventDefault();
             handleTriggerAI();
           }}
-          className="mx-auto mb-5 flex max-w-2xl flex-wrap items-center gap-2 rounded-2xl border-2 border-white/20 bg-white p-2 text-text-primary shadow-2xl transition-colors focus-within:border-accent sm:mb-6 sm:flex-nowrap"
+          className="mx-auto mb-5 flex max-w-2xl flex-wrap items-center gap-2 rounded-2xl border-2 border-white/20 bg-white p-2 text-text-primary shadow-2xl transition-colors focus-within:border-sky-500 sm:mb-6 sm:flex-nowrap"
         >
-          <div className="hidden pl-3 text-accent sm:block">
+          <div className="hidden pl-3 text-sky-600 sm:block">
             <FiCpu size={20} />
           </div>
           <input
@@ -67,7 +67,7 @@ export const AISmartFinder = () => {
           />
           <button
             type="submit"
-            className="ml-auto inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-accent px-3 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:bg-accent-hover sm:px-5 sm:py-3 sm:text-sm"
+            className="ml-auto inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-sky-600 px-3 py-2.5 text-xs font-bold text-white shadow-md transition-all hover:bg-sky-700 sm:px-5 sm:py-3 sm:text-sm"
           >
             <span>Hỏi AI ngay</span>
             <FiSend size={13} />

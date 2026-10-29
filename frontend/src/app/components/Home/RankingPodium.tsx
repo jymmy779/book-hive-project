@@ -68,14 +68,14 @@ export const RankingPodium = ({
       </div>
 
       {/* Podium Grid (Top 1, 2, 3) */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+      <div className="grid grid-cols-1 items-stretch gap-4 sm:gap-6 md:grid-cols-3 md:items-end">
         {topThree.map((book, idx) => {
           const medal = MEDAL_STYLES[idx] || MEDAL_STYLES[0];
           return (
             <Link
               key={book._id || idx}
               href={`/books/detail/${book.slug}`}
-              className={`group relative rounded-2xl p-5 sm:p-6 bg-gradient-to-b ${medal.bg} border ${medal.border} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between`}
+              className={`group relative rounded-2xl p-5 sm:p-6 bg-gradient-to-b ${medal.bg} border ${medal.border} shadow-sm hover:shadow-xl transition-all duration-300 hover:-translate-y-1.5 flex flex-col justify-between ${idx === 0 ? "md:order-2 md:min-h-[34rem] md:pt-8" : idx === 1 ? "md:order-1 md:min-h-[30rem]" : "md:order-3 md:min-h-[30rem]"}`}
             >
               {/* Massive Stylized Rank Number in Background */}
               <div

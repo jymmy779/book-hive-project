@@ -47,6 +47,15 @@ body {
   margin: 0 auto;
 }
 
+.hero-book-list {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hero-book-list::-webkit-scrollbar {
+  display: none;
+}
+
 .book-card {
   transition:
     transform 0.2s,
