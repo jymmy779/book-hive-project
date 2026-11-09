@@ -5,14 +5,14 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 async function getBooks() {
   try {
     const [featuredRes, readerFavoritesRes, newestRes, heroRes, editorRecommendedRes, bestSellerRes, flashSaleRes, categoriesRes] = await Promise.all([
-      fetch(`${API_URL}/api/v1/books/featured`, { cache: "no-store" }),
-      fetch(`${API_URL}/api/v1/books/reader-favorites`, { cache: "no-store" }),
-      fetch(`${API_URL}/api/v1/books/newest`, { cache: "no-store" }),
-      fetch(`${API_URL}/api/v1/books/hero`, { cache: "no-store" }),
-      fetch(`${API_URL}/api/v1/books/editor-recommended`, { cache: "no-store" }),
-      fetch(`${API_URL}/api/v1/books/best-seller`, { cache: "no-store" }),
-      fetch(`${API_URL}/api/v1/books/flash-sale`, { cache: "no-store" }),
-      fetch(`${API_URL}/api/v1/books/categories`, { cache: "no-store" }),
+      fetch(`${API_URL}/api/v1/books/featured`, { next: { revalidate: 30 } }),
+      fetch(`${API_URL}/api/v1/books/reader-favorites`, { next: { revalidate: 30 } }),
+      fetch(`${API_URL}/api/v1/books/newest`, { next: { revalidate: 30 } }),
+      fetch(`${API_URL}/api/v1/books/hero`, { next: { revalidate: 30 } }),
+      fetch(`${API_URL}/api/v1/books/editor-recommended`, { next: { revalidate: 30 } }),
+      fetch(`${API_URL}/api/v1/books/best-seller`, { next: { revalidate: 30 } }),
+      fetch(`${API_URL}/api/v1/books/flash-sale`, { next: { revalidate: 30 } }),
+      fetch(`${API_URL}/api/v1/books/categories`, { next: { revalidate: 30 } }),
     ]);
     const featuredData = featuredRes.ok ? await featuredRes.json() : {};
     const readerFavoritesData = readerFavoritesRes.ok ? await readerFavoritesRes.json() : {};

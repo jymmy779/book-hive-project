@@ -79,3 +79,105 @@ body {
 .animate-ping-favorite {
   animation: ping-favorite 0.4s;
 }
+
+.startup-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: grid;
+  place-items: center;
+  background: #faf8f5;
+  color: #1c1917;
+}
+
+.startup-screen--waiting {
+  animation: startup-screen-enter 0.32s ease-out both;
+}
+
+.startup-screen--leaving {
+  pointer-events: none;
+  animation: startup-screen-exit 0.48s ease-in both;
+}
+
+.startup-screen__content {
+  width: min(360px, calc(100vw - 48px));
+  text-align: center;
+}
+
+.startup-screen__mark {
+  display: grid;
+  width: 56px;
+  height: 56px;
+  margin: 0 auto 18px;
+  place-items: center;
+  border-radius: 18px;
+  background: #064e3b;
+  color: #fef3c7;
+  font-family: Georgia, serif;
+  font-size: 20px;
+  font-weight: 700;
+  box-shadow: 0 8px 24px rgb(6 78 59 / 18%);
+}
+
+.startup-screen__eyebrow {
+  margin: 0 0 10px;
+  color: #a8a29e;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+}
+
+.startup-screen h1 {
+  margin: 0;
+  font-family: Georgia, serif;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.startup-screen__message {
+  margin: 9px 0 22px;
+  color: #78716c;
+  font-size: 14px;
+}
+
+.startup-screen__track {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #e7e2d9;
+}
+
+.startup-screen__track span {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #064e3b, #d97706);
+  animation: startup-progress 1.35s ease-in-out infinite;
+}
+
+@keyframes startup-progress {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(250%); }
+}
+
+@keyframes startup-screen-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes startup-screen-exit {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .startup-screen--waiting,
+  .startup-screen--leaving {
+    animation-duration: 0.01ms;
+  }
+
+  .startup-screen__track span {
+    animation-duration: 3s;
+  }
+}

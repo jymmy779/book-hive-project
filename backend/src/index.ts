@@ -19,6 +19,11 @@ app.use(
   }),
 );
 
+// Lightweight readiness endpoint used by the frontend while the API starts.
+app.get("/health", (_req: any, res: any) => {
+  res.status(200).json({ status: "ok" });
+});
+
 app.use(cookieParser());
 
 // parse application/json

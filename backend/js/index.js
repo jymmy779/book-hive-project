@@ -13,6 +13,9 @@ app.use(cors({
     origin: `${FRONTEND_URL}`,
     credentials: true,
 }));
+app.get("/health", (_req, res) => {
+    res.status(200).json({ status: "ok" });
+});
 app.use(cookieParser());
 app.use(bodyParser.json());
 clientRoutesApiVer1(app);

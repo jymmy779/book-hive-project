@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import React from "react";
 import AxiosCredentials from "./AxiosCredentials";
+import StartupScreen from "./components/StartupScreen/StartupScreen";
 
 export const metadata: Metadata = {
   title: {
@@ -36,9 +37,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="vi">
       <body className="bg-surface-secondary">
         <AxiosCredentials />
+        <StartupScreen />
         <main>{children}</main>
       </body>
     </html>
