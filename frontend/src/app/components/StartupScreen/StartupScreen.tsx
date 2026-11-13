@@ -1,18 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function StartupScreen() {
   const [phase, setPhase] = useState<"hidden" | "waiting" | "leaving">("hidden");
   const backendWasUnavailable = useRef(false);
-  const routeKeyRef = useRef("");
   const router = useRouter();
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-  const booksQuery = searchParams.toString();
 
   useEffect(() => {
     let active = true;
@@ -23,12 +20,8 @@ export default function StartupScreen() {
     const retryDelay = 1800;
     const maxRetries = 3;
     const isCatalogRoute = pathname === "/books";
-    const routeKey = `${pathname}?${booksQuery}`;
 
-    if (routeKeyRef.current !== routeKey) {
-      routeKeyRef.current = routeKey;
-      if (isCatalogRoute) setPhase("waiting");
-    }
+    if (isCatalogRoute) setPhase("waiting");
 
     const checkBackend = async () => {
       requestController = new AbortController();
@@ -42,7 +35,7 @@ export default function StartupScreen() {
         if (!healthResponse.ok) throw new Error("API health check failed");
 
         if (isCatalogRoute) {
-          const params = new URLSearchParams(booksQuery);
+          const params = new URLSearchParams(window.location.search);
           params.set("page", params.get("page") || "1");
           params.set("limit", "12");
           const [categoriesResponse, booksResponse] = await Promise.all([
@@ -103,7 +96,7 @@ export default function StartupScreen() {
       clearTimeout(retryTimer);
       clearTimeout(leaveTimer);
     };
-  }, [router, pathname, booksQuery]);
+  }, [router, pathname]);
 
   if (phase === "hidden") return null;
 
