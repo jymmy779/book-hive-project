@@ -20,6 +20,14 @@ import "swiper/css";
 import "swiper/css/free-mode";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const CATALOG_CACHE_TTL = 5 * 60_000;
+let catalogCache: {
+  key: string;
+  books: Book[];
+  total: number;
+  categories: { title: string; slug: string }[];
+  savedAt: number;
+} | null = null;
 
 export default function Books() {
   const [activeBanner, setActiveBanner] = useState(0);
@@ -28,14 +36,19 @@ export default function Books() {
   const initialPage = Number(searchParams.get("page")) || 1;
   const initialCategory = searchParams.get("category") || "";
 
-  const [books, setBooks] = useState<Book[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [hasLoadedBooks, setHasLoadedBooks] = useState(false);
+  const initialCacheKey = `${initialCategory}|${initialPage}|`;
+  const validCache = typeof window !== "undefined" && catalogCache &&
+    catalogCache.key === initialCacheKey &&
+    Date.now() - catalogCache.savedAt < CATALOG_CACHE_TTL ? catalogCache : null;
+  const [books, setBooks] = useState<Book[]>(validCache?.books || []);
+  const [loading, setLoading] = useState(!validCache);
+  const hasLoadedBooksRef = useRef(Boolean(validCache));
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(initialPage);
   const [categories, setCategories] = useState<
     { title: string; slug: string }[]
-  >([]);
+  >(() => validCache?.categories || []);
+  const categoriesRef = useRef(categories);
 
   const catalogBanners = [
     "/book-hive-banner-2.webp",
@@ -51,7 +64,7 @@ export default function Books() {
   }, []);
   const [selectedCategory, setSelectedCategory] =
     useState<string>(initialCategory);
-  const [total, setTotal] = useState(0);
+  const [total, setTotal] = useState(validCache?.total || 0);
   const [sort, setSort] = useState<{ key: string; value: 1 | -1 } | null>(null);
   const limit = 12;
   const [sortValue, setSortValue] = useState("");
@@ -98,7 +111,12 @@ export default function Books() {
   useEffect(() => {
     axios
       .get(`${API_URL}/api/v1/books/categories`)
-      .then((res) => setCategories(res.data.categories || []))
+      .then((res) => {
+        const nextCategories = res.data.categories || [];
+        categoriesRef.current = nextCategories;
+        setCategories(nextCategories);
+        if (catalogCache) catalogCache = { ...catalogCache, categories: nextCategories };
+      })
       .catch(() => setCategories([]));
   }, []);
 
@@ -125,7 +143,7 @@ export default function Books() {
   const fetchData = useCallback(() => {
     // Keep the current catalog visible while filters are being refreshed.
     // Show skeletons only for the very first request.
-    if (!hasLoadedBooks) setLoading(true);
+    if (!hasLoadedBooksRef.current) setLoading(true);
     const currentSeq = ++requestSeqRef.current;
 
     axios
@@ -142,13 +160,20 @@ export default function Books() {
         if (currentSeq === requestSeqRef.current) {
           setBooks(res.data.books || []);
           setTotal(res.data.total || 0);
-          setHasLoadedBooks(true);
+          hasLoadedBooksRef.current = true;
+          catalogCache = {
+            key: `${selectedCategory}|${page}|${sort ? `${sort.key}:${sort.value}` : ""}`,
+            books: res.data.books || [],
+            total: res.data.total || 0,
+            categories: categoriesRef.current,
+            savedAt: Date.now(),
+          };
         }
       })
       .catch(() => {
         if (currentSeq === requestSeqRef.current) {
           setBooks([]);
-          setHasLoadedBooks(true);
+          hasLoadedBooksRef.current = true;
         }
       })
       .finally(() => {
@@ -156,7 +181,7 @@ export default function Books() {
           setLoading(false);
         }
       });
-  }, [sort, keyword, page, selectedCategory, hasLoadedBooks]);
+  }, [sort, keyword, page, selectedCategory]);
 
   useEffect(() => {
     fetchData();

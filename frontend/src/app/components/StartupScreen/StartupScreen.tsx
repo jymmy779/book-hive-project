@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
@@ -10,30 +10,21 @@ export default function StartupScreen() {
   const backendWasUnavailable = useRef(false);
   const overlayWasShown = useRef(false);
   const router = useRouter();
-  const pathname = usePathname();
 
   useEffect(() => {
     let active = true;
     let retryTimer: ReturnType<typeof setTimeout>;
     let leaveTimer: ReturnType<typeof setTimeout>;
-    let delayedOverlayTimer: ReturnType<typeof setTimeout>;
     let requestController: AbortController | undefined;
     let consecutiveFailures = 0;
     const retryDelay = 1800;
     const maxRetries = 3;
-    const isCatalogRoute = pathname === "/books";
+    const isCatalogRoute = window.location.pathname === "/books";
 
     const checkBackend = async () => {
       requestController = new AbortController();
       const { signal } = requestController;
       const timeout = setTimeout(() => requestController?.abort(), 12000);
-      delayedOverlayTimer = setTimeout(() => {
-        if (active) {
-          overlayWasShown.current = true;
-          setPhase("waiting");
-        }
-      }, 400);
-
       try {
         const healthResponse = await fetch(`${API_URL}/health`, {
           cache: "no-store", signal,
@@ -94,7 +85,6 @@ export default function StartupScreen() {
         }
       } finally {
         clearTimeout(timeout);
-        clearTimeout(delayedOverlayTimer);
       }
     };
 
@@ -105,9 +95,8 @@ export default function StartupScreen() {
       requestController?.abort();
       clearTimeout(retryTimer);
       clearTimeout(leaveTimer);
-      clearTimeout(delayedOverlayTimer);
     };
-  }, [router, pathname]);
+  }, [router]);
 
   if (phase === "hidden") return null;
 
@@ -121,7 +110,7 @@ export default function StartupScreen() {
       <div className="startup-screen__content">
         <p className="startup-screen__eyebrow">BOOK HIVE</p>
         <h1>Chờ chút nhé</h1>
-        <p className="startup-screen__message">Server đang khởi động...</p>
+        <p className="startup-screen__message">Server (Render) đang khởi động...</p>
         <div className="startup-screen__track" aria-hidden="true">
           <span />
         </div>
