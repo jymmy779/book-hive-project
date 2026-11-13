@@ -1,50 +1,97 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function StartupScreen() {
   const [phase, setPhase] = useState<"hidden" | "waiting" | "leaving">("hidden");
   const backendWasUnavailable = useRef(false);
+  const routeKeyRef = useRef("");
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const booksQuery = searchParams.toString();
 
   useEffect(() => {
     let active = true;
     let retryTimer: ReturnType<typeof setTimeout>;
     let leaveTimer: ReturnType<typeof setTimeout>;
-    const controller = new AbortController();
+    let requestController: AbortController | undefined;
+    let consecutiveFailures = 0;
+    const retryDelay = 1800;
+    const maxRetries = 3;
+    const isCatalogRoute = pathname === "/books";
+    const routeKey = `${pathname}?${booksQuery}`;
+
+    if (routeKeyRef.current !== routeKey) {
+      routeKeyRef.current = routeKey;
+      if (isCatalogRoute) setPhase("waiting");
+    }
 
     const checkBackend = async () => {
-      try {
-        const response = await fetch(`${API_URL}/health`, {
-          cache: "no-store",
-          signal: controller.signal,
-        });
+      requestController = new AbortController();
+      const { signal } = requestController;
+      const timeout = setTimeout(() => requestController?.abort(), 12000);
 
-        if (response.ok) {
-          if (active) {
-            if (backendWasUnavailable.current) {
+      try {
+        const healthResponse = await fetch(`${API_URL}/health`, {
+          cache: "no-store", signal,
+        });
+        if (!healthResponse.ok) throw new Error("API health check failed");
+
+        if (isCatalogRoute) {
+          const params = new URLSearchParams(booksQuery);
+          params.set("page", params.get("page") || "1");
+          params.set("limit", "12");
+          const [categoriesResponse, booksResponse] = await Promise.all([
+            fetch(`${API_URL}/api/v1/books/categories`, { cache: "no-store", signal }),
+            fetch(`${API_URL}/api/v1/books?${params.toString()}`, { cache: "no-store", signal }),
+          ]);
+          if (!categoriesResponse.ok || !booksResponse.ok) {
+            throw new Error("Catalog data is not ready");
+          }
+          await Promise.all([categoriesResponse.json(), booksResponse.json()]);
+        }
+
+        if (active) {
+          consecutiveFailures = 0;
+          if (isCatalogRoute) {
+            setPhase("leaving");
+            leaveTimer = setTimeout(() => {
+              if (active) setPhase("hidden");
+            }, 480);
+          } else if (backendWasUnavailable.current) {
+            setPhase("leaving");
+            leaveTimer = setTimeout(() => {
+              if (active) setPhase("hidden");
+            }, 480);
+            // Re-render server-fetched pages after the backend wakes up.
+            router.refresh();
+          }
+        }
+      } catch {
+        if (active) {
+          consecutiveFailures += 1;
+          // Keep a brief wait and retry when the backend is waking up. After a
+          // few failed attempts, reveal the page so a persistent API error does
+          // not leave the user behind an endless overlay.
+          if (consecutiveFailures >= maxRetries) {
+            if (isCatalogRoute) {
               setPhase("leaving");
               leaveTimer = setTimeout(() => {
                 if (active) setPhase("hidden");
               }, 480);
             }
-            // The first server render may have completed while the backend was
-            // unavailable and returned empty data. Render the current route again.
-            if (backendWasUnavailable.current) router.refresh();
+            return;
           }
-          return;
+          backendWasUnavailable.current = true;
+          setPhase("waiting");
+          retryTimer = setTimeout(checkBackend, retryDelay);
         }
-      } catch {
-        // The API may still be waking up; keep the screen visible and retry.
-      }
-
-      if (active) {
-        backendWasUnavailable.current = true;
-        setPhase("waiting");
-        retryTimer = setTimeout(checkBackend, 1800);
+      } finally {
+        clearTimeout(timeout);
       }
     };
 
@@ -52,11 +99,11 @@ export default function StartupScreen() {
 
     return () => {
       active = false;
-      controller.abort();
+      requestController?.abort();
       clearTimeout(retryTimer);
       clearTimeout(leaveTimer);
     };
-  }, [router]);
+  }, [router, pathname, booksQuery]);
 
   if (phase === "hidden") return null;
 
