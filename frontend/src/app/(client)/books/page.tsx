@@ -30,6 +30,7 @@ export default function Books() {
 
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasLoadedBooks, setHasLoadedBooks] = useState(false);
   const [keyword, setKeyword] = useState("");
   const [page, setPage] = useState(initialPage);
   const [categories, setCategories] = useState<
@@ -122,7 +123,9 @@ export default function Books() {
   };
 
   const fetchData = useCallback(() => {
-    setLoading(true);
+    // Keep the current catalog visible while filters are being refreshed.
+    // Show skeletons only for the very first request.
+    if (!hasLoadedBooks) setLoading(true);
     const currentSeq = ++requestSeqRef.current;
 
     axios
@@ -139,11 +142,13 @@ export default function Books() {
         if (currentSeq === requestSeqRef.current) {
           setBooks(res.data.books || []);
           setTotal(res.data.total || 0);
+          setHasLoadedBooks(true);
         }
       })
       .catch(() => {
         if (currentSeq === requestSeqRef.current) {
           setBooks([]);
+          setHasLoadedBooks(true);
         }
       })
       .finally(() => {
@@ -151,7 +156,7 @@ export default function Books() {
           setLoading(false);
         }
       });
-  }, [sort, keyword, page, selectedCategory]);
+  }, [sort, keyword, page, selectedCategory, hasLoadedBooks]);
 
   useEffect(() => {
     fetchData();
