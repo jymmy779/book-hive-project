@@ -31,6 +31,7 @@ export default function Login() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
     reset,
   } = useForm<LoginForm>({
@@ -144,6 +145,17 @@ export default function Login() {
             ) : (
               <><FiLock size={16} aria-hidden="true" /> Đăng nhập</>
             )}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setValue("email", "admin@bookhive.demo", { shouldValidate: true });
+              setValue("password", "123456", { shouldValidate: true });
+            }}
+            disabled={loading}
+            className="inline-flex w-full items-center justify-center rounded-lg border border-primary/25 bg-primary/5 py-2.5 text-sm font-semibold text-primary transition-colors hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-70"
+          >
+            Dùng tài khoản demo admin
           </button>
         </form>
       </div>
