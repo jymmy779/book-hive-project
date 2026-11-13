@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import React from "react";
+import React, { Suspense } from "react";
 import AxiosCredentials from "./AxiosCredentials";
 import StartupScreen from "./components/StartupScreen/StartupScreen";
 
@@ -40,7 +40,9 @@ export default function RootLayout({
     <html lang="vi">
       <body className="bg-surface-secondary">
         <AxiosCredentials />
-        <StartupScreen />
+        <Suspense fallback={null}>
+          <StartupScreen />
+        </Suspense>
         <main>{children}</main>
       </body>
     </html>
