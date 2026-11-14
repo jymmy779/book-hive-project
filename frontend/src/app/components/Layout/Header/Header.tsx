@@ -19,12 +19,13 @@ import {
 } from "react-icons/fi";
 
 let cachedCategories: { title: string; slug: string }[] | null = null;
+const EMPTY_CATEGORIES: { title: string; slug: string }[] = [];
 
 type HeaderProps = {
   initialCategories?: { title: string; slug: string }[];
 };
 
-export const Header = ({ initialCategories = [] }: HeaderProps) => {
+export const Header = ({ initialCategories = EMPTY_CATEGORIES }: HeaderProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { getTotalItems } = useCart();
@@ -73,7 +74,10 @@ export const Header = ({ initialCategories = [] }: HeaderProps) => {
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL;
     fetch(`${API_URL}/api/v1/books/categories`)
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load book categories");
+        return res.json();
+      })
       .then((data) => {
         const list = data.categories || [];
         cachedCategories = list;

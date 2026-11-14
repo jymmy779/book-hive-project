@@ -7,7 +7,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function StartupScreen() {
   const [phase, setPhase] = useState<"hidden" | "waiting" | "leaving">(
-    "waiting",
+    "hidden",
   );
   const backendWasUnavailable = useRef(false);
   const overlayWasShown = useRef(false);

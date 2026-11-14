@@ -85,6 +85,8 @@ const bookSchema = new mongoose.Schema(
 
 bookSchema.index({ deleted: 1, status: 1, featured: 1 });
 bookSchema.index({ deleted: 1, status: 1, category_id: 1 });
+bookSchema.index({ deleted: 1, status: 1, position: -1 });
+bookSchema.index({ deleted: 1, status: 1, category_id: 1, position: -1 });
 // Indexed keyword search across book metadata; prioritize title and author matches.
 bookSchema.index(
   { title: "text", author: "text", description: "text" },

@@ -30,6 +30,7 @@ const categorySchema = new mongoose.Schema(
 
 categorySchema.index({ deleted: 1, status: 1, slug: 1 });
 categorySchema.index({ deleted: 1, status: 1, title: 1 });
+categorySchema.index({ deleted: 1, status: 1, position: 1, title: 1 });
 categorySchema.index(
   { title: "text", slug: "text" },
   { name: "category_catalog_text", default_language: "none" },

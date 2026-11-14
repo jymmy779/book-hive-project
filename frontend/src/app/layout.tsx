@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import React, { Suspense } from "react";
+import React from "react";
 import AxiosCredentials from "./AxiosCredentials";
-import StartupScreen from "./components/StartupScreen/StartupScreen";
 
 export const metadata: Metadata = {
   title: {
@@ -40,9 +39,6 @@ export default function RootLayout({
     <html lang="vi">
       <body className="bg-surface-secondary">
         <AxiosCredentials />
-        <Suspense fallback={null}>
-          <StartupScreen />
-        </Suspense>
         <main>{children}</main>
       </body>
     </html>

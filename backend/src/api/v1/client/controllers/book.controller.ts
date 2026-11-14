@@ -5,6 +5,7 @@ const { getBookDescription } = require("../../../../helpers/bookDescription");
 // [GET] /api/v1/books
 module.exports.index = async (req, res) => {
   try {
+    res.set("Cache-Control", "public, max-age=30, s-maxage=30, stale-while-revalidate=120");
     const keyword = String(req.query.keyWord || "").trim();
     const categorySlug = req.query.categorySlug;
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
@@ -323,6 +324,7 @@ module.exports.bestSeller = async (req, res) => {
 // [GET] /api/v1/books/categories
 module.exports.categories = async (_req, res) => {
   try {
+    res.set("Cache-Control", "public, max-age=60, s-maxage=60, stale-while-revalidate=300");
     const [categories, bookCounts] = await Promise.all([
       Category.find({ deleted: false, status: "active" })
         .select("title slug description")
