@@ -6,7 +6,9 @@ import { useRouter } from "next/navigation";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
 
 export default function StartupScreen() {
-  const [phase, setPhase] = useState<"hidden" | "waiting" | "leaving">("hidden");
+  const [phase, setPhase] = useState<"hidden" | "waiting" | "leaving">(
+    "waiting",
+  );
   const backendWasUnavailable = useRef(false);
   const overlayWasShown = useRef(false);
   const router = useRouter();
@@ -27,7 +29,8 @@ export default function StartupScreen() {
       const timeout = setTimeout(() => requestController?.abort(), 12000);
       try {
         const healthResponse = await fetch(`${API_URL}/health`, {
-          cache: "no-store", signal,
+          cache: "no-store",
+          signal,
         });
         if (!healthResponse.ok) throw new Error("API health check failed");
 
@@ -36,8 +39,14 @@ export default function StartupScreen() {
           params.set("page", params.get("page") || "1");
           params.set("limit", "12");
           const [categoriesResponse, booksResponse] = await Promise.all([
-            fetch(`${API_URL}/api/v1/books/categories`, { cache: "no-store", signal }),
-            fetch(`${API_URL}/api/v1/books?${params.toString()}`, { cache: "no-store", signal }),
+            fetch(`${API_URL}/api/v1/books/categories`, {
+              cache: "no-store",
+              signal,
+            }),
+            fetch(`${API_URL}/api/v1/books?${params.toString()}`, {
+              cache: "no-store",
+              signal,
+            }),
           ]);
           if (!categoriesResponse.ok || !booksResponse.ok) {
             throw new Error("Catalog data is not ready");
@@ -110,7 +119,9 @@ export default function StartupScreen() {
       <div className="startup-screen__content">
         <p className="startup-screen__eyebrow">BOOK HIVE</p>
         <h1>Chờ chút nhé</h1>
-        <p className="startup-screen__message">Server (Render) đang khởi động...</p>
+        <p className="startup-screen__message">
+          Server (Render) đang khởi động...
+        </p>
         <div className="startup-screen__track" aria-hidden="true">
           <span />
         </div>
